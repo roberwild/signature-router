@@ -29,10 +29,13 @@ class RoutingRuleAuditServiceTest {
     @Mock
     private RoutingRuleAuditLogJpaRepository repository;
     
+    @Mock
+    private com.bank.signature.infrastructure.logging.AuditLogger auditLogger;
+    
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        service = new RoutingRuleAuditService(repository);
+        service = new RoutingRuleAuditService(repository, auditLogger);
     }
     
     @Test

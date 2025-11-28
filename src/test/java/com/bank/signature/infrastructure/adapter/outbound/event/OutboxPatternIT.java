@@ -226,7 +226,7 @@ class OutboxPatternIT {
         
         // When/Then - Should fail with Propagation.MANDATORY
         assertThatThrownBy(() -> eventPublisher.publish(event))
-            .isInstanceOf(IllegalTransactionStateException.class);
+            .isInstanceOf(org.springframework.transaction.IllegalTransactionStateException.class);
     }
     
     @Test

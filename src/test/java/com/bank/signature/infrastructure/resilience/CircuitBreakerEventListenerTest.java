@@ -99,7 +99,7 @@ class CircuitBreakerEventListenerTest {
         assertThat(event.failureRate()).isEqualTo(65.5f);
         assertThat(event.threshold()).isEqualTo(50.0f);
         assertThat(event.degradedModeDuration()).isEqualTo("PT5M");
-        assertThat(event.traceId()).isEqualTo("test-trace-123");
+        assertThat(event.correlationId()).isEqualTo("test-trace-123");
     }
     
     @Test
@@ -123,7 +123,7 @@ class CircuitBreakerEventListenerTest {
         assertThat(event.fromState()).isEqualTo(CircuitBreaker.State.OPEN);
         assertThat(event.toState()).isEqualTo(CircuitBreaker.State.HALF_OPEN);
         assertThat(event.permittedTestCalls()).isEqualTo(3);
-        assertThat(event.traceId()).isEqualTo("test-trace-123");
+        assertThat(event.correlationId()).isEqualTo("test-trace-123");
     }
     
     @Test
@@ -147,7 +147,7 @@ class CircuitBreakerEventListenerTest {
         assertThat(event.fromState()).isEqualTo(CircuitBreaker.State.HALF_OPEN);
         assertThat(event.toState()).isEqualTo(CircuitBreaker.State.CLOSED);
         assertThat(event.recoveryDuration()).isNotNull();
-        assertThat(event.traceId()).isEqualTo("test-trace-123");
+        assertThat(event.correlationId()).isEqualTo("test-trace-123");
     }
     
     @Test
@@ -172,7 +172,7 @@ class CircuitBreakerEventListenerTest {
         assertThat(event.toState()).isEqualTo(CircuitBreaker.State.OPEN);
         assertThat(event.failureRate()).isEqualTo(65.5f);
         assertThat(event.nextRetryWaitDuration()).isEqualTo("PT30S");
-        assertThat(event.traceId()).isEqualTo("test-trace-123");
+        assertThat(event.correlationId()).isEqualTo("test-trace-123");
     }
     
     @Test
@@ -191,7 +191,7 @@ class CircuitBreakerEventListenerTest {
         assertThat(event.providerType()).isEqualTo(ProviderType.SMS);
         assertThat(event.resetBy()).isEqualTo("admin");
         assertThat(event.resetReason()).isEqualTo("Manual circuit breaker reset");
-        assertThat(event.traceId()).isEqualTo("test-trace-123");
+        assertThat(event.correlationId()).isEqualTo("test-trace-123");
     }
     
     @Test

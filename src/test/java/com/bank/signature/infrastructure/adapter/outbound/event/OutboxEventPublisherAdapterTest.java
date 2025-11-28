@@ -186,7 +186,7 @@ class OutboxEventPublisherAdapterTest {
     }
     
     @Test
-    void shouldThrowExceptionWhenSerializationFails() {
+    void shouldThrowExceptionWhenSerializationFails() throws Exception {
         // Given
         ObjectMapper faultyMapper = mock(ObjectMapper.class);
         when(faultyMapper.writeValueAsString(any())).thenThrow(new RuntimeException("Serialization error"));

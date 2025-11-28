@@ -25,23 +25,15 @@ class AvroEventMapperTest {
         UUID eventId = UuidCreator.getTimeOrderedEpoch();
         Instant now = Instant.now();
 
-        SignatureCompletedEvent domainEvent = SignatureCompletedEvent.builder()
-            .eventId(eventId)
-            .occurredAt(now)
-            .aggregateId(requestId)
-            .aggregateType("SignatureRequest")
-            .eventType("SIGNATURE_COMPLETED")
-            .correlationId("corr-123")
-            .requestId(requestId)
-            .userId("user-hash-123")
-            .transactionType("TRANSFER")
-            .transactionAmount(1500.00)
-            .provider("SMS_TWILIO")
-            .channel("SMS")
-            .verifiedCodeHash("sha256-hash")
-            .completedAt(now)
-            .timeTakenMs(5000L)
-            .build();
+        com.bank.signature.domain.event.SignatureCompletedEvent domainEvent = 
+            new com.bank.signature.domain.event.SignatureCompletedEvent(
+                eventId,
+                requestId,
+                UUID.randomUUID(),
+                com.bank.signature.domain.model.valueobject.ChannelType.SMS,
+                now,
+                "corr-123"
+            );
 
         // When: Map to Avro
         com.bank.signature.events.avro.SignatureCompletedEvent avroEvent = mapper.toAvro(domainEvent);
@@ -76,20 +68,15 @@ class AvroEventMapperTest {
         UUID eventId = UuidCreator.getTimeOrderedEpoch();
         Instant now = Instant.now();
 
-        SignatureAbortedEvent domainEvent = SignatureAbortedEvent.builder()
-            .eventId(eventId)
-            .occurredAt(now)
-            .aggregateId(requestId)
-            .aggregateType("SignatureRequest")
-            .eventType("SIGNATURE_ABORTED")
-            .correlationId("corr-456")
-            .requestId(requestId)
-            .userId("user-hash-456")
-            .transactionType("PAYMENT")
-            .abortReason("FRAUD_SUSPECTED")
-            .abortedBy("admin-001")
-            .abortedAt(now)
-            .build();
+        com.bank.signature.domain.event.SignatureAbortedEvent domainEvent =
+            new com.bank.signature.domain.event.SignatureAbortedEvent(
+                eventId,
+                requestId,
+                com.bank.signature.domain.model.valueobject.AbortReason.FRAUD_DETECTED,
+                "Suspicious activity detected",
+                now,
+                "corr-456"
+            );
 
         // When: Map to Avro
         com.bank.signature.events.avro.SignatureAbortedEvent avroEvent = mapper.toAvro(domainEvent);
@@ -119,19 +106,23 @@ class AvroEventMapperTest {
         UUID eventId = UuidCreator.getTimeOrderedEpoch();
         Instant now = Instant.now();
 
-        CircuitBreakerOpenedEvent domainEvent = CircuitBreakerOpenedEvent.builder()
-            .eventId(eventId)
-            .occurredAt(now)
-            .aggregateId(cbId)
-            .aggregateType("CircuitBreaker")
-            .eventType("CIRCUIT_BREAKER_OPENED")
-            .correlationId("corr-cb-123")
-            .providerName("SMS_TWILIO")
-            .failureRate(0.75f)
-            .failureThreshold(0.5f)
-            .totalCalls(100)
-            .failedCalls(75)
-            .build();
+        com.bank.signature.domain.event.CircuitBreakerOpenedEvent domainEvent =
+            new com.bank.signature.domain.event.CircuitBreakerOpenedEvent(
+                eventId,
+                com.bank.signature.domain.model.valueobject.ProviderType.SMS,
+                io.github.resilience4j.circuitbreaker.CircuitBreaker.State.CLOSED,
+                io.github.resilience4j.circuitbreaker.CircuitBreaker.State.OPEN,
+                now,
+                0.75f,  // failureRate
+                0.1f,   // slowCallRate
+                100,    // bufferedCalls
+                75,     // failedCalls
+                25,     // successfulCalls
+                5,      // slowCalls
+                0.5f,   // threshold
+                "PT5M", // degradedModeDuration
+                "corr-cb-123"
+            );
 
         // When: Map to Avro
         com.bank.signature.events.avro.CircuitBreakerOpenedEvent avroEvent = mapper.toAvro(domainEvent);
@@ -160,16 +151,20 @@ class AvroEventMapperTest {
         UUID eventId = UuidCreator.getTimeOrderedEpoch();
         Instant now = Instant.now();
 
-        CircuitBreakerClosedEvent domainEvent = CircuitBreakerClosedEvent.builder()
-            .eventId(eventId)
-            .occurredAt(now)
-            .aggregateId(cbId)
-            .aggregateType("CircuitBreaker")
-            .eventType("CIRCUIT_BREAKER_CLOSED")
-            .correlationId("corr-cb-456")
-            .providerName("SMS_TWILIO")
-            .downtimeDurationMs(300000L)  // 5 minutes
-            .build();
+        com.bank.signature.domain.event.CircuitBreakerClosedEvent domainEvent =
+            new com.bank.signature.domain.event.CircuitBreakerClosedEvent(
+                eventId,
+                com.bank.signature.domain.model.valueobject.ProviderType.SMS,
+                io.github.resilience4j.circuitbreaker.CircuitBreaker.State.HALF_OPEN,
+                io.github.resilience4j.circuitbreaker.CircuitBreaker.State.CLOSED,
+                now,
+                100,    // bufferedCalls
+                5,      // failedCalls
+                95,     // successfulCalls
+                0.05f,  // failureRate
+                "PT5M", // recoveryDuration
+                "corr-cb-456"
+            );
 
         // When: Map to Avro
         com.bank.signature.events.avro.CircuitBreakerClosedEvent avroEvent = mapper.toAvro(domainEvent);
@@ -190,23 +185,15 @@ class AvroEventMapperTest {
     @Test
     void shouldHandleNullCorrelationId() {
         // Given: Event without correlation ID
-        SignatureCompletedEvent domainEvent = SignatureCompletedEvent.builder()
-            .eventId(UuidCreator.getTimeOrderedEpoch())
-            .occurredAt(Instant.now())
-            .aggregateId(UuidCreator.getTimeOrderedEpoch())
-            .aggregateType("SignatureRequest")
-            .eventType("SIGNATURE_COMPLETED")
-            .correlationId(null)  // No correlation ID
-            .requestId(UuidCreator.getTimeOrderedEpoch())
-            .userId("user-123")
-            .transactionType("TRANSFER")
-            .transactionAmount(100.0)
-            .provider("SMS_TWILIO")
-            .channel("SMS")
-            .verifiedCodeHash("hash")
-            .completedAt(Instant.now())
-            .timeTakenMs(1000L)
-            .build();
+        com.bank.signature.domain.event.SignatureCompletedEvent domainEvent =
+            new com.bank.signature.domain.event.SignatureCompletedEvent(
+                UuidCreator.getTimeOrderedEpoch(),
+                UuidCreator.getTimeOrderedEpoch(),
+                UUID.randomUUID(),
+                com.bank.signature.domain.model.valueobject.ChannelType.SMS,
+                Instant.now(),
+                null  // No correlation ID
+            );
 
         // When: Map to Avro
         com.bank.signature.events.avro.SignatureCompletedEvent avroEvent = mapper.toAvro(domainEvent);
