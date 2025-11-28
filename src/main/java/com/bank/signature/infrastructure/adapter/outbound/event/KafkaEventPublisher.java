@@ -37,6 +37,30 @@ public class KafkaEventPublisher implements EventPublisher {
     private String circuitBreakerEventsTopic;
     
     @Override
+    public void publish(DomainEvent event) {
+        log.debug("Publishing generic domain event: type={}, aggregateId={}", 
+            event.getEventType(), event.getAggregateId());
+        
+        // Delegate to specific methods based on event type
+        switch (event) {
+            case SignatureCompletedEvent e -> publishSignatureCompleted(e);
+            case SignatureAbortedEvent e -> publishSignatureAborted(e);
+            case CircuitBreakerOpenedEvent e -> publishCircuitBreakerOpened(e);
+            case CircuitBreakerHalfOpenEvent e -> publishCircuitBreakerHalfOpen(e);
+            case CircuitBreakerClosedEvent e -> publishCircuitBreakerClosed(e);
+            case CircuitBreakerFailedRecoveryEvent e -> publishCircuitBreakerFailedRecovery(e);
+            case CircuitBreakerResetEvent e -> publishCircuitBreakerReset(e);
+            default -> log.warn("Unknown event type: {}", event.getClass().getName());
+        }
+    }
+    
+    @Override
+    public void publishAll(java.util.List<DomainEvent> events) {
+        log.debug("Publishing {} domain events in batch", events.size());
+        events.forEach(this::publish);
+    }
+    
+    @Override
     public void publishSignatureCompleted(SignatureCompletedEvent event) {
         log.info("Publishing SignatureCompletedEvent: signatureRequestId={}, channel={}", 
             event.signatureRequestId(), event.channelType());

@@ -29,13 +29,13 @@ public class AvroEventMapper {
      */
     public Object toAvro(DomainEvent domainEvent) {
         return switch (domainEvent) {
-            case SignatureCompletedEvent event -> toAvro(event);
-            case SignatureAbortedEvent event -> toAvro(event);
-            case CircuitBreakerOpenedEvent event -> toAvro(event);
-            case CircuitBreakerClosedEvent event -> toAvro(event);
-            case CircuitBreakerHalfOpenEvent event -> toAvro(event);
-            case CircuitBreakerFailedRecoveryEvent event -> toAvro(event);
-            case CircuitBreakerResetEvent event -> toAvro(event);
+            case com.bank.signature.domain.event.SignatureCompletedEvent event -> toAvro(event);
+            case com.bank.signature.domain.event.SignatureAbortedEvent event -> toAvro(event);
+            case com.bank.signature.domain.event.CircuitBreakerOpenedEvent event -> toAvro(event);
+            case com.bank.signature.domain.event.CircuitBreakerClosedEvent event -> toAvro(event);
+            case com.bank.signature.domain.event.CircuitBreakerHalfOpenEvent event -> toAvro(event);
+            case com.bank.signature.domain.event.CircuitBreakerFailedRecoveryEvent event -> toAvro(event);
+            case com.bank.signature.domain.event.CircuitBreakerResetEvent event -> toAvro(event);
             default -> throw new IllegalArgumentException(
                 "Unknown domain event type: " + domainEvent.getClass().getName());
         };
@@ -56,16 +56,16 @@ public class AvroEventMapper {
             .setCorrelationId(domain.getCorrelationId())
             .setVersion(1)
             .setPayload(SignatureCompletedPayload.newBuilder()
-                .setRequestId(domain.requestId().toString())
-                .setUserId(domain.userId())
-                .setTransactionType(domain.transactionType())
-                .setTransactionAmount(domain.transactionAmount())
-                .setProvider(domain.provider())
-                .setChannel(domain.channel())
-                .setVerifiedCode(domain.verifiedCodeHash())
+                .setRequestId(domain.signatureRequestId().toString())
+                .setUserId("pseudonymized-user") // TODO: Get from aggregate
+                .setTransactionType("SIGNATURE_VERIFICATION")
+                .setTransactionAmount(null)
+                .setProvider("UNKNOWN") // TODO: Get from aggregate
+                .setChannel(domain.channelType().toString())
+                .setVerifiedCode("hashed") // TODO: Get from aggregate
                 .setStatus("COMPLETED")
                 .setCompletedAt(domain.completedAt().toEpochMilli())
-                .setTimeTakenMs(domain.timeTakenMs())
+                .setTimeTakenMs(0L) // TODO: Calculate from aggregate
                 .build())
             .build();
     }
@@ -85,11 +85,11 @@ public class AvroEventMapper {
             .setCorrelationId(domain.getCorrelationId())
             .setVersion(1)
             .setPayload(SignatureAbortedPayload.newBuilder()
-                .setRequestId(domain.requestId().toString())
-                .setUserId(domain.userId())
-                .setTransactionType(domain.transactionType())
-                .setAbortReason(domain.abortReason())
-                .setAbortedBy(domain.abortedBy())
+                .setRequestId(domain.signatureRequestId().toString())
+                .setUserId("pseudonymized-user") // TODO: Get from aggregate
+                .setTransactionType("SIGNATURE_VERIFICATION")
+                .setAbortReason(domain.reason().toString())
+                .setAbortedBy("system") // TODO: Get from domain event
                 .setStatus("ABORTED")
                 .setAbortedAt(domain.abortedAt().toEpochMilli())
                 .build())
@@ -111,10 +111,10 @@ public class AvroEventMapper {
             .setCorrelationId(domain.getCorrelationId())
             .setVersion(1)
             .setPayload(CircuitBreakerOpenedPayload.newBuilder()
-                .setProviderName(domain.providerName())
+                .setProviderName(domain.providerType().toString())
                 .setFailureRate(domain.failureRate())
-                .setFailureThreshold(domain.failureThreshold())
-                .setTotalCalls(domain.totalCalls())
+                .setFailureThreshold(domain.threshold())
+                .setTotalCalls(domain.bufferedCalls())
                 .setFailedCalls(domain.failedCalls())
                 .setState("OPEN")
                 .setOpenedAt(domain.occurredAt().toEpochMilli())
@@ -137,10 +137,10 @@ public class AvroEventMapper {
             .setCorrelationId(domain.getCorrelationId())
             .setVersion(1)
             .setPayload(CircuitBreakerClosedPayload.newBuilder()
-                .setProviderName(domain.providerName())
+                .setProviderName(domain.providerType().toString())
                 .setState("CLOSED")
                 .setClosedAt(domain.occurredAt().toEpochMilli())
-                .setDowntimeDurationMs(domain.downtimeDurationMs())
+                .setDowntimeDurationMs(parseDurationToMillis(domain.recoveryDuration()))
                 .build())
             .build();
     }
@@ -161,11 +161,11 @@ public class AvroEventMapper {
             .setCorrelationId(domain.getCorrelationId())
             .setVersion(1)
             .setPayload(CircuitBreakerOpenedPayload.newBuilder()
-                .setProviderName(domain.providerName())
+                .setProviderName(domain.providerType().toString())
                 .setFailureRate(0.0f)  // Not applicable for HALF_OPEN
                 .setFailureThreshold(0.0f)
-                .setTotalCalls(0)
-                .setFailedCalls(0)
+                .setTotalCalls(domain.bufferedCalls())
+                .setFailedCalls(domain.failedCalls())
                 .setState("HALF_OPEN")
                 .setOpenedAt(domain.occurredAt().toEpochMilli())
                 .build())
@@ -187,11 +187,11 @@ public class AvroEventMapper {
             .setCorrelationId(domain.getCorrelationId())
             .setVersion(1)
             .setPayload(CircuitBreakerOpenedPayload.newBuilder()
-                .setProviderName(domain.providerName())
-                .setFailureRate(0.0f)
-                .setFailureThreshold(0.0f)
-                .setTotalCalls(0)
-                .setFailedCalls(0)
+                .setProviderName(domain.providerType().toString())
+                .setFailureRate(domain.failureRate())
+                .setFailureThreshold(0.5f)  // Default threshold
+                .setTotalCalls(domain.bufferedCalls())
+                .setFailedCalls(domain.failedCalls())
                 .setState("OPEN")
                 .setOpenedAt(domain.occurredAt().toEpochMilli())
                 .build())
@@ -213,12 +213,25 @@ public class AvroEventMapper {
             .setCorrelationId(domain.getCorrelationId())
             .setVersion(1)
             .setPayload(CircuitBreakerClosedPayload.newBuilder()
-                .setProviderName(domain.providerName())
+                .setProviderName(domain.providerType().toString())
                 .setState("CLOSED")
                 .setClosedAt(domain.occurredAt().toEpochMilli())
                 .setDowntimeDurationMs(0L)  // Reset = no downtime
                 .build())
             .build();
+    }
+    
+    /**
+     * Helper method to parse ISO-8601 duration string to milliseconds.
+     * @param duration ISO-8601 duration (e.g., "PT2M30S" = 2 minutes 30 seconds)
+     * @return Duration in milliseconds
+     */
+    private long parseDurationToMillis(String duration) {
+        try {
+            return java.time.Duration.parse(duration).toMillis();
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 }
 

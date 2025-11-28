@@ -17,6 +17,18 @@ import org.springframework.stereotype.Component;
 public class NoOpEventPublisher implements EventPublisher {
     
     @Override
+    public void publish(DomainEvent event) {
+        log.info("[NoOp] Would publish domain event: type={}, aggregateId={}", 
+            event.getEventType(), event.getAggregateId());
+    }
+    
+    @Override
+    public void publishAll(java.util.List<DomainEvent> events) {
+        log.info("[NoOp] Would publish {} domain events in batch", events.size());
+        events.forEach(this::publish);
+    }
+    
+    @Override
     public void publishSignatureCompleted(SignatureCompletedEvent event) {
         log.info("[NoOp] Would publish SignatureCompletedEvent: {}", event);
     }
