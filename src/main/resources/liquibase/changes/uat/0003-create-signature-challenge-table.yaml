@@ -1,0 +1,118 @@
+databaseChangeLog:
+  - changeSet:
+      id: "0003"
+      author: "BMAD Dev Agent <bmad@signature-router.com>"
+      context: uat
+      comment: "Create signature_challenge table - Entity for provider challenges with non-repudiation proof"
+      changes:
+        - createTable:
+            tableName: signature_challenge
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: uuid_generate_v7()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: signature_request_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: channel_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: provider_challenge_id
+                  type: varchar(255)
+              - column:
+                  name: provider_proof
+                  type: text
+              - column:
+                  name: challenge_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sent_at
+                  type: timestamp with time zone
+              - column:
+                  name: responded_at
+                  type: timestamp with time zone
+              - column:
+                  name: expires_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: error_code
+                  type: varchar(100)
+              - column:
+                  name: raw_response
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+        
+        # FK constraint with CASCADE delete (when parent request is deleted, challenges are also deleted)
+        - addForeignKeyConstraint:
+            baseTableName: signature_challenge
+            baseColumnNames: signature_request_id
+            constraintName: fk_challenge_signature_request
+            referencedTableName: signature_request
+            referencedColumnNames: id
+            onDelete: CASCADE
+        
+        # CHECK constraints (using SQL for compatibility)
+        - sql:
+            sql: |
+              ALTER TABLE signature_challenge ADD CONSTRAINT chk_signature_challenge_channel_type CHECK (channel_type IN ('SMS', 'PUSH', 'VOICE', 'BIOMETRIC'));
+              ALTER TABLE signature_challenge ADD CONSTRAINT chk_signature_challenge_status CHECK (status IN ('PENDING', 'SENT', 'COMPLETED', 'FAILED', 'EXPIRED'));
+        
+        # B-tree index on FK (signature_request_id) for efficient joins
+        - createIndex:
+            indexName: idx_challenge_signature_request_id
+            tableName: signature_challenge
+            columns:
+              - column:
+                  name: signature_request_id
+        
+        # Composite index on provider + status (frequent query pattern)
+        - createIndex:
+            indexName: idx_challenge_provider_status
+            tableName: signature_challenge
+            columns:
+              - column:
+                  name: provider
+              - column:
+                  name: status
+        
+        # Table and column comments
+        - sql:
+            sql: |
+              COMMENT ON TABLE signature_challenge IS 'Entity for signature challenges sent to external providers (DDD)';
+              COMMENT ON COLUMN signature_challenge.provider_proof IS 'Cryptographic receipt from provider for non-repudiation (PCI-DSS compliance)';
+              COMMENT ON COLUMN signature_challenge.provider_challenge_id IS 'External provider challenge identifier (e.g., Twilio Message SID)';
+              COMMENT ON COLUMN signature_challenge.raw_response IS 'Full provider response for debugging and audit';
+      
+      rollback:
+        - dropTable:
+            tableName: signature_challenge
+            cascade: true
+

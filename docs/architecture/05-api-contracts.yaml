@@ -1,0 +1,953 @@
+openapi: 3.1.0
+info:
+  title: Signature Router & Management System API
+  version: 1.0.0
+  description: |
+    Banking-grade digital signature orchestration system.
+    Supports multiple channels: SMS, Push, Voice, Biometric.
+    
+    ## Features
+    - Dynamic routing with SpEL rules
+    - Automatic fallback on failure
+    - Provider degraded mode handling
+    - Complete audit trail
+    - Idempotency support
+    
+    ## SLOs
+    - P99 latency: < 300ms
+    - Availability: ≥ 99.9%
+    - Error rate: < 0.1%
+    
+  contact:
+    name: Banking Platform Team
+    email: platform@bank.com
+  
+servers:
+  - url: https://api.bank.com/signature-router/v1
+    description: Production
+  - url: https://api-staging.bank.com/signature-router/v1
+    description: Staging
+  - url: http://localhost:8080/api/v1
+    description: Local Development
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+
+tags:
+  - name: Signatures
+    description: Signature request operations
+  - name: Admin - Rules
+    description: Routing rule management (Admin only)
+  - name: Admin - Connectors
+    description: Provider connector configuration (Admin only)
+  - name: Health
+    description: Health and monitoring endpoints
+
+paths:
+  # ============================================================
+  # SIGNATURES API
+  # ============================================================
+  
+  /signatures:
+    post:
+      tags: [Signatures]
+      summary: Create signature request
+      description: |
+        Initiates a signature request for a transaction.
+        
+        **Process**:
+        1. Evaluate routing rules against transaction context
+        2. Select appropriate channel (SMS/Push/Voice/Biometric)
+        3. Create challenge and send to provider
+        4. Return signature request with status
+        
+        **Idempotency**: Use `Idempotency-Key` header to prevent duplicates.
+        Same key within 24h returns same response (201 or 200).
+      
+      operationId: createSignature
+      
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID for idempotency (client-generated)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSignatureRequest'
+            examples:
+              highRiskTransaction:
+                summary: High risk transaction
+                value:
+                  customerId: "CUST_8f7a6b5c4d3e2f1a"
+                  transactionContext:
+                    transactionId: "TXN_123456789"
+                    transactionType: "WIRE_TRANSFER"
+                    amount:
+                      value: 50000.00
+                      currency: "USD"
+                    riskLevel: "HIGH"
+                    destination: "EXTERNAL_ACCOUNT"
+                    timestamp: "2025-11-26T10:30:00Z"
+              lowRiskTransaction:
+                summary: Low risk transaction
+                value:
+                  customerId: "CUST_8f7a6b5c4d3e2f1a"
+                  transactionContext:
+                    transactionId: "TXN_987654321"
+                    transactionType: "P2P_TRANSFER"
+                    amount:
+                      value: 50.00
+                      currency: "USD"
+                    riskLevel: "LOW"
+                    timestamp: "2025-11-26T10:30:00Z"
+      
+      responses:
+        '201':
+          description: Signature request created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+              description: URI of created resource
+              example: "/api/v1/signatures/018c7f5e-1234-7890-abcd-ef1234567890"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+              example:
+                id: "018c7f5e-1234-7890-abcd-ef1234567890"
+                customerId: "CUST_8f7a6b5c4d3e2f1a"
+                status: "CHALLENGE_SENT"
+                transactionContextHash: "a3d5f8e9..."
+                activeChallenge:
+                  id: "018c7f5e-5678-7890-abcd-ef1234567890"
+                  channelType: "SMS"
+                  provider: "TWILIO"
+                  status: "SENT"
+                  sentAt: "2025-11-26T10:30:01.234Z"
+                  expiresAt: "2025-11-26T10:33:00Z"
+                routingTimeline:
+                  - timestamp: "2025-11-26T10:30:00.123Z"
+                    event: "REQUEST_CREATED"
+                    details: "Signature request created"
+                  - timestamp: "2025-11-26T10:30:00.456Z"
+                    event: "RULE_EVALUATED"
+                    details: "Rule 'High Risk Transactions' matched → SMS"
+                  - timestamp: "2025-11-26T10:30:01.234Z"
+                    event: "CHALLENGE_SENT"
+                    details: "SMS challenge sent via TWILIO"
+                createdAt: "2025-11-26T10:30:00.123Z"
+                expiresAt: "2025-11-26T10:33:00Z"
+        
+        '200':
+          description: Idempotent request - signature already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+        
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "VALIDATION_ERROR"
+                message: "Invalid transaction context"
+                details:
+                  - field: "transactionContext.amount.value"
+                    error: "Must be greater than 0"
+                timestamp: "2025-11-26T10:30:00Z"
+                traceId: "trace-abc123"
+        
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        
+        '503':
+          description: All providers unavailable (degraded mode)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "SERVICE_UNAVAILABLE"
+                message: "All signature providers are currently unavailable"
+                timestamp: "2025-11-26T10:30:00Z"
+                traceId: "trace-abc123"
+  
+  /signatures/{id}:
+    get:
+      tags: [Signatures]
+      summary: Get signature request
+      description: |
+        Retrieve signature request details including:
+        - Current status
+        - Active challenge (if any)
+        - Complete routing timeline
+        - All attempts and fallbacks
+      
+      operationId: getSignature
+      
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Signature request ID
+          example: "018c7f5e-1234-7890-abcd-ef1234567890"
+      
+      responses:
+        '200':
+          description: Signature request found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignatureResponse'
+              example:
+                id: "018c7f5e-1234-7890-abcd-ef1234567890"
+                customerId: "CUST_8f7a6b5c4d3e2f1a"
+                status: "SIGNED"
+                transactionContextHash: "a3d5f8e9..."
+                activeChallenge: null
+                completedChallenge:
+                  id: "018c7f5e-7890-7890-abcd-ef1234567890"
+                  channelType: "SMS"
+                  provider: "TWILIO"
+                  status: "COMPLETED"
+                  providerProof: "TWILIO_PROOF_xyz789"
+                  sentAt: "2025-11-26T10:30:01.234Z"
+                  respondedAt: "2025-11-26T10:31:45.678Z"
+                routingTimeline:
+                  - timestamp: "2025-11-26T10:30:00.123Z"
+                    event: "REQUEST_CREATED"
+                    details: "Signature request created"
+                  - timestamp: "2025-11-26T10:30:00.456Z"
+                    event: "RULE_EVALUATED"
+                    details: "Rule 'High Risk Transactions' matched → SMS"
+                  - timestamp: "2025-11-26T10:30:01.234Z"
+                    event: "CHALLENGE_SENT"
+                    details: "SMS challenge sent via TWILIO"
+                  - timestamp: "2025-11-26T10:31:45.678Z"
+                    event: "SIGNATURE_COMPLETED"
+                    details: "User completed SMS challenge"
+                createdAt: "2025-11-26T10:30:00.123Z"
+                updatedAt: "2025-11-26T10:31:45.678Z"
+                expiresAt: "2025-11-26T10:33:00Z"
+                totalDurationMs: 105555
+        
+        '404':
+          $ref: '#/components/responses/NotFound'
+        
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================================
+  # ADMIN - ROUTING RULES
+  # ============================================================
+  
+  /admin/rules:
+    get:
+      tags: [Admin - Rules]
+      summary: List routing rules
+      description: Get all routing rules ordered by priority
+      operationId: listRules
+      security:
+        - BearerAuth: [admin]
+      
+      parameters:
+        - name: enabled
+          in: query
+          schema:
+            type: boolean
+          description: Filter by enabled status
+      
+      responses:
+        '200':
+          description: List of routing rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RoutingRuleResponse'
+              example:
+                - id: "018c7f5e-rule-7890-abcd-ef1234567890"
+                  name: "High Risk Transactions"
+                  description: "High risk always via SMS"
+                  priority: 10
+                  condition: "context.riskLevel == 'HIGH'"
+                  targetChannel: "SMS"
+                  enabled: true
+                  createdAt: "2025-11-01T00:00:00Z"
+                  createdBy: "admin@bank.com"
+                - id: "018c7f5e-rule-7890-abcd-ef1234567891"
+                  name: "Large Amounts"
+                  description: "Amounts > 10K via Voice"
+                  priority: 20
+                  condition: "context.amount.value > 10000 && context.amount.currency == 'USD'"
+                  targetChannel: "VOICE"
+                  enabled: true
+                  createdAt: "2025-11-01T00:00:00Z"
+                  createdBy: "admin@bank.com"
+        
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    
+    post:
+      tags: [Admin - Rules]
+      summary: Create routing rule
+      description: |
+        Create new routing rule with SpEL condition.
+        
+        **SpEL Context Available**:
+        - `context.transactionId` (String)
+        - `context.transactionType` (String)
+        - `context.amount.value` (BigDecimal)
+        - `context.amount.currency` (String)
+        - `context.riskLevel` (String: HIGH, MEDIUM, LOW)
+        - `context.customProperty` (any JSONB field)
+        
+        **Examples**:
+        - `context.riskLevel == 'HIGH'`
+        - `context.amount.value > 10000`
+        - `context.transactionType == 'WIRE_TRANSFER'`
+        - `context.amount.value > 10000 && context.riskLevel == 'HIGH'`
+      
+      operationId: createRule
+      security:
+        - BearerAuth: [admin]
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRuleRequest'
+            example:
+              name: "International Wires"
+              description: "International wire transfers via Voice for extra security"
+              priority: 15
+              condition: "context.transactionType == 'WIRE_TRANSFER' && context.destination == 'INTERNATIONAL'"
+              targetChannel: "VOICE"
+              enabled: true
+      
+      responses:
+        '201':
+          description: Rule created successfully
+          headers:
+            Location:
+              schema:
+                type: string
+              example: "/api/v1/admin/rules/018c7f5e-rule-7890-abcd-ef1234567890"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutingRuleResponse'
+        
+        '400':
+          description: Invalid SpEL expression
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "INVALID_SPEL"
+                message: "SpEL expression syntax error"
+                details:
+                  - field: "condition"
+                    error: "Parse error at position 15: unexpected token 'xyx'"
+                timestamp: "2025-11-26T10:30:00Z"
+                traceId: "trace-abc123"
+        
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  
+  /admin/rules/{id}:
+    get:
+      tags: [Admin - Rules]
+      summary: Get routing rule
+      operationId: getRule
+      security:
+        - BearerAuth: [admin]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Rule found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutingRuleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    put:
+      tags: [Admin - Rules]
+      summary: Update routing rule
+      operationId: updateRule
+      security:
+        - BearerAuth: [admin]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRuleRequest'
+      responses:
+        '200':
+          description: Rule updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoutingRuleResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    
+    delete:
+      tags: [Admin - Rules]
+      summary: Delete routing rule
+      operationId: deleteRule
+      security:
+        - BearerAuth: [admin]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Rule deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============================================================
+  # ADMIN - CONNECTORS
+  # ============================================================
+  
+  /admin/connectors:
+    get:
+      tags: [Admin - Connectors]
+      summary: List provider connectors
+      operationId: listConnectors
+      security:
+        - BearerAuth: [admin]
+      responses:
+        '200':
+          description: List of connectors
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConnectorResponse'
+              example:
+                - id: "018c7f5e-conn-7890-abcd-ef1234567890"
+                  provider: "TWILIO"
+                  enabled: true
+                  degradedMode: false
+                  errorRate: 0.5
+                  lastHealthCheck: "2025-11-26T10:29:00Z"
+                  config:
+                    timeout_ms: 5000
+                    retry_attempts: 3
+                - id: "018c7f5e-conn-7890-abcd-ef1234567891"
+                  provider: "PUSH_SERVICE"
+                  enabled: true
+                  degradedMode: true
+                  degradedSince: "2025-11-26T09:45:00Z"
+                  errorRate: 75.3
+                  lastHealthCheck: "2025-11-26T10:29:00Z"
+                  config:
+                    timeout_ms: 3000
+                    retry_attempts: 2
+  
+  /admin/connectors/{id}:
+    get:
+      tags: [Admin - Connectors]
+      summary: Get connector details
+      operationId: getConnector
+      security:
+        - BearerAuth: [admin]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Connector found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorResponse'
+    
+    patch:
+      tags: [Admin - Connectors]
+      summary: Update connector (enable/disable)
+      operationId: updateConnector
+      security:
+        - BearerAuth: [admin]
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+              example:
+                enabled: false
+      responses:
+        '200':
+          description: Connector updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectorResponse'
+
+  # ============================================================
+  # HEALTH & MONITORING
+  # ============================================================
+  
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      operationId: healthCheck
+      security: []
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [UP, DOWN, DEGRADED]
+                  components:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                        details:
+                          type: object
+              example:
+                status: "UP"
+                components:
+                  database:
+                    status: "UP"
+                    details:
+                      connectionPool: "20/20 active"
+                  kafka:
+                    status: "UP"
+                    details:
+                      producer: "connected"
+                  providers:
+                    status: "DEGRADED"
+                    details:
+                      TWILIO: "UP"
+                      PUSH_SERVICE: "DOWN"
+                      VOICE: "UP"
+
+# ============================================================
+# COMPONENTS
+# ============================================================
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Resource ID (UUIDv7)
+  
+  schemas:
+    # ========================================
+    # Signature Schemas
+    # ========================================
+    
+    CreateSignatureRequest:
+      type: object
+      required:
+        - customerId
+        - transactionContext
+      properties:
+        customerId:
+          type: string
+          minLength: 16
+          description: Pseudonymized customer ID (NO PII)
+          example: "CUST_8f7a6b5c4d3e2f1a"
+        transactionContext:
+          type: object
+          description: |
+            Immutable transaction context (JSONB).
+            Can contain any business-specific fields.
+            Used for routing rule evaluation.
+          additionalProperties: true
+          required:
+            - transactionId
+            - transactionType
+            - amount
+          properties:
+            transactionId:
+              type: string
+            transactionType:
+              type: string
+              enum: [WIRE_TRANSFER, P2P_TRANSFER, BILL_PAYMENT, PURCHASE]
+            amount:
+              type: object
+              required: [value, currency]
+              properties:
+                value:
+                  type: number
+                  format: decimal
+                  minimum: 0.01
+                currency:
+                  type: string
+                  pattern: '^[A-Z]{3}$'
+            riskLevel:
+              type: string
+              enum: [HIGH, MEDIUM, LOW]
+            timestamp:
+              type: string
+              format: date-time
+          example:
+            transactionId: "TXN_123456789"
+            transactionType: "WIRE_TRANSFER"
+            amount:
+              value: 50000.00
+              currency: "USD"
+            riskLevel: "HIGH"
+            destination: "EXTERNAL_ACCOUNT"
+            timestamp: "2025-11-26T10:30:00Z"
+    
+    SignatureResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+        status:
+          type: string
+          enum: [PENDING, CHALLENGE_SENT, SIGNED, FAILED, EXPIRED, ABORTED]
+        transactionContextHash:
+          type: string
+          description: SHA-256 hash of transaction context
+        activeChallenge:
+          $ref: '#/components/schemas/ChallengeResponse'
+          nullable: true
+        completedChallenge:
+          $ref: '#/components/schemas/ChallengeResponse'
+          nullable: true
+        routingTimeline:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoutingEvent'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        totalDurationMs:
+          type: integer
+          nullable: true
+          description: Total duration from creation to completion (milliseconds)
+    
+    ChallengeResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        channelType:
+          type: string
+          enum: [SMS, PUSH, VOICE, BIOMETRIC]
+        provider:
+          type: string
+        providerChallengeId:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [PENDING, SENT, COMPLETED, FAILED, EXPIRED]
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+        respondedAt:
+          type: string
+          format: date-time
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+        errorCode:
+          type: string
+          nullable: true
+        providerProof:
+          type: string
+          nullable: true
+          description: Cryptographic proof from provider (non-repudiation)
+    
+    RoutingEvent:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        event:
+          type: string
+          enum: [REQUEST_CREATED, RULE_EVALUATED, CHALLENGE_SENT, CHALLENGE_FAILED, FALLBACK_TRIGGERED, SIGNATURE_COMPLETED, SIGNATURE_EXPIRED]
+        details:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+    
+    # ========================================
+    # Routing Rule Schemas
+    # ========================================
+    
+    CreateRuleRequest:
+      type: object
+      required:
+        - name
+        - priority
+        - condition
+        - targetChannel
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 255
+        description:
+          type: string
+          maxLength: 1000
+        priority:
+          type: integer
+          minimum: 0
+          description: Lower = higher priority (first match wins)
+        condition:
+          type: string
+          description: SpEL expression evaluated against TransactionContext
+          example: "context.riskLevel == 'HIGH'"
+        targetChannel:
+          type: string
+          enum: [SMS, PUSH, VOICE, BIOMETRIC]
+        enabled:
+          type: boolean
+          default: true
+    
+    UpdateRuleRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        priority:
+          type: integer
+          minimum: 0
+        condition:
+          type: string
+        targetChannel:
+          type: string
+          enum: [SMS, PUSH, VOICE, BIOMETRIC]
+        enabled:
+          type: boolean
+    
+    RoutingRuleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        priority:
+          type: integer
+        condition:
+          type: string
+        targetChannel:
+          type: string
+          enum: [SMS, PUSH, VOICE, BIOMETRIC]
+        enabled:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        updatedBy:
+          type: string
+    
+    # ========================================
+    # Connector Schemas
+    # ========================================
+    
+    ConnectorResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+        enabled:
+          type: boolean
+        degradedMode:
+          type: boolean
+        degradedSince:
+          type: string
+          format: date-time
+          nullable: true
+        errorRate:
+          type: number
+          format: decimal
+          description: Current error rate percentage (0-100)
+        lastHealthCheck:
+          type: string
+          format: date-time
+        config:
+          type: object
+          description: Provider-specific configuration (no secrets)
+          additionalProperties: true
+    
+    # ========================================
+    # Error Schemas
+    # ========================================
+    
+    ErrorResponse:
+      type: object
+      required:
+        - code
+        - message
+        - timestamp
+      properties:
+        code:
+          type: string
+          enum: [VALIDATION_ERROR, NOT_FOUND, UNAUTHORIZED, FORBIDDEN, INTERNAL_ERROR, SERVICE_UNAVAILABLE, INVALID_SPEL]
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              error:
+                type: string
+        timestamp:
+          type: string
+          format: date-time
+        traceId:
+          type: string
+          description: Distributed trace ID for debugging
+  
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    
+    Unauthorized:
+      description: Unauthorized - missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "UNAUTHORIZED"
+            message: "Missing or invalid authentication token"
+            timestamp: "2025-11-26T10:30:00Z"
+            traceId: "trace-abc123"
+    
+    Forbidden:
+      description: Forbidden - insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "FORBIDDEN"
+            message: "Insufficient permissions for this operation"
+            timestamp: "2025-11-26T10:30:00Z"
+            traceId: "trace-abc123"
+    
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "NOT_FOUND"
+            message: "Signature request not found"
+            timestamp: "2025-11-26T10:30:00Z"
+            traceId: "trace-abc123"
+    
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "INTERNAL_ERROR"
+            message: "An unexpected error occurred"
+            timestamp: "2025-11-26T10:30:00Z"
+            traceId: "trace-abc123"
+

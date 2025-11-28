@@ -1,0 +1,50 @@
+{
+  "type": "record",
+  "name": "BaseEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Base schema for all domain events in Signature Router system (Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "Unique identifier for this event (UUIDv7 for time-ordering)"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "doc": "Type of the event (e.g., SIGNATURE_COMPLETED, CHALLENGE_SENT)"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Timestamp when the event occurred (milliseconds since epoch)"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "ID of the aggregate root that produced this event (SignatureRequest UUID)"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest",
+      "doc": "Type of the aggregate root (usually 'SignatureRequest')"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Correlation ID for distributed tracing (X-Correlation-ID from MDC)"
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1,
+      "doc": "Schema version for evolution tracking"
+    }
+  ]
+}
+

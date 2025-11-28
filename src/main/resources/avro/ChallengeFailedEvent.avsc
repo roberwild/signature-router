@@ -1,0 +1,97 @@
+{
+  "type": "record",
+  "name": "ChallengeFailedEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when a challenge send attempt fails (FR41 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "CHALLENGE_FAILED"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "SignatureRequest ID"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "ChallengeFailedPayload",
+        "fields": [
+          {
+            "name": "requestId",
+            "type": "string",
+            "logicalType": "uuid"
+          },
+          {
+            "name": "provider",
+            "type": "string",
+            "doc": "Provider that failed (SMS_TWILIO, EMAIL_SENDGRID, etc.)"
+          },
+          {
+            "name": "channel",
+            "type": "string",
+            "doc": "Channel attempted (SMS, EMAIL, PUSH, etc.)"
+          },
+          {
+            "name": "failureReason",
+            "type": "string",
+            "doc": "Human-readable failure reason"
+          },
+          {
+            "name": "errorCode",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Provider-specific error code (e.g., Twilio error code)"
+          },
+          {
+            "name": "attemptNumber",
+            "type": "int",
+            "default": 1,
+            "doc": "Retry attempt number (1 = first attempt)"
+          },
+          {
+            "name": "failedAt",
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          },
+          {
+            "name": "willRetry",
+            "type": "boolean",
+            "default": false,
+            "doc": "Whether the system will retry with another provider"
+          }
+        ]
+      }
+    }
+  ]
+}
+

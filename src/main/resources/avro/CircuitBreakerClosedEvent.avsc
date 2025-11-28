@@ -1,0 +1,75 @@
+{
+  "type": "record",
+  "name": "CircuitBreakerClosedEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when a circuit breaker closes after successful recovery (FR46 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "CIRCUIT_BREAKER_CLOSED"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "Provider Circuit Breaker ID"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "CircuitBreaker"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "CircuitBreakerClosedPayload",
+        "fields": [
+          {
+            "name": "providerName",
+            "type": "string",
+            "doc": "Provider whose circuit breaker closed (e.g., SMS_TWILIO)"
+          },
+          {
+            "name": "state",
+            "type": "string",
+            "default": "CLOSED",
+            "doc": "New state (CLOSED)"
+          },
+          {
+            "name": "closedAt",
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          },
+          {
+            "name": "downtimeDurationMs",
+            "type": "long",
+            "doc": "Duration provider was unavailable (milliseconds)"
+          }
+        ]
+      }
+    }
+  ]
+}
+

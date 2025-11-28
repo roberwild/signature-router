@@ -1,0 +1,287 @@
+version: '3.8'
+
+services:
+  # PostgreSQL for Signature Router Application
+  postgres:
+    image: postgres:15-alpine
+    container_name: signature-router-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: signature_router
+      POSTGRES_USER: siguser
+      POSTGRES_PASSWORD: sigpass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siguser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # PostgreSQL for Keycloak (separate database)
+  postgres-keycloak:
+    image: postgres:15-alpine
+    container_name: signature-router-postgres-keycloak
+    ports:
+      - "5433:5432"  # Different external port to avoid conflict
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+    volumes:
+      - postgres-keycloak-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Zookeeper (Kafka dependency)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: signature-router-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - signature-router-network
+
+  # Kafka Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: signature-router-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Confluent Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: signature-router-schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Kafka Connect with Debezium (Story 5.2)
+  kafka-connect:
+    image: debezium/connect:2.5
+    container_name: signature-router-kafka-connect
+    depends_on:
+      - kafka
+      - schema-registry
+      - postgres
+    ports:
+      - "8083:8083"
+    environment:
+      # Kafka Connect Configuration
+      BOOTSTRAP_SERVERS: 'kafka:29092'
+      GROUP_ID: 'signature-connect-cluster'
+      CONFIG_STORAGE_TOPIC: 'signature-connect-configs'
+      OFFSET_STORAGE_TOPIC: 'signature-connect-offsets'
+      STATUS_STORAGE_TOPIC: 'signature-connect-status'
+      
+      # Replication factors for single-node cluster
+      CONFIG_STORAGE_REPLICATION_FACTOR: '1'
+      OFFSET_STORAGE_REPLICATION_FACTOR: '1'
+      STATUS_STORAGE_REPLICATION_FACTOR: '1'
+      
+      # Converters
+      KEY_CONVERTER: 'org.apache.kafka.connect.storage.StringConverter'
+      VALUE_CONVERTER: 'io.confluent.connect.avro.AvroConverter'
+      VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      
+      # Internal converters (for Connect framework topics)
+      INTERNAL_KEY_CONVERTER: 'org.apache.kafka.connect.json.JsonConverter'
+      INTERNAL_VALUE_CONVERTER: 'org.apache.kafka.connect.json.JsonConverter'
+      INTERNAL_KEY_CONVERTER_SCHEMAS_ENABLE: 'false'
+      INTERNAL_VALUE_CONVERTER_SCHEMAS_ENABLE: 'false'
+      
+      # Plugin path (Debezium connectors are pre-installed in the image)
+      PLUGIN_PATH: '/kafka/connect,/usr/share/java,/usr/share/confluent-hub-components'
+      
+      # REST API
+      CONNECT_REST_ADVERTISED_HOST_NAME: 'kafka-connect'
+      CONNECT_REST_PORT: 8083
+      
+      # Logging
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: 'org.apache.kafka.connect.runtime.rest=WARN,org.reflections=ERROR'
+      
+      # Heap size
+      KAFKA_HEAP_OPTS: '-Xms512M -Xmx1G'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    volumes:
+      - ./docker/debezium:/debezium
+    networks:
+      - signature-router-network
+
+  # HashiCorp Vault (Secret Management)
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: signature-router-vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: dev-token-123
+      VAULT_ADDR: http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/scripts:/vault/scripts
+    command: server -dev -dev-listen-address=0.0.0.0:8200
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Prometheus (Metrics Collection)
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: signature-router-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Grafana (Metrics Visualization)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: signature-router-grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_SERVER_ROOT_URL: http://localhost:3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Keycloak (Identity & Access Management - KDC)
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: signature-router-keycloak
+    depends_on:
+      - postgres-keycloak
+    ports:
+      - "8180:8080"
+      - "8543:8443"
+    environment:
+      # Admin credentials
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      
+      # Database configuration (dedicated PostgreSQL instance)
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      
+      # Hostname configuration
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8180
+      KC_HOSTNAME_STRICT: 'false'
+      KC_HOSTNAME_STRICT_HTTPS: 'false'
+      KC_HTTP_ENABLED: 'true'
+      
+      # Health and metrics
+      KC_HEALTH_ENABLED: 'true'
+      KC_METRICS_ENABLED: 'true'
+      
+      # Logging
+      KC_LOG_LEVEL: INFO
+      
+    command:
+      - start-dev
+      - --import-realm
+    volumes:
+      - ./keycloak/realms:/opt/keycloak/data/import
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - signature-router-network
+
+volumes:
+  postgres-data:
+  postgres-keycloak-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  signature-router-network:
+    driver: bridge
+

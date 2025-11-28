@@ -1,0 +1,78 @@
+# UAT environment profile
+
+spring:
+  liquibase:
+    contexts: uat
+  
+  datasource:
+    url: jdbc:postgresql://postgres-uat.internal:5432/signature_router_uat
+    username: ${DB_USERNAME}  # From Vault (Story 1.4)
+    password: ${DB_PASSWORD}  # From Vault (Story 1.4)
+    hikari:
+      maximum-pool-size: 30
+      connection-timeout: 2000
+      leak-detection-threshold: 60000
+
+  kafka:
+    bootstrap-servers: kafka-uat.internal:9092
+    
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      acks: all
+      compression-type: snappy
+      max-in-flight-requests-per-connection: 5
+      retries: 2147483647
+      enable-idempotence: true
+    
+    properties:
+      schema.registry.url: http://schema-registry-uat.internal:8081
+    
+    admin:
+      auto-create: false  # Topics pre-created in UAT
+      properties:
+        default.replication.factor: 2  # Higher replication in UAT
+
+logging:
+  level:
+    com.bank.signature: INFO
+    org.springframework.web: INFO
+    org.apache.kafka: WARN
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  health:
+    kafka:
+      enabled: true
+
+# Resilience4j - Production-like timeouts and retries for realistic testing (Story 3.8, 3.9)
+resilience4j:
+  timelimiter:
+    instances:
+      smsTimeout:
+        timeout-duration: 5s  # Same as default (production-like)
+      pushTimeout:
+        timeout-duration: 3s  # Same as default
+      voiceTimeout:
+        timeout-duration: 10s  # Same as default
+      biometricTimeout:
+        timeout-duration: 2s  # Same as default
+  
+  # Story 3.9: Production-like retry for UAT testing
+  retry:
+    instances:
+      smsRetry:
+        max-attempts: 3  # Same as production
+        wait-duration: 1s
+      pushRetry:
+        max-attempts: 3
+        wait-duration: 500ms
+      voiceRetry:
+        max-attempts: 2
+        wait-duration: 2s
+      biometricRetry:
+        max-attempts: 1
+

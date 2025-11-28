@@ -1,0 +1,375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Story Context: 4.3 - Degraded Mode Manager
+  Generated: 2025-11-28
+  Epic: 4 - Resilience & Circuit Breaking
+  
+  This file contains technical context for implementing automatic degraded mode
+  when providers fail massively, with auto-recovery and queue processing.
+-->
+<story-context>
+  <metadata>
+    <story-id>4.3</story-id>
+    <story-key>4-3-degraded-mode-manager</story-key>
+    <epic-id>4</epic-id>
+    <title>Degraded Mode Manager</title>
+    <status>ready-for-dev</status>
+    <story-points>5</story-points>
+  </metadata>
+
+  <user-story>
+    <as-a>System</as-a>
+    <i-want>Degraded mode automático cuando providers fallan masivamente</i-want>
+    <so-that>El sistema sigue operativo con funcionalidad reducida en lugar de fallar completamente</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      <title>Degraded Mode Detection</title>
+      <description>
+        Sistema detecta automáticamente degradación cuando error rate > 80% durante 2min.
+        Prometheus gauge `system.degraded.mode{status}` actualizado.
+      </description>
+    </criterion>
+    
+    <criterion id="AC2" priority="critical">
+      <title>Degraded Response Behavior</title>
+      <description>
+        En modo degradado:
+        - HTTP 202 Accepted (no 201 Created)
+        - Header `X-System-Mode: DEGRADED`
+        - Warning header `299 - "System in degraded mode..."`
+        - SignatureRequest con status PENDING_DEGRADED (nuevo)
+        - NO envía challenge inmediatamente (queued)
+      </description>
+    </criterion>
+    
+    <criterion id="AC5" priority="critical">
+      <title>Automatic Recovery</title>
+      <description>
+        Sistema sale de degraded mode cuando error rate < 50% por 5min.
+        Requests queued (PENDING_DEGRADED) se procesan en FIFO.
+      </description>
+    </criterion>
+    
+    <criterion id="AC7" priority="high">
+      <title>Metrics</title>
+      <description>
+        4 métricas Prometheus:
+        - system.degraded.mode{status} - Gauge
+        - system.degraded.triggers.total - Counter
+        - system.degraded.duration.seconds - Histogram
+        - system.degraded.requests.total - Counter
+      </description>
+    </criterion>
+    
+    <criterion id="AC8" priority="medium">
+      <title>Admin API Override</title>
+      <description>
+        POST /admin/system/mode permite forzar degraded mode manualmente.
+        Secured con @PreAuthorize("hasRole('ADMIN')").
+      </description>
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="T1" priority="1">
+      <title>Create DegradedModeManager Component</title>
+      <estimated-hours>1.5</estimated-hours>
+      <files-to-create>
+        <file>src/main/java/com/bank/signature/infrastructure/resilience/DegradedModeManager.java</file>
+        <file>src/main/java/com/bank/signature/domain/model/valueobject/SystemMode.java</file>
+      </files-to-create>
+      <implementation-notes>
+        - @Component en infrastructure/resilience package
+        - Inject: MeterRegistry, CircuitBreakerRegistry (Story 4.1)
+        - Track SystemMode: NORMAL | DEGRADED | MAINTENANCE
+        - Methods: evaluateSystemHealth(), enterDegradedMode(reason), exitDegradedMode(), isInDegradedMode()
+        - Query provider.error.rate from Story 3.10 (ProviderMetrics)
+        - Count circuit breakers OPEN (via CircuitBreakerRegistry.getAllCircuitBreakers())
+      </implementation-notes>
+    </task>
+    
+    <task id="T2" priority="1">
+      <title>Scheduled Health Evaluation</title>
+      <estimated-hours>0.75</estimated-hours>
+      <implementation-notes>
+        - @Scheduled(fixedDelay = 30000) method every 30s
+        - Query MeterRegistry.find("provider.error.rate").gauges()
+        - Check if any provider error rate > threshold (80%)
+        - Check duration criteria (2min for enter, 5min for recovery)
+        - Trigger mode transitions with logging
+      </implementation-notes>
+    </task>
+    
+    <task id="T4" priority="2">
+      <title>Modify SignatureController for Degraded Response</title>
+      <estimated-hours>1.0</estimated-hours>
+      <files-to-modify>
+        <file>src/main/java/com/bank/signature/application/controller/SignatureController.java</file>
+        <file>src/main/java/com/bank/signature/domain/model/valueobject/SignatureStatus.java</file>
+      </files-to-modify>
+      <implementation-notes>
+        - Add PENDING_DEGRADED to SignatureStatus enum
+        - In createSignature(): inject DegradedModeManager
+        - If degradedModeManager.isInDegradedMode():
+          * Return ResponseEntity.accepted() (202)
+          * Add headers: X-System-Mode, Warning
+          * Create SignatureRequest with status PENDING_DEGRADED
+          * Do NOT call challengeService.sendChallenge()
+        - Else: normal flow (201, challenge sent)
+      </implementation-notes>
+    </task>
+    
+    <task id="T7" priority="2">
+      <title>Queued Request Processing on Recovery</title>
+      <estimated-hours>1.5</estimated-hours>
+      <files-to-create>
+        <file>src/main/java/com/bank/signature/infrastructure/resilience/DegradedModeRecoveryService.java</file>
+      </files-to-create>
+      <implementation-notes>
+        - Called by DegradedModeManager on exitDegradedMode()
+        - Query SignatureRequestRepository.findByStatus(PENDING_DEGRADED)
+        - Order by createdAt ASC (FIFO)
+        - For each: call ChallengeService.sendChallenge()
+        - Update status to PENDING or CHALLENGE_FAILED
+        - Record metrics: queued_requests_processed
+      </implementation-notes>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprint-artifacts/4-3-degraded-mode-manager.md">
+        Main story file with 10 ACs and 12 tasks
+      </doc>
+      <doc path="docs/sprint-artifacts/4-1-circuit-breaker-per-provider-resilience4j.md">
+        Story 4.1 - Circuit breaker integration (CircuitBreakerRegistry usage)
+      </doc>
+      <doc path="docs/sprint-artifacts/4-2-fallback-chain-implementation.md">
+        Story 4.2 - Fallback chain (degraded mode affects fallback behavior)
+      </doc>
+      <doc path="docs/sprint-artifacts/3-10-provider-metrics-tracking.md">
+        Story 3.10 - Provider metrics (provider.error.rate gauge source)
+      </doc>
+    </docs>
+    
+    <code-artifacts>
+      <artifact path="src/main/java/com/bank/signature/infrastructure/observability/metrics/ProviderMetrics.java">
+        <description>Story 3.10 - ProviderMetrics component</description>
+        <relevant-methods>
+          <method>updateErrorRate(String provider, double errorRate)</method>
+        </relevant-methods>
+        <usage>Query MeterRegistry for provider.error.rate gauge to detect degradation</usage>
+      </artifact>
+      
+      <artifact path="src/main/java/com/bank/signature/infrastructure/observability/metrics/ProviderErrorRateCalculator.java">
+        <description>Story 3.10 - Scheduled task calculating error rate every 10s</description>
+        <usage>DegradedModeManager reads calculated error rates (not recalculate)</usage>
+      </artifact>
+      
+      <artifact path="src/main/java/com/bank/signature/application/controller/SignatureController.java">
+        <description>Main REST controller for signature requests</description>
+        <method-to-modify>createSignature(CreateSignatureRequestDto dto)</method-to-modify>
+        <current-behavior>Returns 201 Created, sends challenge immediately</current-behavior>
+        <new-behavior>If degraded: 202 Accepted, queue request, add headers</new-behavior>
+      </artifact>
+      
+      <artifact path="src/main/java/com/bank/signature/domain/model/valueobject/SignatureStatus.java">
+        <description>Enum for SignatureRequest status</description>
+        <current-values>PENDING, CHALLENGE_SENT, COMPLETED, ABORTED, CHALLENGE_FAILED, EXPIRED</current-values>
+        <new-value>Add PENDING_DEGRADED</new-value>
+      </artifact>
+      
+      <artifact path="src/main/java/com/bank/signature/application/dto/response/ProviderHealthResponse.java">
+        <description>DTO for provider health endpoint</description>
+        <new-fields>
+          <field>degradedMode: boolean</field>
+          <field>degradedReason: String</field>
+          <field>degradedSince: Instant</field>
+        </new-fields>
+      </artifact>
+    </code-artifacts>
+    
+    <dependencies>
+      <dependency>
+        <groupId>io.github.resilience4j</groupId>
+        <artifactId>resilience4j-circuitbreaker</artifactId>
+        <usage>CircuitBreakerRegistry injection to count OPEN circuits</usage>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus</artifactId>
+        <usage>MeterRegistry to query provider.error.rate and record degraded mode metrics</usage>
+      </dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+        <usage>Health indicator integration for degraded mode</usage>
+      </dependency>
+    </dependencies>
+    
+    <interfaces>
+      <interface>
+        <name>DegradedModeManager</name>
+        <package>com.bank.signature.infrastructure.resilience</package>
+        <methods>
+          <method>boolean isInDegradedMode()</method>
+          <method>void enterDegradedMode(String reason)</method>
+          <method>void exitDegradedMode()</method>
+          <method>SystemMode getCurrentMode()</method>
+          <method>List&lt;String&gt; getDegradedProviders()</method>
+          <method>void evaluateSystemHealth()</method>
+        </methods>
+      </interface>
+      
+      <interface>
+        <name>DegradedModeRecoveryService</name>
+        <package>com.bank.signature.infrastructure.resilience</package>
+        <methods>
+          <method>void processQueuedRequests()</method>
+        </methods>
+      </interface>
+      
+      <interface>
+        <name>SystemModeController</name>
+        <package>com.bank.signature.application.controller</package>
+        <endpoints>
+          <endpoint method="POST" path="/admin/system/mode">Set system mode manually</endpoint>
+          <endpoint method="GET" path="/admin/system/mode">Get current system mode</endpoint>
+        </endpoints>
+      </interface>
+    </interfaces>
+    
+    <constraints>
+      <architectural>
+        <constraint>Hexagonal Architecture: DegradedModeManager en infrastructure layer</constraint>
+        <constraint>Domain Purity: SystemMode enum en domain.model.valueobject</constraint>
+        <constraint>No circular dependencies: DegradedModeManager NOT injected in domain services</constraint>
+      </architectural>
+      
+      <technical>
+        <constraint>Scheduled task rate: 30s (balance between responsiveness and overhead)</constraint>
+        <constraint>Error rate threshold: Configurable (default 80%), tune in production</constraint>
+        <constraint>Duration windows: 2min enter, 5min recovery (prevent flapping)</constraint>
+        <constraint>Queue size limit: Consider max 1000 queued requests (prevent memory issues)</constraint>
+      </technical>
+      
+      <security>
+        <constraint>Admin API: @PreAuthorize("hasRole('ADMIN')") required</constraint>
+        <constraint>Audit log: Record manual mode changes with user identity</constraint>
+      </security>
+    </constraints>
+  </artifacts>
+
+  <tests>
+    <standards>
+      <standard>Unit tests with JUnit 5 + AssertJ</standard>
+      <standard>Mock dependencies with Mockito</standard>
+      <standard>Integration tests with @SpringBootTest + Testcontainers</standard>
+      <standard>Target coverage: >90% for new code</standard>
+    </standards>
+    
+    <locations>
+      <unit-tests>src/test/java/com/bank/signature/infrastructure/resilience/DegradedModeManagerTest.java</unit-tests>
+      <unit-tests>src/test/java/com/bank/signature/application/controller/SystemModeControllerTest.java</unit-tests>
+      <integration-tests>src/test/java/com/bank/signature/infrastructure/resilience/DegradedModeIntegrationTest.java</integration-tests>
+    </locations>
+    
+    <ideas>
+      <idea ac="AC1">
+        <test-name>testEnterDegradedMode_whenErrorRateHigh</test-name>
+        <scenario>Mock provider.error.rate gauge at 85%, verify enterDegradedMode() called</scenario>
+      </idea>
+      
+      <idea ac="AC2">
+        <test-name>testCreateSignature_inDegradedMode_returns202</test-name>
+        <scenario>Mock DegradedModeManager.isInDegradedMode()=true, POST /api/v1/signatures, assert 202, headers, PENDING_DEGRADED status</scenario>
+      </idea>
+      
+      <idea ac="AC4">
+        <test-name>testCircuitBreakerThreshold_triggersDegrade</test-name>
+        <scenario>Mock 3 circuit breakers OPEN, verify degraded mode triggered</scenario>
+      </idea>
+      
+      <idea ac="AC5">
+        <test-name>testAutomaticRecovery_whenErrorRateNormalized</test-name>
+        <scenario>System in degraded, error rate drops to 40%, verify exitDegradedMode() after 5min</scenario>
+      </idea>
+      
+      <idea ac="AC9">
+        <test-name>testProcessQueuedRequests_onRecovery</test-name>
+        <scenario>Create 5 SignatureRequests with PENDING_DEGRADED, trigger recovery, verify all processed in FIFO</scenario>
+      </idea>
+    </ideas>
+  </tests>
+
+  <learnings-from-previous-stories>
+    <learning story="3.10">
+      <title>Provider Metrics Integration</title>
+      <description>
+        ProviderErrorRateCalculator ya calcula error rate cada 10s y actualiza gauge provider.error.rate.
+        DegradedModeManager debe LEER este gauge (no recalcular).
+        Query pattern: meterRegistry.find("provider.error.rate").tag("provider", providerName).gauge().value()
+      </description>
+    </learning>
+    
+    <learning story="4.1">
+      <title>Circuit Breaker Registry</title>
+      <description>
+        CircuitBreakerRegistry.getAllCircuitBreakers() retorna todos los circuit breakers.
+        Cada CircuitBreaker tiene .getState() → CLOSED|OPEN|HALF_OPEN.
+        Count OPEN circuits para trigger degraded mode (AC4).
+      </description>
+    </learning>
+    
+    <learning story="4.2">
+      <title>Fallback Chain Integration</title>
+      <description>
+        FallbackChainConfig define SMS→VOICE, PUSH→SMS.
+        Degraded mode debe SUSPENDER fallback chain (evitar costos Voice durante outage masivo).
+        En degraded mode: NO ejecutar fallback, quedar en PENDING_DEGRADED.
+      </description>
+    </learning>
+  </learnings-from-previous-stories>
+
+  <dev-notes>
+    <note>
+      <title>Error Rate Threshold Tuning</title>
+      <content>
+        Start conservative (80%) in production, tune based on telemetry.
+        Too aggressive (50%) → frequent degraded mode transitions (flapping).
+        Too conservative (95%) → late detection, poor UX.
+      </content>
+    </note>
+    
+    <note>
+      <title>Duration Windows</title>
+      <content>
+        Enter degraded: 2min (fast response to outages).
+        Exit degraded: 5min (avoid flapping, ensure stability).
+        Track last transition timestamp to calculate duration.
+      </content>
+    </note>
+    
+    <note>
+      <title>Queue Processing Strategy</title>
+      <content>
+        FIFO ensures fairness.
+        Process in batches (e.g., 10 requests per second) to avoid spike.
+        Consider circuit breaker state before processing (don't retry if still OPEN).
+      </content>
+    </note>
+    
+    <note>
+      <title>Admin Override Use Case</title>
+      <content>
+        Manual degraded mode useful for:
+        - Planned maintenance (disable provider calls)
+        - Cost control (avoid expensive Voice fallback)
+        - Testing degraded mode behavior
+        Always require audit log for compliance.
+      </content>
+    </note>
+  </dev-notes>
+</story-context>

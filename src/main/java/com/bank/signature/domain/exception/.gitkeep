@@ -1,0 +1,3 @@
+# Domain Exceptions
+# SignatureNotFoundException, RuleValidationException will be created as needed
+

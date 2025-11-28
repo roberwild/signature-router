@@ -1,0 +1,870 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context
+  id="bmad/bmm/workflows/4-implementation/story-context/1-4-hashicorp-vault-integration" v="1.0">
+  <metadata>
+    <epicId>epic-1</epicId>
+    <storyId>1.4</storyId>
+    <title>HashiCorp Vault Integration</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-4-hashicorp-vault-integration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Developer</asA>
+    <iWant>HashiCorp Vault integrado para secrets management</iWant>
+    <soThat>No hay credenciales hardcoded en código/config y cumplimos con security best practices</soThat>
+    <tasks>
+      - Task 1: Add Vault Service to Docker Compose (5 subtasks)
+      - Task 2: Add Spring Cloud Vault Dependencies (5 subtasks)
+      - Task 3: Configure Vault Bootstrap (7 subtasks)
+      - Task 4: Initialize Secrets in Vault (5 subtasks)
+      - Task 5: Replace Hardcoded Secrets in application-local.yml (4 subtasks)
+      - Task 6: Configure VaultTemplate Bean (5 subtasks)
+      - Task 7: Configure Vault Health Check (5 subtasks)
+      - Task 8: Configure Vault Secret Refresh (5 subtasks)
+      - Task 9: Configure Environment-Specific Vault Profiles (4 subtasks)
+      - Task 10: Create Vault Init Script (5 subtasks)
+      - Task 11: Create Integration Test with Vault (7 subtasks)
+      - Task 12: Update Documentation (4 subtasks)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1" title="Vault Docker Compose Service">
+      <given>El proyecto tiene Docker Compose configurado</given>
+      <when>Agrego servicio de Vault al docker-compose.yml</when>
+      <then>
+        - Servicio vault: hashicorp/vault:1.15, puerto 8200
+        - Dev mode: VAULT_DEV_ROOT_TOKEN_ID=dev-token-123
+        - Capabilities: IPC_LOCK para mlock
+        - Healthcheck: vault status
+        - Volume mount: ./vault/scripts:/vault/scripts
+        - Vault UI accesible: http://localhost:8200/ui
+      </then>
+    </criterion>
+
+    <criterion id="AC2" title="Spring Cloud Vault Dependencies">
+      <given>El proyecto tiene Spring Boot 3.2+</given>
+      <when>Agrego dependencias de Vault</when>
+      <then>
+        - pom.xml incluye: spring-cloud-starter-vault-config
+        - BOM spring-cloud-dependencies version 2023.0.0
+        - spring-vault-core incluido transitivamente
+      </then>
+    </criterion>
+
+    <criterion id="AC3" title="Vault Bootstrap Configuration">
+      <given>Vault service running</given>
+      <when>Configuro bootstrap.yml (carga antes de application.yml)</when>
+      <then>
+        - Vault URI: http://localhost:8200
+        - Authentication: TOKEN mode (dev)
+        - Token: dev-token-123 (dev), ${VAULT_TOKEN} (prod)
+        - KV engine: secret (KV v2)
+        - Application name: signature-router
+        - Fail fast: true (app no inicia si Vault no disponible)
+        - Lifecycle enabled: true (secret refresh polling)
+        - Min renewal: 60s (polling interval)
+      </then>
+    </criterion>
+
+    <criterion id="AC4" title="Secrets Initialization in Vault">
+      <given>Vault running en dev mode</given>
+      <when>Inicializo secrets en Vault KV store</when>
+      <then>
+        - Secrets en path secret/signature-router/:
+        * database.password = sigpass (dev value)
+        * kafka.sasl-jaas-config = "" (placeholder prod)
+        * twilio.api-key = test-twilio-key-123
+        * twilio.api-secret = test-twilio-secret-456
+        * push-service.api-key = test-push-key-789
+        * biometric-sdk.license = test-biometric-license
+        - Verificable: vault kv get secret/signature-router
+      </then>
+    </criterion>
+
+    <criterion id="AC5" title="Replace Hardcoded Secrets in application-local.yml">
+      <given>Secrets almacenados en Vault</given>
+      <when>Actualizo application-local.yml</when>
+      <then>
+        - Database password: sigpass → ${database.password}
+        - Kafka SASL config: placeholder ${kafka.sasl-jaas-config}
+        - Twilio API key: placeholder ${twilio.api-key}
+        - No credenciales hardcoded en configs
+      </then>
+    </criterion>
+
+    <criterion id="AC6" title="VaultTemplate Bean Configuration">
+      <given>Spring Vault configurado</given>
+      <when>Creo VaultConfig.java</when>
+      <then>
+        - Bean VaultTemplate autowirable
+        - Helper method: getSecret(String path)
+        - Helper method: writeSecret(String path, Map data)
+        - JavaDoc con ejemplos de uso
+      </then>
+    </criterion>
+
+    <criterion id="AC7" title="Health Check for Vault">
+      <given>Vault configurado en Spring Boot</given>
+      <when>Configuro Actuator health check</when>
+      <then>
+        - Endpoint /actuator/health/vault retorna UP
+        - Verifica: conexión Vault, token válido, KV accesible
+        - Si Vault down: retorna DOWN y app falla startup (fail-fast)
+      </then>
+    </criterion>
+
+    <criterion id="AC8" title="Vault Secret Refresh (Dynamic Configuration)">
+      <given>Secrets almacenados en Vault</given>
+      <when>Actualizo un secret en Vault</when>
+      <then>
+        - Spring Cloud Vault detecta cambio (polling 60s)
+        - Beans con @RefreshScope recargan valores
+        - No requiere restart aplicación
+        - Logs: "Refreshing beans with scope 'refresh'"
+      </then>
+    </criterion>
+
+    <criterion id="AC9" title="Environment-Specific Vault Configuration">
+      <given>Múltiples entornos (local, uat, prod)</given>
+      <when>Configuro profiles en bootstrap-{profile}.yml</when>
+      <then>
+        - bootstrap-local.yml: URI localhost:8200, auth TOKEN, token dev-token-123
+        - bootstrap-uat.yml: URI vault-uat.internal:8200, auth KUBERNETES, role signature-router-uat
+        - bootstrap-prod.yml: URI vault-prod.internal:8200, auth KUBERNETES, role
+        signature-router-prod, TLS enabled
+      </then>
+    </criterion>
+
+    <criterion id="AC10" title="Vault Init Script (Docker Compose)">
+      <given>Vault running en dev mode</given>
+      <when>Creo script vault-init.sh para seed secrets</when>
+      <then>
+        - Script ejecuta: vault kv put secret/signature-router ...
+        - Crea todos los 6 secrets de AC4
+        - Script ejecutable: docker-compose exec vault sh /vault/scripts/vault-init.sh
+        - Script idempotent (puede ejecutarse múltiples veces)
+      </then>
+    </criterion>
+
+    <criterion id="AC11" title="Integration Test with Vault">
+      <given>Spring Cloud Vault Test configurado</given>
+      <when>Creo test VaultIntegrationTest.java</when>
+      <then>
+        - Test usa Testcontainers VaultContainer
+        - Test methods:
+        * testVaultTemplateCanReadSecrets()
+        * testSecretsInjectedViaValueAnnotation()
+        * testVaultHealthCheckReturnsUp()
+        - Test pasa en mvn verify
+      </then>
+    </criterion>
+
+    <criterion id="AC12" title="Documentation & Security Guidelines">
+      <given>Vault infrastructure configurado</given>
+      <when>Actualizo documentación</when>
+      <then>
+        - README.md: sección Vault Setup (comandos Docker, init script, verify)
+        - docs/development/vault-secrets.md: architecture, rotation strategy, troubleshooting,
+        production
+        - CHANGELOG.md: Story 1.4 entry
+        - VaultConfig.java: JavaDoc con ejemplos
+      </then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact id="tech-spec-epic-1" path="docs/sprint-artifacts/tech-spec-epic-1.md">
+        <section name="Technology Stack" lines="96">
+          <vault_version>1.15</vault_version>
+          <story>1.4</story>
+        </section>
+      </artifact>
+
+      <artifact id="architecture-security" path="docs/architecture/07-observability-security.md">
+        <section name="Pseudonymization Service" lines="663-679">
+          <purpose>Uses SecretManagerPort.getSecret() for pseudonymization-key</purpose>
+          <implementation>HMAC SHA256 keyed hash, deterministic</implementation>
+          <vault_integration>Secret manager backed by Vault KV store</vault_integration>
+        </section>
+      </artifact>
+
+      <artifact id="epics" path="docs/epics.md">
+        <section name="Story 1.4 Definition" lines="244-273">
+          <vault_url>http://localhost:8200</vault_url>
+          <authentication>Token (dev), Kubernetes (prod)</authentication>
+          <kv_engine>secret/signature-router/</kv_engine>
+          <secrets>twilio-api-key, push-service-key, db-password</secrets>
+          <rotation>24h en producción</rotation>
+        </section>
+      </artifact>
+
+      <artifact id="prd" path="docs/prd.md">
+        <section name="Security Requirements (NFR41, NFR42)">
+          <nfr41>Encryption at rest (Vault KV encrypted storage)</nfr41>
+          <nfr42>Secret rotation automated (future dynamic secrets)</nfr42>
+        </section>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact id="docker-compose-vault-service" type="yaml" path="docker-compose.yml">
+        <content><![CDATA[
+  # HashiCorp Vault (Secret Management)
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: signature-router-vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: dev-token-123
+      VAULT_ADDR: http://0.0.0.0:8200
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./vault/scripts:/vault/scripts
+    command: server -dev -dev-listen-address=0.0.0.0:8200
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+]]></content>
+        <critical_notes>
+          - VAULT_DEV_ROOT_TOKEN_ID: dev-token-123 (SOLO DEV - NUNCA PROD)
+          - IPC_LOCK capability: permite Vault usar mlock (evita secretos en swap)
+          - Command: server -dev (dev mode, auto-unsealed, in-memory storage)
+          - Healthcheck: vault status (verifica Vault initialized y unsealed)
+          - Volume mount: ./vault/scripts para vault-init.sh
+        </critical_notes>
+      </artifact>
+
+      <artifact id="bootstrap-yml" type="yaml" path="src/main/resources/bootstrap.yml">
+        <content><![CDATA[
+spring:
+  application:
+    name: signature-router
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      authentication: TOKEN
+      token: dev-token-123
+      kv:
+        enabled: true
+        backend: secret
+        default-context: signature-router
+      fail-fast: true
+      config:
+        lifecycle:
+          enabled: true
+          min-renewal: 60s
+          expiry-threshold: 120s
+]]></content>
+        <critical_notes>
+          - bootstrap.yml carga ANTES de application.yml (PropertySource más temprano)
+          - fail-fast: true → app NO INICIA si Vault no disponible (banking-grade)
+          - lifecycle.enabled: true → polling cada 60s para secret refresh
+          - kv.default-context: signature-router → secrets en secret/signature-router/
+        </critical_notes>
+      </artifact>
+
+      <artifact id="bootstrap-local-yml" type="yaml" path="src/main/resources/bootstrap-local.yml">
+        <content><![CDATA[
+spring:
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      authentication: TOKEN
+      token: dev-token-123
+]]></content>
+      </artifact>
+
+      <artifact id="bootstrap-uat-yml" type="yaml" path="src/main/resources/bootstrap-uat.yml">
+        <content><![CDATA[
+spring:
+  cloud:
+    vault:
+      uri: https://vault-uat.internal:8200
+      authentication: KUBERNETES
+      kubernetes:
+        role: signature-router-uat
+        service-account-token-file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      ssl:
+        trust-store: classpath:truststore.jks
+        trust-store-password: ${TRUSTSTORE_PASSWORD}
+]]></content>
+        <critical_notes>
+          - KUBERNETES auth: usa ServiceAccount token del pod
+          - TLS: https + truststore para cert validation
+          - Role: signature-router-uat (Vault policy asociada)
+        </critical_notes>
+      </artifact>
+
+      <artifact id="bootstrap-prod-yml" type="yaml" path="src/main/resources/bootstrap-prod.yml">
+        <content><![CDATA[
+spring:
+  cloud:
+    vault:
+      uri: https://vault-prod.internal:8200
+      authentication: KUBERNETES
+      kubernetes:
+        role: signature-router-prod
+        service-account-token-file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      ssl:
+        trust-store: classpath:truststore.jks
+        trust-store-password: ${TRUSTSTORE_PASSWORD}
+      fail-fast: true
+      config:
+        lifecycle:
+          enabled: true
+          min-renewal: 300s  # 5 min polling en prod
+          expiry-threshold: 600s  # 10 min threshold
+]]></content>
+        <critical_notes>
+          - Prod polling más conservador: 5 min (vs 60s dev)
+          - Vault HA: URI puede ser load balancer fronteando 3+ Vault nodes
+        </critical_notes>
+      </artifact>
+
+      <artifact id="vault-config-java" type="java"
+        path="src/main/java/com/bank/signature/infrastructure/config/VaultConfig.java">
+        <content><![CDATA[
+package com.bank.signature.infrastructure.config;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.vault.core.VaultTemplate;
+import org.springframework.vault.support.VaultResponse;
+
+import java.util.Map;
+
+/**
+ * Vault configuration for programmatic secret access.
+ * 
+ * <p><b>Usage Example:</b></p>
+ * <pre>{@code
+ * @Autowired
+ * private VaultConfig vaultConfig;
+ * 
+ * String twilioApiKey = vaultConfig.getSecret("twilio.api-key");
+ * }</pre>
+ * 
+ * <p><b>Secret Injection via @Value:</b></p>
+ * <pre>{@code
+ * @Value("${database.password}")
+ * private String dbPassword;  // Loaded from Vault secret/signature-router/database.password
+ * }</pre>
+ * 
+ * <p><b>Dynamic Secret Refresh:</b></p>
+ * <pre>{@code
+ * @Component
+ * @RefreshScope
+ * public class MyService {
+ *     @Value("${twilio.api-key}")
+ *     private String twilioKey;  // Refreshes every 60s if changed in Vault
+ * }
+ * }</pre>
+ * 
+ * @see VaultTemplate
+ * @since Story 1.4
+ */
+@Configuration
+public class VaultConfig {
+
+    @Autowired
+    private VaultTemplate vaultTemplate;
+
+    /**
+     * Read a secret from Vault KV store.
+     * 
+     * @param key Secret key (e.g., "twilio.api-key")
+     * @return Secret value as String
+     */
+    public String getSecret(String key) {
+        VaultResponse response = vaultTemplate.read("secret/data/signature-router");
+        if (response == null || response.getData() == null) {
+            throw new IllegalStateException("Vault secret not found: secret/signature-router");
+        }
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) response.getData().get("data");
+        
+        return (String) data.get(key);
+    }
+
+    /**
+     * Write a secret to Vault KV store.
+     * 
+     * @param key Secret key
+     * @param value Secret value
+     */
+    public void writeSecret(String key, String value) {
+        Map<String, Object> data = Map.of("data", Map.of(key, value));
+        vaultTemplate.write("secret/data/signature-router", data);
+    }
+
+    /**
+     * Write multiple secrets to Vault KV store.
+     * 
+     * @param secrets Map of secret key-value pairs
+     */
+    public void writeSecrets(Map<String, Object> secrets) {
+        Map<String, Object> data = Map.of("data", secrets);
+        vaultTemplate.write("secret/data/signature-router", data);
+    }
+}
+]]></content>
+        <dependencies>
+          - spring-vault-core (autowired VaultTemplate)
+        </dependencies>
+      </artifact>
+
+      <artifact id="vault-init-sh" type="shell" path="vault/scripts/vault-init.sh">
+        <content><![CDATA[
+#!/bin/sh
+
+# Vault Secret Initialization Script
+# Run: docker-compose exec vault sh /vault/scripts/vault-init.sh
+
+echo "Initializing Vault secrets for signature-router..."
+
+# Check if Vault is ready
+vault status > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "ERROR: Vault is not ready (sealed or not running)"
+  exit 1
+fi
+
+# Check if secrets already exist (idempotent)
+vault kv get secret/signature-router > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+  echo "Secrets already exist. Skipping initialization."
+  echo "To overwrite, run: vault kv delete secret/signature-router"
+  exit 0
+fi
+
+# Initialize secrets
+vault kv put secret/signature-router \
+  database.password=sigpass \
+  kafka.sasl-jaas-config="" \
+  twilio.api-key=test-twilio-key-123 \
+  twilio.api-secret=test-twilio-secret-456 \
+  push-service.api-key=test-push-key-789 \
+  biometric-sdk.license=test-biometric-license
+
+if [ $? -eq 0 ]; then
+  echo "✓ Secrets initialized successfully"
+  echo ""
+  echo "Verify with: vault kv get secret/signature-router"
+else
+  echo "✗ Failed to initialize secrets"
+  exit 1
+fi
+]]></content>
+        <critical_notes>
+          - Shebang: #!/bin/sh (POSIX shell, compatible con Alpine Linux en Vault container)
+          - Idempotent: verifica si secrets existen antes de crear
+          - Exit codes: 0 success, 1 error (para CI/CD integration)
+        </critical_notes>
+      </artifact>
+
+      <artifact id="vault-integration-test" type="java"
+        path="src/test/java/com/bank/signature/infrastructure/VaultIntegrationTest.java">
+        <content><![CDATA[
+package com.bank.signature.infrastructure;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.vault.core.VaultTemplate;
+import org.springframework.vault.support.VaultResponse;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.vault.VaultContainer;
+
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Integration test for Vault infrastructure with Testcontainers.
+ * 
+ * <p><b>Test Coverage:</b></p>
+ * <ul>
+ *   <li>VaultTemplate can read/write secrets</li>
+ *   <li>Secrets injected via @Value annotation</li>
+ *   <li>Health check Vault returns UP</li>
+ * </ul>
+ * 
+ * @since Story 1.4
+ */
+@SpringBootTest
+@Testcontainers
+class VaultIntegrationTest {
+
+    @Container
+    static VaultContainer<?> vaultContainer = new VaultContainer<>("hashicorp/vault:1.15")
+            .withVaultToken("test-token")
+            .withSecretInVault("secret/signature-router", 
+                "database.password=test-password",
+                "twilio.api-key=test-key-123");
+
+    @DynamicPropertySource
+    static void configureVault(DynamicPropertyRegistry registry) {
+        registry.add("spring.cloud.vault.uri", vaultContainer::getHttpHostAddress);
+        registry.add("spring.cloud.vault.token", () -> "test-token");
+    }
+
+    @Autowired
+    private VaultTemplate vaultTemplate;
+
+    @Value("${database.password}")
+    private String dbPassword;
+
+    @Test
+    void testVaultTemplateCanReadSecrets() {
+        VaultResponse response = vaultTemplate.read("secret/data/signature-router");
+        
+        assertThat(response).isNotNull();
+        assertThat(response.getData()).isNotNull();
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> data = (Map<String, Object>) response.getData().get("data");
+        
+        assertThat(data.get("database.password")).isEqualTo("test-password");
+        assertThat(data.get("twilio.api-key")).isEqualTo("test-key-123");
+    }
+
+    @Test
+    void testSecretsInjectedViaValueAnnotation() {
+        assertThat(dbPassword).isEqualTo("test-password");
+    }
+
+    @Test
+    void testVaultHealthCheckReturnsUp() {
+        // Health check verification would use RestTemplate to hit /actuator/health/vault
+        // For now, verify VaultTemplate is functional (implies Vault is UP)
+        assertThat(vaultTemplate).isNotNull();
+        
+        VaultResponse response = vaultTemplate.read("secret/data/signature-router");
+        assertThat(response).isNotNull();
+    }
+}
+]]></content>
+        <dependencies>
+          - org.testcontainers:vault (test scope)
+          - spring-vault-core (autowired VaultTemplate)
+        </dependencies>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <maven>
+        <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-starter-vault-config</artifactId>
+          <scope>compile</scope>
+          <version>Managed by Spring Cloud BOM</version>
+          <story>1.4</story>
+        </dependency>
+        <dependency>
+          <groupId>org.testcontainers</groupId>
+          <artifactId>vault</artifactId>
+          <scope>test</scope>
+          <version>1.19.3</version>
+          <story>1.4</story>
+        </dependency>
+      </maven>
+
+      <maven_bom>
+        <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-dependencies</artifactId>
+          <version>2023.0.0</version>
+          <type>pom</type>
+          <scope>import</scope>
+        </dependency>
+      </maven_bom>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="SEC-1" type="security">
+      <rule>NUNCA usar VAULT_DEV_ROOT_TOKEN_ID en producción</rule>
+      <validation>Dev mode SOLO para desarrollo local. Prod DEBE usar Kubernetes authentication.</validation>
+    </constraint>
+
+    <constraint id="SEC-2" type="security">
+      <rule>No hardcoded secrets en código/configs (compliance)</rule>
+      <validation>
+        - Verificar con: grep -r "password.*:" src/main/resources/ (solo debe retornar
+        ${placeholders})
+        - Secrets DEBEN cargarse desde Vault vía @Value o VaultTemplate
+      </validation>
+    </constraint>
+
+    <constraint id="SEC-3" type="security">
+      <rule>TLS mandatory para Vault en UAT/Prod</rule>
+      <validation>
+        - bootstrap-uat.yml y bootstrap-prod.yml DEBEN usar https://vault-{env}.internal:8200
+        - Truststore configurado para validar certificados
+      </validation>
+    </constraint>
+
+    <constraint id="OPS-1" type="operational">
+      <rule>Fail-fast enabled para Vault (app no inicia si Vault down)</rule>
+      <validation>spring.cloud.vault.fail-fast=true garantiza que app NO INICIA si Vault no
+        disponible</validation>
+    </constraint>
+
+    <constraint id="OPS-2" type="operational">
+      <rule>Secret refresh polling configurado (dynamic configuration)</rule>
+      <validation>
+        - spring.cloud.vault.config.lifecycle.enabled=true
+        - min-renewal: 60s (dev), 300s (prod)
+        - @RefreshScope beans recargan secrets sin restart
+      </validation>
+    </constraint>
+
+    <constraint id="ARCH-1" type="architectural">
+      <rule>VaultConfig.java en infrastructure/config/ (hexagonal architecture)</rule>
+      <validation>Domain layer NO debe depender de Vault. Secrets inyectados vía ports/adapters.</validation>
+    </constraint>
+
+    <constraint id="ARCH-2" type="architectural">
+      <rule>Bootstrap.yml carga ANTES de application.yml (PropertySource priority)</rule>
+      <validation>Vault config en bootstrap.yml garantiza secrets disponibles para application.yml
+        placeholders</validation>
+    </constraint>
+
+    <constraint id="TEST-1" type="testing">
+      <rule>Integration tests con Testcontainers VaultContainer mandatory</rule>
+      <validation>VaultIntegrationTest verifica: VaultTemplate read/write, @Value injection, health
+        check</validation>
+    </constraint>
+
+    <constraint id="COMP-1" type="compliance">
+      <rule>Vault KV v2 engine mandatory (versioned secrets)</rule>
+      <validation>
+        - spring.cloud.vault.kv.backend=secret (KV v2 default)
+        - Vault path: secret/data/signature-router (KV v2 usa /data/ prefix)
+        - Permite rollback a versiones anteriores de secrets
+      </validation>
+    </constraint>
+
+    <constraint id="PERF-1" type="performance">
+      <rule>Polling interval optimizado por entorno</rule>
+      <validation>
+        - Dev: 60s (fast feedback para testing)
+        - Prod: 300s (reduce load en Vault cluster)
+      </validation>
+    </constraint>
+
+    <constraint id="DOC-1" type="documentation">
+      <rule>vault-init.sh DEBE ser idempotent</rule>
+      <validation>Script verifica si secrets existen antes de crear (safe para re-run)</validation>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface id="IFC-1" name="Spring Boot to Vault Server">
+      <description>Vault client connection for secret retrieval</description>
+      <protocol>HTTP REST API (Vault API)</protocol>
+      <contract>
+        - Dev: http://localhost:8200, auth TOKEN (dev-token-123)
+        - Prod: https://vault-prod.internal:8200, auth KUBERNETES (ServiceAccount token)
+        - Endpoints: /v1/auth/token/lookup-self, /v1/secret/data/signature-router
+        - Headers: X-Vault-Token (dev), X-Vault-Namespace (enterprise)
+      </contract>
+    </interface>
+
+    <interface id="IFC-2" name="Vault KV v2 API">
+      <description>Read/write secrets to KV store</description>
+      <protocol>HTTP REST API</protocol>
+      <contract>
+        - Read: GET /v1/secret/data/signature-router
+        - Write: POST /v1/secret/data/signature-router (body: {"data": {"key": "value"}})
+        - List: LIST /v1/secret/metadata/signature-router
+        - Delete: DELETE /v1/secret/data/signature-router
+      </contract>
+    </interface>
+
+    <interface id="IFC-3" name="Spring Cloud Vault to PropertySource">
+      <description>Inject Vault secrets as Spring properties</description>
+      <protocol>Spring PropertySource SPI</protocol>
+      <contract>
+        - Vault secrets loaded as PropertySource (priority: bootstrap > application)
+        - Placeholders: ${database.password} resolved from Vault
+        - Refresh: @RefreshScope beans reload on secret change (lifecycle polling)
+      </contract>
+    </interface>
+
+    <interface id="IFC-4" name="Kubernetes ServiceAccount to Vault Auth">
+      <description>Authenticate Spring Boot app to Vault using K8s ServiceAccount</description>
+      <protocol>Vault Kubernetes Auth Method</protocol>
+      <contract>
+        - App reads ServiceAccount token: /var/run/secrets/kubernetes.io/serviceaccount/token
+        - POST /v1/auth/kubernetes/login (body: {"jwt": "sa-token", "role":
+        "signature-router-prod"})
+        - Vault validates JWT with K8s API server
+        - Vault returns client token (TTL: 24h)
+        - Spring Cloud Vault auto-renews token before expiry
+      </contract>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard id="TS-1">Integration tests con Testcontainers VaultContainer MANDATORY</standard>
+      <standard id="TS-2">Test VaultTemplate.read() y VaultTemplate.write()</standard>
+      <standard id="TS-3">Test @Value injection de secrets desde Vault</standard>
+      <standard id="TS-4">Test /actuator/health/vault retorna UP</standard>
+      <standard id="TS-5">Test fail-fast: app falla startup si Vault down</standard>
+      <standard id="TS-6">Manual test: vault-init.sh idempotent (run twice)</standard>
+    </standards>
+
+    <locations>
+      <location>src/test/java/com/bank/signature/infrastructure/VaultIntegrationTest.java</location>
+      <location>src/test/resources/application-test.yml (Vault test config)</location>
+    </locations>
+
+    <ideas>
+      <test id="TEST-1" maps_to="AC1,AC7">
+        <name>Vault Health Check Integration Test</name>
+        <approach>@SpringBootTest, Testcontainers VaultContainer, verify /actuator/health/vault UP,
+          stop container, verify DOWN</approach>
+      </test>
+
+      <test id="TEST-2" maps_to="AC4,AC6">
+        <name>VaultTemplate Read Secrets Test</name>
+        <approach>VaultContainer with pre-seeded secrets, autowire VaultTemplate, read
+          secret/signature-router, verify values</approach>
+      </test>
+
+      <test id="TEST-3" maps_to="AC5,AC6">
+        <name>Secret Injection via @Value Test</name>
+        <approach>@Value("${database.password}"), verify value loaded from Vault (not hardcoded)</approach>
+      </test>
+
+      <test id="TEST-4" maps_to="AC8">
+        <name>Secret Refresh with @RefreshScope Test</name>
+        <approach>@RefreshScope bean, update secret in Vault, trigger RefreshScope, verify bean
+          reloads</approach>
+      </test>
+
+      <test id="TEST-5" maps_to="AC3">
+        <name>Fail-Fast Test (Vault Down)</name>
+        <approach>Stop VaultContainer before Spring Boot startup, verify ApplicationContextException
+          thrown</approach>
+      </test>
+
+      <test id="TEST-6" maps_to="AC10">
+        <name>vault-init.sh Idempotent Test</name>
+        <approach>Run script twice, verify secrets only created once, no error on second run</approach>
+      </test>
+
+      <test id="TEST-7" maps_to="AC9">
+        <name>Profile Configuration Test</name>
+        <approach>@ActiveProfiles("local"), verify Vault URI localhost:8200,
+          @ActiveProfiles("prod"), verify vault-prod.internal</approach>
+      </test>
+
+      <test id="TEST-8" maps_to="AC2">
+        <name>Dependencies Test</name>
+        <approach>mvn dependency:tree | grep spring-cloud-vault, verify spring-vault-core present</approach>
+      </test>
+
+      <test id="TEST-9" maps_to="AC6">
+        <name>VaultTemplate Write Secrets Test</name>
+        <approach>VaultConfig.writeSecret(), verify secret persisted in Vault, read back, verify
+          value</approach>
+      </test>
+
+      <test id="TEST-10" maps_to="AC12">
+        <name>Documentation Validation</name>
+        <approach>Verify README.md Vault section, vault-secrets.md exists, CHANGELOG.md updated</approach>
+      </test>
+    </ideas>
+  </tests>
+
+  <implementation_notes>
+    <priority level="CRITICAL">
+      <note>Vault dev mode (VAULT_DEV_ROOT_TOKEN_ID) SOLO para desarrollo local. NUNCA en
+        producción.</note>
+      <note>bootstrap.yml DEBE existir y cargar ANTES de application.yml (PropertySource priority)</note>
+      <note>fail-fast=true CRÍTICO: app no debe iniciar si Vault no disponible (banking-grade
+        reliability)</note>
+      <note>IPC_LOCK capability en Docker Compose: permite Vault usar mlock (evita secretos en swap
+        memory)</note>
+    </priority>
+
+    <priority level="HIGH">
+      <note>Vault KV v2 engine: usa /data/ prefix en paths (secret/data/signature-router, no
+        secret/signature-router)</note>
+      <note>Kubernetes authentication en prod: ServiceAccount token en
+        /var/run/secrets/kubernetes.io/serviceaccount/token</note>
+      <note>vault-init.sh DEBE ser idempotent: verificar si secrets existen antes de crear</note>
+      <note>Testcontainers VaultContainer para integration tests: withVaultToken("test-token"),
+        withSecretInVault(...)</note>
+    </priority>
+
+    <priority level="MEDIUM">
+      <note>Secret refresh polling: 60s en dev (fast feedback), 300s en prod (reduce Vault load)</note>
+      <note>@RefreshScope beans: permiten reload de secrets sin restart aplicación</note>
+      <note>TLS en prod: bootstrap-prod.yml DEBE usar https + truststore configuration</note>
+      <note>vault-secrets.md documentar: architecture, rotation strategy (future dynamic secrets),
+        troubleshooting, production HA</note>
+    </priority>
+
+    <priority level="LOW">
+      <note>Vault UI accesible en http://localhost:8200/ui (dev) con token dev-token-123</note>
+      <note>Futuro: implementar Vault dynamic secrets con TTL para auto-rotation</note>
+      <note>Futuro: Vault Agent sidecar en Kubernetes para secret caching</note>
+    </priority>
+  </implementation_notes>
+
+  <definition_of_done>
+    <checklist>
+      <item>Code Complete: Vault service agregado a docker-compose.yml (hashicorp/vault:1.15, dev
+        mode)</item>
+      <item>Code Complete: Spring Cloud Vault dependencies agregadas (pom.xml + BOM 2023.0.0)</item>
+      <item>Code Complete: bootstrap.yml creado con Vault config (URI, TOKEN auth, fail-fast,
+        lifecycle)</item>
+      <item>Code Complete: bootstrap-{local/uat/prod}.yml creados (TOKEN dev, KUBERNETES prod)</item>
+      <item>Code Complete: vault-init.sh script creado (6 secrets, idempotent)</item>
+      <item>Code Complete: VaultConfig.java creado (VaultTemplate helpers: getSecret, writeSecret)</item>
+      <item>Code Complete: application-local.yml actualizado (hardcoded secrets → ${placeholders})</item>
+      <item>Code Complete: VaultIntegrationTest.java creado (Testcontainers, 3 test methods)</item>
+      <item>Tests Passing: Integration test con Testcontainers VaultContainer pasa en mvn verify</item>
+      <item>Tests Passing: docker-compose up -d vault levanta Vault exitosamente</item>
+      <item>Tests Passing: vault-init.sh ejecuta sin errores, secrets creados</item>
+      <item>Tests Passing: curl http://localhost:8200/v1/secret/data/signature-router retorna
+        secrets</item>
+      <item>Tests Passing: /actuator/health/vault retorna UP</item>
+      <item>Architecture Validated: VaultConfig.java en infrastructure/config/ (hexagonal)</item>
+      <item>Architecture Validated: bootstrap.yml carga ANTES de application.yml (PropertySource
+        priority)</item>
+      <item>Architecture Validated: No hardcoded secrets en configs (grep verification)</item>
+      <item>Security Validated: Dev mode SOLO en local (bootstrap-uat/prod usan KUBERNETES auth)</item>
+      <item>Security Validated: TLS configurado en bootstrap-prod.yml (https + truststore)</item>
+      <item>Documentation Updated: README.md con sección Vault Setup</item>
+      <item>Documentation Updated: docs/development/vault-secrets.md creado</item>
+      <item>Documentation Updated: VaultConfig.java con JavaDoc y ejemplos</item>
+      <item>Documentation Updated: CHANGELOG.md actualizado con Story 1.4</item>
+      <item>Code Review Approved: Vault integration sigue security best practices</item>
+      <item>Code Review Approved: fail-fast enabled (app no inicia si Vault down)</item>
+      <item>Code Review Approved: Secret refresh configurado (@RefreshScope + lifecycle polling)</item>
+      <item>Story Marked as Done: Todos los 12 ACs verificados</item>
+      <item>Story Marked as Done: Sprint status actualizado a done</item>
+    </checklist>
+  </definition_of_done>
+</story-context>

@@ -1,0 +1,1045 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/1-5-domain-models-aggregates-entities" v="1.0">
+  <metadata>
+    <epicId>epic-1</epicId>
+    <storyId>1.5</storyId>
+    <title>Domain Models - Aggregates & Entities</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-5-domain-models-aggregates-entities.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Developer</asA>
+    <iWant>Domain models (SignatureRequest aggregate, ValueObjects) implementados</iWant>
+    <soThat>Puedo codificar lógica de negocio pura sin dependencias externas</soThat>
+    <tasks>
+      - Task 1: Create Enums (4 enums: SignatureStatus, ChallengeStatus, ChannelType, ProviderType)
+      - Task 2: Create Value Objects (4 records: Money, TransactionContext, ProviderResult, RoutingEvent)
+      - Task 3: Create Domain Exceptions (4 classes: DomainException, FallbackExhaustedException, InvalidStateTransitionException, ChallengeAlreadyActiveException)
+      - Task 4: Create SignatureChallenge Entity (with complete(), fail() methods)
+      - Task 5: Create SignatureRequest Aggregate Root (with 4 business methods)
+      - Task 6: Create UUIDv7 Generator Utility
+      - Task 7: Configure Lombok (lombok.config)
+      - Task 8: Update ArchUnit Tests (5 domain purity tests)
+      - Task 9: Create Unit Tests (21+ test methods, > 80% coverage)
+      - Task 10: Update Documentation (README, CHANGELOG, architecture docs)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1" title="SignatureRequest Aggregate Root">
+      <given>Estructura hexagonal establecida (Story 1.1)</given>
+      <when>Creo el aggregate root SignatureRequest en domain/model/aggregate/</when>
+      <then>
+        - Clase SignatureRequest con 9 campos (id, customerId, transactionContext, status, challenges, routingTimeline, createdAt, expiresAt, signedAt)
+        - Builder pattern con Lombok @Builder, @Getter, @AllArgsConstructor(access = AccessLevel.PRIVATE)
+        - No imports de Spring, JPA, Jackson, Kafka (domain purity)
+      </then>
+    </criterion>
+
+    <criterion id="AC2" title="SignatureChallenge Entity">
+      <given>SignatureRequest aggregate definido</given>
+      <when>Creo la entity SignatureChallenge en domain/model/entity/</when>
+      <then>
+        - Clase SignatureChallenge con 8 campos (id, channelType, provider, status, sentAt, completedAt, providerProof, errorCode)
+        - Builder pattern implementado
+        - Método complete(ProviderResult proof) → transición PENDING → COMPLETED
+        - Método fail(String errorCode) → transición PENDING → FAILED
+      </then>
+    </criterion>
+
+    <criterion id="AC3" title="Value Objects (Immutable)">
+      <given>Domain models necesitan objetos inmutables</given>
+      <when>Creo Value Objects en domain/model/valueobject/</when>
+      <then>
+        - TransactionContext (record): amount, merchantId, orderId, description, hash
+        - Money (record): amount, currency + add(), multiply() methods
+        - ProviderResult (record): proof, timestamp, metadata
+        - RoutingEvent (record): timestamp, eventType, fromChannel, toChannel, reason
+      </then>
+    </criterion>
+
+    <criterion id="AC4" title="Enums (Domain Constants)">
+      <given>Domain models usan tipos discretos</given>
+      <when>Creo enums en domain/model/valueobject/</when>
+      <then>
+        - SignatureStatus: PENDING, CHALLENGED, SIGNED, ABORTED, EXPIRED
+        - ChallengeStatus: SENT, PENDING, COMPLETED, FAILED, EXPIRED
+        - ChannelType: SMS, PUSH, VOICE, BIOMETRIC
+        - ProviderType: TWILIO, ONESIGNAL, VONAGE, BIOMETRIC_SDK
+      </then>
+    </criterion>
+
+    <criterion id="AC5" title="SignatureRequest Business Methods">
+      <given>SignatureRequest aggregate con estado</given>
+      <when>Implemento métodos de negocio</when>
+      <then>
+        - createChallenge(ChannelType, ProviderType): valida 1 challenge activo max, crea challenge, transiciona status, agrega RoutingEvent
+        - completeSignature(SignatureChallenge): valida challenge COMPLETED, transiciona a SIGNED, set signedAt
+        - abort(String reason): transiciona a ABORTED, agrega RoutingEvent
+        - expire(): valida TTL exceeded, transiciona a EXPIRED
+      </then>
+    </criterion>
+
+    <criterion id="AC6" title="Domain Exceptions">
+      <given>Domain models necesitan excepciones específicas</given>
+      <when>Creo domain exceptions en domain/exception/</when>
+      <then>
+        - DomainException (abstract): message, errorCode
+        - FallbackExhaustedException: errorCode FALLBACK_EXHAUSTED
+        - InvalidStateTransitionException: errorCode INVALID_STATE_TRANSITION, from/to status
+        - ChallengeAlreadyActiveException: errorCode CHALLENGE_ALREADY_ACTIVE
+      </then>
+    </criterion>
+
+    <criterion id="AC7" title="Domain Purity (ArchUnit Validation)">
+      <given>Domain models creados</given>
+      <when>Ejecuto HexagonalArchitectureTest.java</when>
+      <then>
+        - Test domainLayerShouldNotDependOnSpring() pasa
+        - Test domainLayerShouldNotDependOnJPA() pasa
+        - Test domainLayerShouldNotDependOnJackson() pasa
+        - Test domainLayerShouldNotDependOnKafka() pasa
+        - Ninguna clase en domain importa: springframework, jakarta.persistence, jackson, apache.kafka
+      </then>
+    </criterion>
+
+    <criterion id="AC8" title="Unit Tests (Business Logic)">
+      <given>SignatureRequest con business methods</given>
+      <when>Creo unit tests en test/java/.../domain/</when>
+      <then>
+        - SignatureRequestTest: 8 test methods (createChallenge success/throws, completeSignature success/throws, abort, expire success/throws)
+        - MoneyTest: 4 test methods (add same/different currency, multiply, validation)
+        - TransactionContextTest: 2 test methods (immutability, hash validation)
+        - SignatureChallengeTest: 4 test methods (complete success/throws, fail)
+        - UUIDGeneratorTest: 1 test method (sortability)
+        - Test coverage > 80% (JaCoCo)
+      </then>
+    </criterion>
+
+    <criterion id="AC9" title="Builder Pattern Usage Examples">
+      <given>SignatureRequest con builder</given>
+      <when>Uso builder para crear aggregate</when>
+      <then>
+        - Código ejemplo funciona: SignatureRequest.builder().id(...).customerId(...).build()
+        - Builder fluent API con validación
+      </then>
+    </criterion>
+
+    <criterion id="AC10" title="Lombok Configuration">
+      <given>Domain models usan Lombok</given>
+      <when>Configuro lombok.config</when>
+      <then>
+        - Archivo lombok.config creado en project root
+        - Config: addLombokGeneratedAnnotation = true (excluye de code coverage)
+        - Config: defaultPrivate = true, defaultFinal = true (immutability)
+      </then>
+    </criterion>
+
+    <criterion id="AC11" title="Package Structure">
+      <given>Domain models creados</given>
+      <when>Reviso estructura de packages</when>
+      <then>
+        - domain/model/aggregate/: SignatureRequest.java
+        - domain/model/entity/: SignatureChallenge.java
+        - domain/model/valueobject/: Money, TransactionContext, ProviderResult, RoutingEvent, 4 enums, UUIDGenerator
+        - domain/exception/: DomainException, 3 specific exceptions
+        - domain/service/: placeholder para futuros domain services
+      </then>
+    </criterion>
+
+    <criterion id="AC12" title="Documentation & Testing Summary">
+      <given>Story 1.5 implementado</given>
+      <when>Actualizo documentación</when>
+      <then>
+        - README.md actualizado con sección Domain Models
+        - CHANGELOG.md actualizado con Story 1.5 entry
+        - Unit tests > 80% coverage (JaCoCo report)
+        - JavaDoc en métodos públicos de SignatureRequest, SignatureChallenge
+      </then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact id="tech-spec-epic-1" path="docs/sprint-artifacts/tech-spec-epic-1.md">
+        <section name="Technology Stack" lines="96">
+          <java_version>21</java_version>
+          <ddd_patterns>Aggregates, Entities, Value Objects, Domain Exceptions</ddd_patterns>
+        </section>
+      </artifact>
+
+      <artifact id="architecture-hexagonal" path="docs/architecture/02-hexagonal-structure.md">
+        <section name="Domain Layer" lines="50-150">
+          <purpose>Pure business logic, no framework dependencies</purpose>
+          <aggregates>SignatureRequest (root), nested SignatureChallenge entities</aggregates>
+          <value_objects>Money, TransactionContext, ProviderResult, RoutingEvent</value_objects>
+          <domain_services>Placeholder para routing logic, fallback strategy</domain_services>
+        </section>
+      </artifact>
+
+      <artifact id="database-schema" path="docs/architecture/03-database-schema.md">
+        <section name="SignatureRequest Table" lines="120-180">
+          <primary_key>id UUID (UUIDv7)</primary_key>
+          <jsonb_columns>transaction_context (TransactionContext serialized)</jsonb_columns>
+          <status_column>status VARCHAR(20) (SignatureStatus enum)</status_column>
+        </section>
+        <section name="SignatureChallenge Table" lines="200-250">
+          <foreign_key>signature_request_id → signature_request.id (CASCADE)</foreign_key>
+          <status_column>status VARCHAR(20) (ChallengeStatus enum)</status_column>
+          <provider_proof>provider_proof JSONB (ProviderResult serialized)</provider_proof>
+        </section>
+      </artifact>
+
+      <artifact id="epics" path="docs/epics.md">
+        <section name="Story 1.5 Definition" lines="276-311">
+          <aggregate>SignatureRequest with createChallenge, completeSignature, abort, expire</aggregate>
+          <entity>SignatureChallenge with complete, fail methods</entity>
+          <value_objects>TransactionContext, Money, ProviderResult, RoutingEvent</value_objects>
+          <enums>SignatureStatus, ChallengeStatus, ChannelType, ProviderType</enums>
+        </section>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact id="signature-status-enum" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/SignatureStatus.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+/**
+ * Signature request lifecycle status.
+ * 
+ * <p><b>State Transitions:</b></p>
+ * <pre>
+ * PENDING → CHALLENGED (when challenge created)
+ * CHALLENGED → SIGNED (when challenge completed)
+ * CHALLENGED → ABORTED (manual abort)
+ * ANY → EXPIRED (when TTL exceeded)
+ * </pre>
+ * 
+ * @since Story 1.5
+ */
+public enum SignatureStatus {
+    /**
+     * Initial state after creation, awaiting challenge creation.
+     */
+    PENDING,
+    
+    /**
+     * Challenge sent to customer, awaiting completion.
+     */
+    CHALLENGED,
+    
+    /**
+     * Challenge completed successfully, signature verified.
+     */
+    SIGNED,
+    
+    /**
+     * Manually aborted by user or system (e.g., fraud detection).
+     */
+    ABORTED,
+    
+    /**
+     * TTL exceeded (default 15 minutes), signature request expired.
+     */
+    EXPIRED
+}
+]]></content>
+      </artifact>
+
+      <artifact id="challenge-status-enum" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/ChallengeStatus.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+/**
+ * Challenge lifecycle status.
+ * 
+ * @since Story 1.5
+ */
+public enum ChallengeStatus {
+    /** Challenge sent to provider, awaiting delivery confirmation. */
+    SENT,
+    
+    /** Challenge delivered to customer, awaiting user action. */
+    PENDING,
+    
+    /** Challenge completed successfully (user verified). */
+    COMPLETED,
+    
+    /** Challenge failed (e.g., wrong OTP, timeout, provider error). */
+    FAILED,
+    
+    /** Challenge expired (TTL exceeded before completion). */
+    EXPIRED
+}
+]]></content>
+      </artifact>
+
+      <artifact id="channel-type-enum" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/ChannelType.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+/**
+ * Signature challenge delivery channel types.
+ * 
+ * @since Story 1.5
+ */
+public enum ChannelType {
+    /** SMS channel (OTP via text message). */
+    SMS,
+    
+    /** Push notification channel (mobile app). */
+    PUSH,
+    
+    /** Voice call channel (IVR system). */
+    VOICE,
+    
+    /** Biometric channel (fingerprint, face recognition). */
+    BIOMETRIC
+}
+]]></content>
+      </artifact>
+
+      <artifact id="provider-type-enum" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/ProviderType.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+/**
+ * Third-party provider types for challenge delivery.
+ * 
+ * @since Story 1.5
+ */
+public enum ProviderType {
+    /** Twilio SMS/Voice provider. */
+    TWILIO,
+    
+    /** OneSignal push notification provider. */
+    ONESIGNAL,
+    
+    /** Vonage SMS/Voice provider (fallback). */
+    VONAGE,
+    
+    /** In-house biometric SDK. */
+    BIOMETRIC_SDK
+}
+]]></content>
+      </artifact>
+
+      <artifact id="money-vo" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/Money.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+import java.math.BigDecimal;
+
+/**
+ * Immutable Value Object representing monetary amount.
+ * 
+ * <p><b>Usage Example:</b></p>
+ * <pre>{@code
+ * Money price = new Money(new BigDecimal("100.00"), "EUR");
+ * Money total = price.multiply(new BigDecimal("2")); // 200.00 EUR
+ * }</pre>
+ * 
+ * @param amount Monetary amount (must be >= 0)
+ * @param currency ISO 4217 currency code (e.g., EUR, USD)
+ * @since Story 1.5
+ */
+public record Money(BigDecimal amount, String currency) {
+    
+    /**
+     * Compact constructor with validation.
+     */
+    public Money {
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount cannot be null");
+        }
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Amount must be >= 0, got: " + amount);
+        }
+        if (currency == null || currency.isBlank()) {
+            throw new IllegalArgumentException("Currency cannot be null or empty");
+        }
+        // TODO: Validate ISO 4217 currency code (EUR, USD, GBP, etc.)
+    }
+    
+    /**
+     * Add another Money amount.
+     * 
+     * @param other Money to add
+     * @return New Money instance with sum
+     * @throws IllegalArgumentException if currencies differ
+     */
+    public Money add(Money other) {
+        if (!this.currency.equals(other.currency)) {
+            throw new IllegalArgumentException(
+                String.format("Cannot add different currencies: %s and %s", this.currency, other.currency)
+            );
+        }
+        return new Money(this.amount.add(other.amount), this.currency);
+    }
+    
+    /**
+     * Multiply amount by factor.
+     * 
+     * @param factor Multiplication factor
+     * @return New Money instance with product
+     */
+    public Money multiply(BigDecimal factor) {
+        if (factor == null) {
+            throw new IllegalArgumentException("Factor cannot be null");
+        }
+        return new Money(this.amount.multiply(factor), this.currency);
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="transaction-context-vo" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/TransactionContext.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+/**
+ * Immutable Value Object representing transaction context for signature request.
+ * 
+ * <p><b>Security:</b> Hash (SHA256) ensures transaction context integrity (non-repudiation).</p>
+ * 
+ * @param amount Transaction monetary amount
+ * @param merchantId Merchant identifier (pseudonymized)
+ * @param orderId Order/transaction identifier
+ * @param description Human-readable transaction description
+ * @param hash SHA256 hash of transaction data (integrity check)
+ * @since Story 1.5
+ */
+public record TransactionContext(
+    Money amount,
+    String merchantId,
+    String orderId,
+    String description,
+    String hash
+) {
+    
+    /**
+     * Compact constructor with validation.
+     */
+    public TransactionContext {
+        if (amount == null) {
+            throw new IllegalArgumentException("Amount cannot be null");
+        }
+        if (merchantId == null || merchantId.isBlank()) {
+            throw new IllegalArgumentException("MerchantId cannot be null or empty");
+        }
+        if (orderId == null || orderId.isBlank()) {
+            throw new IllegalArgumentException("OrderId cannot be null or empty");
+        }
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Description cannot be null or empty");
+        }
+        if (hash == null || !hash.matches("^[a-f0-9]{64}$")) {
+            throw new IllegalArgumentException("Hash must be a valid SHA256 hex string (64 chars)");
+        }
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="provider-result-vo" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/ProviderResult.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+import java.time.Instant;
+import java.util.Map;
+
+/**
+ * Immutable Value Object representing provider challenge completion proof.
+ * 
+ * <p><b>Non-Repudiation:</b> Proof field contains provider-signed response (JWT, signature, etc.)
+ * for audit trail and compliance (PCI-DSS, SOC 2).</p>
+ * 
+ * @param proof Provider-signed proof (e.g., JWT token, digital signature)
+ * @param timestamp Proof generation timestamp
+ * @param metadata Additional provider-specific metadata (e.g., OTP hash, session ID)
+ * @since Story 1.5
+ */
+public record ProviderResult(
+    String proof,
+    Instant timestamp,
+    Map<String, Object> metadata
+) {
+    
+    /**
+     * Compact constructor with validation.
+     */
+    public ProviderResult {
+        if (proof == null || proof.isBlank()) {
+            throw new IllegalArgumentException("Proof cannot be null or empty");
+        }
+        if (timestamp == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+        // metadata can be null (optional)
+        if (metadata == null) {
+            metadata = Map.of(); // Empty map instead of null
+        }
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="routing-event-vo" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/RoutingEvent.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+import java.time.Instant;
+
+/**
+ * Immutable Value Object representing a routing event in signature request timeline.
+ * 
+ * <p><b>Audit Trail:</b> Used to track routing decisions, fallback triggers, and channel transitions.</p>
+ * 
+ * @param timestamp Event occurrence timestamp
+ * @param eventType Event type (e.g., "CHALLENGE_SENT", "FALLBACK_TRIGGERED", "SIGNATURE_COMPLETED")
+ * @param fromChannel Source channel (nullable for initial events)
+ * @param toChannel Target channel (nullable for terminal events)
+ * @param reason Event reason or description
+ * @since Story 1.5
+ */
+public record RoutingEvent(
+    Instant timestamp,
+    String eventType,
+    ChannelType fromChannel,
+    ChannelType toChannel,
+    String reason
+) {
+    
+    /**
+     * Compact constructor with validation.
+     */
+    public RoutingEvent {
+        if (timestamp == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+        if (eventType == null || eventType.isBlank()) {
+            throw new IllegalArgumentException("EventType cannot be null or empty");
+        }
+        // fromChannel, toChannel can be null (initial/terminal events)
+        if (reason == null) {
+            reason = ""; // Empty string instead of null
+        }
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="domain-exception" type="java" path="src/main/java/com/bank/signature/domain/exception/DomainException.java">
+        <content><![CDATA[
+package com.bank.signature.domain.exception;
+
+/**
+ * Base exception for all domain-specific exceptions.
+ * 
+ * <p><b>Design:</b> RuntimeException to avoid checked exception pollution in domain layer.</p>
+ * 
+ * @since Story 1.5
+ */
+public abstract class DomainException extends RuntimeException {
+    
+    private final String errorCode;
+    
+    /**
+     * Constructor with message and error code.
+     * 
+     * @param message Human-readable error message
+     * @param errorCode Machine-readable error code (e.g., "FALLBACK_EXHAUSTED")
+     */
+    protected DomainException(String message, String errorCode) {
+        super(message);
+        this.errorCode = errorCode;
+    }
+    
+    /**
+     * Get machine-readable error code.
+     * 
+     * @return Error code (e.g., "FALLBACK_EXHAUSTED", "INVALID_STATE_TRANSITION")
+     */
+    public String getErrorCode() {
+        return errorCode;
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="fallback-exhausted-exception" type="java" path="src/main/java/com/bank/signature/domain/exception/FallbackExhaustedException.java">
+        <content><![CDATA[
+package com.bank.signature.domain.exception;
+
+/**
+ * Exception thrown when all fallback channels have been exhausted.
+ * 
+ * @since Story 1.5
+ */
+public class FallbackExhaustedException extends DomainException {
+    
+    private static final String ERROR_CODE = "FALLBACK_EXHAUSTED";
+    
+    /**
+     * Constructor with message.
+     * 
+     * @param message Error message
+     */
+    public FallbackExhaustedException(String message) {
+        super(message, ERROR_CODE);
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="invalid-state-transition-exception" type="java" path="src/main/java/com/bank/signature/domain/exception/InvalidStateTransitionException.java">
+        <content><![CDATA[
+package com.bank.signature.domain.exception;
+
+import com.bank.signature.domain.model.valueobject.SignatureStatus;
+
+/**
+ * Exception thrown when an invalid state transition is attempted.
+ * 
+ * @since Story 1.5
+ */
+public class InvalidStateTransitionException extends DomainException {
+    
+    private static final String ERROR_CODE = "INVALID_STATE_TRANSITION";
+    
+    private final SignatureStatus from;
+    private final SignatureStatus to;
+    
+    /**
+     * Constructor with state transition details.
+     * 
+     * @param message Error message
+     * @param from Source status
+     * @param to Target status
+     */
+    public InvalidStateTransitionException(String message, SignatureStatus from, SignatureStatus to) {
+        super(String.format("%s (from %s to %s)", message, from, to), ERROR_CODE);
+        this.from = from;
+        this.to = to;
+    }
+    
+    public SignatureStatus getFrom() {
+        return from;
+    }
+    
+    public SignatureStatus getTo() {
+        return to;
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="challenge-already-active-exception" type="java" path="src/main/java/com/bank/signature/domain/exception/ChallengeAlreadyActiveException.java">
+        <content><![CDATA[
+package com.bank.signature.domain.exception;
+
+import java.util.UUID;
+
+/**
+ * Exception thrown when attempting to create a challenge while one is already active.
+ * 
+ * <p><b>Business Rule:</b> Only 1 challenge with status PENDING allowed at a time.</p>
+ * 
+ * @since Story 1.5
+ */
+public class ChallengeAlreadyActiveException extends DomainException {
+    
+    private static final String ERROR_CODE = "CHALLENGE_ALREADY_ACTIVE";
+    
+    private final UUID signatureRequestId;
+    
+    /**
+     * Constructor with signature request ID.
+     * 
+     * @param signatureRequestId ID of signature request that already has active challenge
+     */
+    public ChallengeAlreadyActiveException(UUID signatureRequestId) {
+        super(String.format("Signature request %s already has an active challenge", signatureRequestId), ERROR_CODE);
+        this.signatureRequestId = signatureRequestId;
+    }
+    
+    public UUID getSignatureRequestId() {
+        return signatureRequestId;
+    }
+}
+]]></content>
+      </artifact>
+
+      <artifact id="uuidv7-generator" type="java" path="src/main/java/com/bank/signature/domain/model/valueobject/UUIDGenerator.java">
+        <content><![CDATA[
+package com.bank.signature.domain.model.valueobject;
+
+import java.security.SecureRandom;
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * Utility class for generating UUIDv7 (time-sortable UUIDs).
+ * 
+ * <p><b>UUIDv7 Format:</b></p>
+ * <pre>
+ * - 48-bit timestamp (milliseconds since epoch)
+ * - 4-bit version (0111 = 7)
+ * - 12-bit counter (per-millisecond uniqueness)
+ * - 2-bit variant (10)
+ * - 62-bit random
+ * </pre>
+ * 
+ * <p><b>Benefits over UUIDv4:</b></p>
+ * <ul>
+ *   <li>Time-sortable (better for B-tree indexes in PostgreSQL)</li>
+ *   <li>Reduces index fragmentation (sequential inserts)</li>
+ *   <li>Preserves randomness (hard to predict)</li>
+ * </ul>
+ * 
+ * @since Story 1.5
+ */
+public final class UUIDGenerator {
+    
+    private static final SecureRandom RANDOM = new SecureRandom();
+    
+    private UUIDGenerator() {
+        // Utility class, no instantiation
+    }
+    
+    /**
+     * Generate UUIDv7 (time-sortable UUID).
+     * 
+     * @return UUIDv7 instance
+     */
+    public static UUID generateV7() {
+        long timestamp = Instant.now().toEpochMilli();
+        
+        // Most significant bits: 48-bit timestamp + 4-bit version (7) + 12-bit random
+        long mostSigBits = (timestamp << 16) | (0x7000L | (RANDOM.nextLong() & 0x0FFFL));
+        
+        // Least significant bits: 2-bit variant (10) + 62-bit random
+        long leastSigBits = (0x8000000000000000L | (RANDOM.nextLong() & 0x3FFFFFFFFFFFFFFFL));
+        
+        return new UUID(mostSigBits, leastSigBits);
+    }
+}
+]]></content>
+        <critical_notes>
+          - UUIDv7 uses 48-bit timestamp (millisecond precision) for time-sortability
+          - Better PostgreSQL B-tree index performance vs UUIDv4 (reduces fragmentation)
+          - SecureRandom for cryptographic randomness (thread-safe)
+        </critical_notes>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <maven>
+        <dependency>
+          <groupId>org.projectlombok</groupId>
+          <artifactId>lombok</artifactId>
+          <scope>provided</scope>
+          <version>Managed by Spring Boot</version>
+          <story>1.5</story>
+          <note>Already included in Story 1.1, used for @Builder, @Getter annotations</note>
+        </dependency>
+      </maven>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="DDD-1" type="architecture">
+      <rule>SignatureRequest es el ÚNICO aggregate root (controla lifecycle de SignatureChallenge)</rule>
+      <validation>SignatureChallenge NO tiene métodos públicos que modifiquen estado fuera de SignatureRequest</validation>
+    </constraint>
+
+    <constraint id="DDD-2" type="architecture">
+      <rule>Value Objects DEBEN ser inmutables (Java 21 records)</rule>
+      <validation>Money, TransactionContext, ProviderResult, RoutingEvent implementados como records sin setters</validation>
+    </constraint>
+
+    <constraint id="DDD-3" type="business">
+      <rule>Solo 1 challenge con status PENDING permitido simultáneamente</rule>
+      <validation>SignatureRequest.createChallenge() valida y lanza ChallengeAlreadyActiveException si violación</validation>
+    </constraint>
+
+    <constraint id="DDD-4" type="business">
+      <rule>State transitions DEBEN ser explícitas (no setStatus directo)</rule>
+      <validation>SignatureStatus es mutable pero solo modificable via business methods (createChallenge, completeSignature, abort, expire)</validation>
+    </constraint>
+
+    <constraint id="PURITY-1" type="architecture">
+      <rule>Domain layer NO DEBE importar Spring framework</rule>
+      <validation>ArchUnit test: classes in "..domain.." should not depend on "..springframework.."</validation>
+    </constraint>
+
+    <constraint id="PURITY-2" type="architecture">
+      <rule>Domain layer NO DEBE importar JPA (jakarta.persistence)</rule>
+      <validation>ArchUnit test: classes in "..domain.." should not depend on "..jakarta.persistence.."</validation>
+    </constraint>
+
+    <constraint id="PURITY-3" type="architecture">
+      <rule>Domain layer NO DEBE importar Jackson (fasterxml.jackson)</rule>
+      <validation>ArchUnit test: classes in "..domain.." should not depend on "..fasterxml.jackson.."</validation>
+    </constraint>
+
+    <constraint id="PURITY-4" type="architecture">
+      <rule>Domain layer NO DEBE importar Kafka (apache.kafka)</rule>
+      <validation>ArchUnit test: classes in "..domain.." should not depend on "..apache.kafka.."</validation>
+    </constraint>
+
+    <constraint id="LOMBOK-1" type="implementation">
+      <rule>Aggregates y Entities DEBEN usar @Builder con AccessLevel.PRIVATE constructor</rule>
+      <validation>SignatureRequest, SignatureChallenge tienen @AllArgsConstructor(access = AccessLevel.PRIVATE) + @Builder</validation>
+    </constraint>
+
+    <constraint id="LOMBOK-2" type="implementation">
+      <rule>Aggregates y Entities DEBEN usar @Getter (NO @Setter)</rule>
+      <validation>Estado mutable solo modificable via business methods, no setters públicos</validation>
+    </constraint>
+
+    <constraint id="TEST-1" type="testing">
+      <rule>Unit tests DEBEN ser pure JUnit 5 (NO Spring @SpringBootTest)</rule>
+      <validation>SignatureRequestTest, MoneyTest, etc. NO importan org.springframework</validation>
+    </constraint>
+
+    <constraint id="TEST-2" type="testing">
+      <rule>Test coverage > 80% para domain models (JaCoCo)</rule>
+      <validation>Ejecutar: mvn jacoco:report, verificar target/site/jacoco/index.html</validation>
+    </constraint>
+
+    <constraint id="DOC-1" type="documentation">
+      <rule>JavaDoc MANDATORY para public methods en aggregates/entities</rule>
+      <validation>SignatureRequest.createChallenge(), completeSignature(), etc. tienen JavaDoc con @param, @return, @throws</validation>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface id="IFC-1" name="SignatureRequest Business API">
+      <description>Public methods for aggregate manipulation</description>
+      <contract>
+        - createChallenge(ChannelType, ProviderType): SignatureChallenge
+        - completeSignature(SignatureChallenge): void
+        - abort(String reason): void
+        - expire(): void
+        - Getters: getId(), getCustomerId(), getStatus(), getChallenges(), etc.
+      </contract>
+    </interface>
+
+    <interface id="IFC-2" name="SignatureChallenge Business API">
+      <description>Public methods for entity lifecycle</description>
+      <contract>
+        - complete(ProviderResult proof): void
+        - fail(String errorCode): void
+        - Getters: getId(), getChannelType(), getStatus(), etc.
+      </contract>
+    </interface>
+
+    <interface id="IFC-3" name="Money Value Object API">
+      <description>Immutable monetary calculations</description>
+      <contract>
+        - add(Money other): Money (throws if different currencies)
+        - multiply(BigDecimal factor): Money
+        - Getters: amount(), currency() (record accessors)
+      </contract>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard id="TS-1">Unit tests MANDATORY para todos los business methods (createChallenge, completeSignature, abort, expire)</standard>
+      <standard id="TS-2">Test happy path Y exception scenarios (e.g., createChallenge success + throws ChallengeAlreadyActiveException)</standard>
+      <standard id="TS-3">Test Value Object immutability (Java 21 records)</standard>
+      <standard id="TS-4">Test Money operations (add same currency, add different currency throws, multiply)</standard>
+      <standard id="TS-5">ArchUnit tests para domain purity (no Spring/JPA/Jackson/Kafka imports)</standard>
+      <standard id="TS-6">Test coverage > 80% (JaCoCo report)</standard>
+    </standards>
+
+    <locations>
+      <location>src/test/java/com/bank/signature/domain/model/aggregate/SignatureRequestTest.java</location>
+      <location>src/test/java/com/bank/signature/domain/model/entity/SignatureChallengeTest.java</location>
+      <location>src/test/java/com/bank/signature/domain/model/valueobject/MoneyTest.java</location>
+      <location>src/test/java/com/bank/signature/domain/model/valueobject/TransactionContextTest.java</location>
+      <location>src/test/java/com/bank/signature/domain/model/valueobject/UUIDGeneratorTest.java</location>
+      <location>src/test/java/com/bank/signature/HexagonalArchitectureTest.java (update existing)</location>
+    </locations>
+
+    <ideas>
+      <test id="TEST-1" maps_to="AC5">
+        <name>SignatureRequest.createChallenge Success</name>
+        <approach>Create SignatureRequest with PENDING status, call createChallenge(SMS, TWILIO), verify status CHALLENGED, challenges.size() == 1, routingTimeline updated</approach>
+      </test>
+
+      <test id="TEST-2" maps_to="AC5">
+        <name>SignatureRequest.createChallenge Throws ChallengeAlreadyActiveException</name>
+        <approach>Create SignatureRequest, add challenge with status PENDING, call createChallenge again, verify ChallengeAlreadyActiveException thrown</approach>
+      </test>
+
+      <test id="TEST-3" maps_to="AC5">
+        <name>SignatureRequest.completeSignature Success</name>
+        <approach>Create SignatureRequest with challenge COMPLETED, call completeSignature(challenge), verify status SIGNED, signedAt not null, routingTimeline updated</approach>
+      </test>
+
+      <test id="TEST-4" maps_to="AC5">
+        <name>SignatureRequest.completeSignature Throws InvalidStateTransitionException</name>
+        <approach>Create SignatureRequest with challenge PENDING (not COMPLETED), call completeSignature, verify InvalidStateTransitionException thrown</approach>
+      </test>
+
+      <test id="TEST-5" maps_to="AC5">
+        <name>SignatureRequest.completeSignature Throws DomainException (Challenge Not Belongs)</name>
+        <approach>Create SignatureRequest, create challenge from different aggregate, call completeSignature with foreign challenge, verify DomainException thrown</approach>
+      </test>
+
+      <test id="TEST-6" maps_to="AC5">
+        <name>SignatureRequest.abort Success</name>
+        <approach>Create SignatureRequest, call abort("FRAUD_DETECTED"), verify status ABORTED, routingTimeline contains abort event with reason</approach>
+      </test>
+
+      <test id="TEST-7" maps_to="AC5">
+        <name>SignatureRequest.expire Success</name>
+        <approach>Create SignatureRequest with expiresAt in past, call expire(), verify status EXPIRED, routingTimeline contains expire event</approach>
+      </test>
+
+      <test id="TEST-8" maps_to="AC5">
+        <name>SignatureRequest.expire Throws DomainException (TTL Not Exceeded)</name>
+        <approach>Create SignatureRequest with expiresAt in future, call expire(), verify DomainException thrown with message "TTL_NOT_EXCEEDED"</approach>
+      </test>
+
+      <test id="TEST-9" maps_to="AC2">
+        <name>SignatureChallenge.complete Success</name>
+        <approach>Create challenge with status PENDING, call complete(providerResult), verify status COMPLETED, completedAt not null, providerProof set</approach>
+      </test>
+
+      <test id="TEST-10" maps_to="AC2">
+        <name>SignatureChallenge.complete Throws InvalidStateTransitionException</name>
+        <approach>Create challenge with status FAILED, call complete, verify InvalidStateTransitionException thrown</approach>
+      </test>
+
+      <test id="TEST-11" maps_to="AC2">
+        <name>SignatureChallenge.fail Success</name>
+        <approach>Create challenge with status PENDING, call fail("TIMEOUT"), verify status FAILED, errorCode == "TIMEOUT"</approach>
+      </test>
+
+      <test id="TEST-12" maps_to="AC3">
+        <name>Money.add Same Currency</name>
+        <approach>Create Money(100, EUR), add Money(50, EUR), verify result == Money(150, EUR)</approach>
+      </test>
+
+      <test id="TEST-13" maps_to="AC3">
+        <name>Money.add Different Currency Throws Exception</name>
+        <approach>Create Money(100, EUR), add Money(50, USD), verify IllegalArgumentException thrown</approach>
+      </test>
+
+      <test id="TEST-14" maps_to="AC3">
+        <name>Money.multiply</name>
+        <approach>Create Money(100, EUR), multiply(2), verify result == Money(200, EUR)</approach>
+      </test>
+
+      <test id="TEST-15" maps_to="AC3">
+        <name>Money Constructor Validation (Negative Amount)</name>
+        <approach>Attempt new Money(-100, EUR), verify IllegalArgumentException thrown</approach>
+      </test>
+
+      <test id="TEST-16" maps_to="AC3">
+        <name>TransactionContext Immutability</name>
+        <approach>Create TransactionContext, verify record immutability (no setters available)</approach>
+      </test>
+
+      <test id="TEST-17" maps_to="AC3">
+        <name>TransactionContext Hash Validation</name>
+        <approach>Attempt new TransactionContext with invalid hash (not 64 hex chars), verify IllegalArgumentException thrown</approach>
+      </test>
+
+      <test id="TEST-18" maps_to="AC6">
+        <name>UUIDGenerator.generateV7 Sortability</name>
+        <approach>Generate 100 UUIDv7, verify chronological order (UUID n+1 > UUID n lexicographically)</approach>
+      </test>
+
+      <test id="TEST-19" maps_to="AC7">
+        <name>ArchUnit: Domain Layer Should Not Depend On Spring</name>
+        <approach>ArchUnit rule: classes in "..domain.." should not depend on "..springframework..", verify no violations</approach>
+      </test>
+
+      <test id="TEST-20" maps_to="AC7">
+        <name>ArchUnit: Domain Layer Should Not Depend On JPA</name>
+        <approach>ArchUnit rule: classes in "..domain.." should not depend on "..jakarta.persistence.." or "..javax.persistence..", verify no violations</approach>
+      </test>
+
+      <test id="TEST-21" maps_to="AC7">
+        <name>ArchUnit: Domain Layer Should Not Depend On Jackson</name>
+        <approach>ArchUnit rule: classes in "..domain.." should not depend on "..fasterxml.jackson..", verify no violations</approach>
+      </test>
+
+      <test id="TEST-22" maps_to="AC7">
+        <name>ArchUnit: Domain Layer Should Not Depend On Kafka</name>
+        <approach>ArchUnit rule: classes in "..domain.." should not depend on "..apache.kafka..", verify no violations</approach>
+      </test>
+    </ideas>
+  </tests>
+
+  <implementation_notes>
+    <priority level="CRITICAL">
+      <note>Domain Purity MANDATORY: No imports de Spring/JPA/Jackson/Kafka en domain/ (validado con ArchUnit)</note>
+      <note>Aggregate Root: SignatureRequest controla lifecycle de SignatureChallenge (NO public mutators en entity)</note>
+      <note>Business Rule: Solo 1 challenge PENDING simultáneo (validar en createChallenge)</note>
+      <note>State Transitions: DEBEN ser explícitas via business methods (createChallenge, completeSignature, abort, expire)</note>
+    </priority>
+
+    <priority level="HIGH">
+      <note>Java 21 Records: Usar para Value Objects (Money, TransactionContext, ProviderResult, RoutingEvent)</note>
+      <note>Lombok @Builder: Usar para Aggregates/Entities con AccessLevel.PRIVATE constructor (enforce invariants)</note>
+      <note>Lombok @Getter (NO @Setter): Estado mutable solo via business methods</note>
+      <note>UUIDv7 Generator: Implementar para IDs time-sortable (mejor performance PostgreSQL B-tree)</note>
+      <note>JavaDoc MANDATORY: Public methods en aggregates/entities con @param, @return, @throws</note>
+    </priority>
+
+    <priority level="MEDIUM">
+      <note>lombok.config: Crear en project root con addLombokGeneratedAnnotation=true (excluye de coverage)</note>
+      <note>Unit Tests: Pure JUnit 5 (NO Spring), > 80% coverage (JaCoCo)</note>
+      <note>Test Scenarios: Happy path + exception scenarios (e.g., createChallenge success + ChallengeAlreadyActiveException)</note>
+      <note>Money Operations: Validar currency match en add() (throw IllegalArgumentException si diferentes)</note>
+    </priority>
+
+    <priority level="LOW">
+      <note>RoutingEvent: fromChannel/toChannel pueden ser null (initial/terminal events)</note>
+      <note>ProviderResult.metadata: puede ser null (convertir a empty Map en compact constructor)</note>
+      <note>Future: Implementar domain services (RoutingStrategyService, FallbackService) en domain/service/</note>
+    </priority>
+  </implementation_notes>
+
+  <definition_of_done>
+    <checklist>
+      <item>Code Complete: 4 enums creados (SignatureStatus, ChallengeStatus, ChannelType, ProviderType)</item>
+      <item>Code Complete: 4 Value Objects creados como Java 21 records (Money, TransactionContext, ProviderResult, RoutingEvent)</item>
+      <item>Code Complete: 4 Domain Exceptions creados (DomainException, FallbackExhaustedException, InvalidStateTransitionException, ChallengeAlreadyActiveException)</item>
+      <item>Code Complete: SignatureChallenge entity creado con complete(), fail() methods</item>
+      <item>Code Complete: SignatureRequest aggregate creado con 4 business methods (createChallenge, completeSignature, abort, expire)</item>
+      <item>Code Complete: UUIDv7 Generator implementado</item>
+      <item>Code Complete: lombok.config creado con recommended settings</item>
+      <item>Tests Passing: SignatureRequestTest con 8 test methods (createChallenge success/throws, completeSignature success/throws, abort, expire success/throws)</item>
+      <item>Tests Passing: SignatureChallengeTest con 4 test methods (complete success/throws, fail)</item>
+      <item>Tests Passing: MoneyTest con 4 test methods (add same/different currency, multiply, validation)</item>
+      <item>Tests Passing: TransactionContextTest con 2 test methods (immutability, hash validation)</item>
+      <item>Tests Passing: UUIDGeneratorTest con 1 test method (sortability)</item>
+      <item>Tests Passing: HexagonalArchitectureTest actualizado con 4 domain purity tests (no Spring/JPA/Jackson/Kafka)</item>
+      <item>Tests Passing: Test coverage > 80% (JaCoCo report en target/site/jacoco/index.html)</item>
+      <item>Architecture Validated: SignatureRequest es aggregate root (controla SignatureChallenge lifecycle)</item>
+      <item>Architecture Validated: Value Objects son inmutables (Java 21 records sin setters)</item>
+      <item>Architecture Validated: Solo 1 challenge PENDING simultáneo (validado en createChallenge)</item>
+      <item>Architecture Validated: State transitions explícitas (no setStatus directo)</item>
+      <item>Domain Purity Validated: No imports Spring/JPA/Jackson/Kafka en domain/ (ArchUnit tests pasan)</item>
+      <item>Documentation Updated: README.md con sección "Domain Models" (package structure, builder example)</item>
+      <item>Documentation Updated: CHANGELOG.md con Story 1.5 entry</item>
+      <item>Documentation Updated: docs/architecture/02-hexagonal-structure.md con ejemplos concretos</item>
+      <item>Code Review Approved: Domain models siguen DDD patterns (aggregate, entity, value objects)</item>
+      <item>Code Review Approved: Lombok usado correctamente (@Builder, @Getter, AccessLevel.PRIVATE)</item>
+      <item>Code Review Approved: JavaDoc presente en public methods</item>
+      <item>Story Marked as Done: Todos los 12 ACs verificados</item>
+      <item>Story Marked as Done: Sprint status actualizado a done</item>
+    </checklist>
+  </definition_of_done>
+</story-context>

@@ -1,0 +1,99 @@
+databaseChangeLog:
+  - changeSet:
+      id: "0004"
+      author: "BMAD Dev Agent <bmad@signature-router.com>"
+      context: prod
+      comment: "Create routing_rule table - SpEL-based routing rules for channel selection"
+      changes:
+        - createTable:
+            tableName: routing_rule
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: uuid_generate_v7()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: priority
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: condition
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_channel
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: modified_at
+                  type: timestamp with time zone
+              - column:
+                  name: modified_by
+                  type: varchar(255)
+              - column:
+                  name: deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted_by
+                  type: varchar(255)
+              - column:
+                  name: deleted_at
+                  type: timestamp with time zone
+        
+        # Composite index on priority + enabled (rules are evaluated in priority order, only enabled ones)
+        - createIndex:
+            indexName: idx_routing_rule_priority_enabled
+            tableName: routing_rule
+            columns:
+              - column:
+                  name: priority
+              - column:
+                  name: enabled
+        
+        # Table and column comments
+        - sql:
+            sql: |
+              COMMENT ON TABLE routing_rule IS 'SpEL routing rules for dynamic channel selection (managed via Admin Portal)';
+              COMMENT ON COLUMN routing_rule.condition IS 'Spring Expression Language (SpEL) condition (e.g., context.riskLevel == HIGH)';
+              COMMENT ON COLUMN routing_rule.priority IS 'Lower number = higher priority (evaluated in ascending order)';
+      
+      rollback:
+        - dropTable:
+            tableName: routing_rule
+            cascade: true
+

@@ -1,0 +1,91 @@
+{
+  "type": "record",
+  "name": "ChallengeSentEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when a challenge is successfully sent via provider (FR40 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "CHALLENGE_SENT"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "SignatureRequest ID"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "ChallengeSentPayload",
+        "fields": [
+          {
+            "name": "requestId",
+            "type": "string",
+            "logicalType": "uuid"
+          },
+          {
+            "name": "provider",
+            "type": "string",
+            "doc": "Provider used (SMS_TWILIO, EMAIL_SENDGRID, etc.)"
+          },
+          {
+            "name": "channel",
+            "type": "string",
+            "doc": "Channel used (SMS, EMAIL, PUSH, etc.)"
+          },
+          {
+            "name": "destinationHash",
+            "type": "string",
+            "doc": "SHA-256 hash of destination (phone/email) for audit without PII"
+          },
+          {
+            "name": "providerMessageId",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Provider's message ID (e.g., Twilio SID)"
+          },
+          {
+            "name": "sentAt",
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          },
+          {
+            "name": "expiresAt",
+            "type": "long",
+            "logicalType": "timestamp-millis",
+            "doc": "Challenge expiration timestamp"
+          }
+        ]
+      }
+    }
+  ]
+}
+

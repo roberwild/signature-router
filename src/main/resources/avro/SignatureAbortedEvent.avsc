@@ -1,0 +1,90 @@
+{
+  "type": "record",
+  "name": "SignatureAbortedEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when a signature request is aborted by admin (FR45 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "SIGNATURE_ABORTED"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "SignatureRequest ID"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "SignatureAbortedPayload",
+        "fields": [
+          {
+            "name": "requestId",
+            "type": "string",
+            "logicalType": "uuid"
+          },
+          {
+            "name": "userId",
+            "type": "string",
+            "doc": "User ID (pseudonymized: SHA-256 hash)"
+          },
+          {
+            "name": "transactionType",
+            "type": "string",
+            "doc": "Type of transaction (e.g., TRANSFER, PAYMENT)"
+          },
+          {
+            "name": "abortReason",
+            "type": "string",
+            "doc": "Reason for abortion (e.g., FRAUD_SUSPECTED, USER_REQUEST)"
+          },
+          {
+            "name": "abortedBy",
+            "type": "string",
+            "doc": "Admin user ID who aborted the request"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "default": "ABORTED",
+            "doc": "Final status (ABORTED)"
+          },
+          {
+            "name": "abortedAt",
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          }
+        ]
+      }
+    }
+  ]
+}
+

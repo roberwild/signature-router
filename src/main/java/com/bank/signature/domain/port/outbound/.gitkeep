@@ -1,0 +1,3 @@
+# Outbound Ports (Repository & Provider interfaces)
+# SignatureRequestRepository, SignatureProviderPort will be created in Stories 1.6, Epic 3
+

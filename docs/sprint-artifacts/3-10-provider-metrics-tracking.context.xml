@@ -1,0 +1,803 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Story Context: 3.10 - Provider Metrics Tracking
+  Generated: 2025-11-28
+  Epic: 3 - Multi-Provider Integration
+  
+  This file contains technical context for implementing comprehensive Prometheus metrics
+  for provider calls to enable SLO monitoring, performance comparison, and proactive alerting.
+-->
+<story-context>
+  <metadata>
+    <story-id>3.10</story-id>
+    <story-key>3-10-provider-metrics-tracking</story-key>
+    <epic-id>3</epic-id>
+    <title>Provider Metrics Tracking</title>
+    <status>ready-for-dev</status>
+    <story-points>3</story-points>
+  </metadata>
+
+  <user-story>
+    <as-a>Sistema de Signature Router</as-a>
+    <i-want>Métricas comprehensivas de provider calls exportadas a Prometheus</i-want>
+    <so-that>Puedo monitorear performance, SLO compliance, y detectar degradación de providers proactivamente</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="AC1" priority="critical">
+      <title>Core Provider Call Metrics</title>
+      <description>
+        Registrar métricas Prometheus básicas en cada provider call:
+        - Counter: provider.calls.total{provider, status, channel_type, retried}
+        - Counter: provider.failures.total{provider, error_code}
+        - Histogram: provider.latency{provider, status} con buckets 50ms-10s
+        - Export vía /actuator/prometheus
+      </description>
+      <reference>Story 3.10 AC1</reference>
+    </criterion>
+
+    <criterion id="AC2" priority="high">
+      <title>Timeout-Specific Metrics</title>
+      <description>
+        Métricas adicionales para timeouts:
+        - Reuse provider.timeout.total (Story 3.8)
+        - New: provider.timeout.duration histogram
+        - Tag timedOut=true en provider.latency cuando timeout
+      </description>
+      <reference>Story 3.10 AC2</reference>
+    </criterion>
+
+    <criterion id="AC3" priority="high">
+      <title>Retry Awareness in Metrics</title>
+      <description>
+        Integrar retry metadata en métricas:
+        - Tag retried="true|false" en provider.calls.total
+        - Tag attempt_number="1|2|3" en provider.latency
+        - NO duplicar métricas de ProviderRetryMetrics (Story 3.9)
+      </description>
+      <reference>Story 3.10 AC3</reference>
+    </criterion>
+
+    <criterion id="AC4" priority="high">
+      <title>Provider Availability Calculation</title>
+      <description>
+        Permitir calcular availability via Prometheus query:
+        sum(rate(provider_calls_total{status="success"}[5m])) / sum(rate(provider_calls_total[5m]))
+      </description>
+      <reference>Story 3.10 AC4</reference>
+    </criterion>
+
+    <criterion id="AC5" priority="critical">
+      <title>Error Rate Metrics (Epic 4 Preparation)</title>
+      <description>
+        Implementar cálculo de error rate para circuit breaker:
+        - Counter: provider.errors.total{provider, error_type="transient|permanent"}
+        - Gauge: provider.error.rate{provider} calculado cada 10s
+        - Scheduled task: ProviderErrorRateCalculator
+      </description>
+      <reference>Story 3.10 AC5, Epic 4 Story 4.4 dependency</reference>
+    </criterion>
+
+    <criterion id="AC6" priority="medium">
+      <title>Per-Channel Metrics</title>
+      <description>
+        Tag channel_type="SMS|PUSH|VOICE|BIOMETRIC" en todas las métricas core
+        para correlación con routing rules y performance comparison
+      </description>
+      <reference>Story 3.10 AC6</reference>
+    </criterion>
+
+    <criterion id="AC7" priority="critical">
+      <title>Metrics Component Architecture</title>
+      <description>
+        Crear ProviderMetrics component centralizado:
+        - Package: infrastructure.observability.metrics
+        - Methods: recordProviderCall(), recordTimeout(), updateErrorRate()
+        - Dependency injection: MeterRegistry
+        - Llamado desde SignatureProviderAdapter
+      </description>
+      <reference>Story 3.10 AC7</reference>
+    </criterion>
+
+    <criterion id="AC8" priority="high">
+      <title>Integration with Existing Metrics</title>
+      <description>
+        Integrar sin duplicar:
+        - Reuse: provider.timeout.total (Story 3.8)
+        - Reuse: provider.retry.* (Story 3.9)
+        - New: provider.calls.total, provider.latency, provider.error.rate
+      </description>
+      <reference>Story 3.10 AC8</reference>
+    </criterion>
+
+    <criterion id="AC9" priority="medium">
+      <title>Prometheus Alerting Rules</title>
+      <description>
+        Documentar 3 Prometheus alert rules:
+        - ProviderHighErrorRate: error_rate > 5% por 5min
+        - ProviderHighLatency: P99 > 500ms por 3min
+        - ProviderAvailabilityLow: availability < 95% por 10min
+        En: docs/development/provider-metrics-alerts.yml
+      </description>
+      <reference>Story 3.10 AC9</reference>
+    </criterion>
+
+    <criterion id="AC10" priority="low">
+      <title>Grafana Dashboard Design (Spec Only)</title>
+      <description>
+        Documentar diseño de Grafana dashboard (implementation Epic 6-7):
+        - 5 panels: Availability, Latency P99, Call Volume, Error Rate, Timeout Rate
+        En: docs/development/grafana-provider-dashboard-spec.json
+      </description>
+      <reference>Story 3.10 AC10</reference>
+    </criterion>
+
+    <criterion id="AC11" priority="critical">
+      <title>Unit Tests for ProviderMetrics</title>
+      <description>
+        7+ unit tests usando SimpleMeterRegistry:
+        - recordProviderCall_success_shouldIncrementSuccessCounter()
+        - recordProviderCall_failure_shouldIncrementFailureCounter()
+        - recordProviderCall_withRetry_shouldTagRetried()
+        - updateErrorRate_shouldSetGauge()
+        Target coverage: > 90%
+      </description>
+      <reference>Story 3.10 AC11</reference>
+    </criterion>
+
+    <criterion id="AC12" priority="high">
+      <title>Integration Test - Metrics Export</title>
+      <description>
+        Integration test validando /actuator/prometheus export:
+        - testMetricsExportedToPrometheus()
+        - testErrorRateMetric()
+        - Usar @SpringBootTest + TestRestTemplate
+      </description>
+      <reference>Story 3.10 AC12</reference>
+    </criterion>
+  </acceptance-criteria>
+
+  <story-tasks>
+    <task id="T1" priority="critical" estimated="2h">
+      <title>Create ProviderMetrics Component</title>
+      <description>
+        Implementar component centralizado para métricas:
+        1. Crear ProviderMetrics.java con MeterRegistry injection
+        2. Implementar recordProviderCall() con tags apropiados
+        3. Implementar recordTimeout() reutilizando counter existente
+        4. Implementar updateErrorRate() con gauge
+        5. JavaDoc completo con ejemplos
+      </description>
+      <acceptance-criteria>AC7</acceptance-criteria>
+    </task>
+
+    <task id="T2" priority="critical" estimated="1.5h">
+      <title>Integrate ProviderMetrics in SignatureProviderAdapter</title>
+      <description>
+        Modificar adapter para registrar métricas:
+        1. Inject ProviderMetrics component
+        2. Capturar startTime/endTime en sendChallenge()
+        3. Llamar providerMetrics.recordProviderCall() después de provider execution
+        4. Agregar providerMetrics.recordTimeout() en timeout handling
+        5. Extraer tags correctamente (provider, channelType, status)
+      </description>
+      <acceptance-criteria>AC1, AC2, AC3, AC6</acceptance-criteria>
+    </task>
+
+    <task id="T3" priority="high" estimated="1.5h">
+      <title>Implement Error Rate Calculator</title>
+      <description>
+        Crear scheduled task para calcular error rate:
+        1. Crear ProviderErrorRateCalculator component
+        2. @Scheduled(fixedDelay = 10000) para cálculo cada 10s
+        3. Query MeterRegistry para success/failure counts en 1min window
+        4. Calcular errorRate = failures / (successes + failures)
+        5. Llamar providerMetrics.updateErrorRate() por cada provider
+      </description>
+      <acceptance-criteria>AC5</acceptance-criteria>
+    </task>
+
+    <task id="T4" priority="critical" estimated="2h">
+      <title>Unit Tests - ProviderMetrics</title>
+      <description>
+        Crear unit tests con SimpleMeterRegistry:
+        1. Test recordProviderCall_success_shouldIncrementSuccessCounter()
+        2. Test recordProviderCall_failure_shouldIncrementFailureAndErrorCounters()
+        3. Test recordProviderCall_withRetry_shouldTagRetriedTrue()
+        4. Test updateErrorRate_shouldSetGauge()
+        5. Test recordTimeout_shouldIncrementTimeoutCounter()
+        6. Ejecutar y verificar PASS con coverage > 90%
+      </description>
+      <acceptance-criteria>AC11</acceptance-criteria>
+    </task>
+
+    <task id="T5" priority="high" estimated="2h">
+      <title>Integration Test - Metrics Export</title>
+      <description>
+        Crear integration test para Prometheus export:
+        1. Test testProviderCallMetricsExported() con mock provider
+        2. Test testTimeoutMetricExported() con delayed mock
+        3. Test testErrorRateCalculated() con 3 calls (2 success, 1 failure)
+        4. Test testRetriedMetricTag() con retry scenario
+        5. Verificar /actuator/prometheus contiene métricas esperadas
+      </description>
+      <acceptance-criteria>AC12</acceptance-criteria>
+    </task>
+
+    <task id="T6" priority="medium" estimated="1h">
+      <title>Prometheus Alerting Rules Documentation</title>
+      <description>
+        Documentar alert rules:
+        1. Crear docs/development/provider-metrics-alerts.yml
+        2. Definir 3 alerts (ProviderHighErrorRate, ProviderHighLatency, ProviderAvailabilityLow)
+        3. Incluir expr, for, severity, annotations
+        4. Example queries para validar alerts
+        5. Deployment instructions
+      </description>
+      <acceptance-criteria>AC9</acceptance-criteria>
+    </task>
+
+    <task id="T7" priority="low" estimated="1.5h">
+      <title>Grafana Dashboard Specification</title>
+      <description>
+        Especificar diseño de dashboard:
+        1. Crear docs/development/grafana-provider-dashboard-spec.json
+        2. Definir 5 panels (Availability, Latency P99, Call Volume, Error Rate, Timeout Rate)
+        3. PromQL queries por panel
+        4. Visualization settings (colors, thresholds)
+        5. Mockup textual del layout
+      </description>
+      <acceptance-criteria>AC10</acceptance-criteria>
+    </task>
+
+    <task id="T8" priority="medium" estimated="1h">
+      <title>Update Metrics Runbook</title>
+      <description>
+        Actualizar documentación operacional:
+        1. Actualizar docs/development/provider-retry-runbook.md → provider-observability-runbook.md
+        2. Agregar sección "Provider Call Metrics" listando todas las métricas (Stories 3.8, 3.9, 3.10)
+        3. Metrics Queries Cookbook con ejemplos
+        4. Troubleshooting scenarios (latency spike, error rate spike)
+        5. Cross-reference a alert rules
+      </description>
+      <acceptance-criteria>AC8</acceptance-criteria>
+    </task>
+
+    <task id="T9" priority="low" estimated="45min">
+      <title>Update README and Documentation</title>
+      <description>
+        Actualizar documentación del proyecto:
+        1. README.md sección "Observability" con lista de métricas
+        2. CHANGELOG.md entry para Story 3.10
+        3. JavaDoc completo en ProviderMetrics class
+        4. Tech spec mark Story 3.10 como IMPLEMENTED
+      </description>
+      <acceptance-criteria>AC8</acceptance-criteria>
+    </task>
+  </story-tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-3.md</path>
+        <title>Epic 3 Technical Specification</title>
+        <section>Provider Metrics Tracking (Scope #10)</section>
+        <snippet>
+          Prometheus metrics: provider.calls.total, provider.calls.failed, provider.latency.
+          Success/failure counters per provider. Latency histograms para SLO tracking.
+          Preparación para error rate calculation (Epic 4).
+        </snippet>
+      </doc>
+
+      <doc>
+        <path>docs/sprint-artifacts/3-9-provider-retry-logic.md</path>
+        <title>Story 3.9: Provider Retry Logic</title>
+        <section>Dev Notes - Learnings</section>
+        <snippet>
+          ProviderRetryMetrics pattern: Component centraliza retry metrics con MeterRegistry injection.
+          MeterRegistry caching: Store counter/histogram references para performance.
+          Tag strategy: Counters con tags múltiples permite queries granulares.
+          SimpleMeterRegistry testing: Unit tests NO usan mock.
+        </snippet>
+      </doc>
+
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Epic 3: Multi-Provider Integration</section>
+        <snippet>
+          Epic 3 cubre FR20-FR28 (Challenge Delivery) y FR29-FR38 (Fallback & Resilience).
+          Story 3.10: Provider Metrics Tracking - última historia del epic.
+          NFR-O1, NFR-O2, NFR-P1, NFR-A1 mapping para observability completa.
+        </snippet>
+      </doc>
+
+      <doc>
+        <path>docs/development/provider-retry-runbook.md</path>
+        <title>Provider Retry Runbook</title>
+        <section>Prometheus Metrics</section>
+        <snippet>
+          Métricas existentes Story 3.9: provider.retry.attempts.total, provider.retry.success.total,
+          provider.retry.exhausted.total, provider.retry.duration.
+          Sample Grafana queries para retry rate, success after retries, exhaustion rate.
+        </snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>src/main/java/com/bank/signature/infrastructure/observability/metrics/ProviderRetryMetrics.java</path>
+        <kind>component</kind>
+        <symbol>ProviderRetryMetrics</symbol>
+        <lines>1-100</lines>
+        <reason>
+          Pattern template para Story 3.10: Component con MeterRegistry injection,
+          métodos recordRetryAttempt(), recordRetrySuccess(), recordRetryExhausted().
+          Usar mismo pattern para ProviderMetrics component.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/main/java/com/bank/signature/infrastructure/adapter/outbound/provider/SignatureProviderAdapter.java</path>
+        <kind>adapter</kind>
+        <symbol>SignatureProviderAdapter</symbol>
+        <lines>78-186</lines>
+        <reason>
+          Adapter donde integrar ProviderMetrics. Ya tiene MeterRegistry para provider.timeout.total (línea 155).
+          Captura startTime (línea 78), calcula duration. Llamar providerMetrics.recordProviderCall() aquí.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/main/java/com/bank/signature/domain/model/valueobject/ProviderResult.java</path>
+        <kind>value-object</kind>
+        <symbol>ProviderResult</symbol>
+        <lines>1-276</lines>
+        <reason>
+          Return type de provider calls. Contiene success, errorCode, timedOut (Story 3.8),
+          attemptNumber y retriedSuccess (Story 3.9). Usar estos campos para tags en métricas.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/test/java/com/bank/signature/infrastructure/adapter/outbound/provider/ProviderTimeoutIntegrationTest.java</path>
+        <kind>test</kind>
+        <symbol>ProviderTimeoutIntegrationTest</symbol>
+        <lines>24-84</lines>
+        <reason>
+          Template para integration tests. Usa SimpleMeterRegistry (línea 41) para verificar métricas.
+          Pattern: setUp con meterRegistry, test verifica counter incremented.
+          Reutilizar para Story 3.10 integration tests.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/test/java/com/bank/signature/BaseIntegrationTest.java</path>
+        <kind>test-base</kind>
+        <symbol>BaseIntegrationTest</symbol>
+        <lines>1-16</lines>
+        <reason>
+          Base class para integration tests. @SpringBootTest + @ActiveProfiles("test").
+          Extender para ProviderMetricsIntegrationTest.
+        </reason>
+      </artifact>
+
+      <artifact>
+        <path>src/test/java/com/bank/signature/HexagonalArchitectureTest.java</path>
+        <kind>test</kind>
+        <symbol>HexagonalArchitectureTest</symbol>
+        <lines>1-100</lines>
+        <reason>
+          ArchUnit tests para validar arquitectura hexagonal. Asegurar que ProviderMetrics
+          (infrastructure layer) NO sea dependencia del domain layer.
+        </reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <java>
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-actuator</artifactId>
+          <scope>compile</scope>
+          <note>Actuator proporciona /actuator/prometheus endpoint para metrics export</note>
+        </dependency>
+        <dependency>
+          <groupId>io.micrometer</groupId>
+          <artifactId>micrometer-registry-prometheus</artifactId>
+          <scope>compile</scope>
+          <note>Prometheus registry para MeterRegistry, ya incluido desde Epic 1</note>
+        </dependency>
+        <dependency>
+          <groupId>io.github.resilience4j</groupId>
+          <artifactId>resilience4j-spring-boot3</artifactId>
+          <scope>compile</scope>
+          <note>Ya incluido Story 3.8/3.9 para timeout y retry</note>
+        </dependency>
+        <dependency>
+          <groupId>org.junit.jupiter</groupId>
+          <artifactId>junit-jupiter</artifactId>
+          <scope>test</scope>
+          <note>JUnit 5 para unit tests</note>
+        </dependency>
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-test</artifactId>
+          <scope>test</scope>
+          <note>Include SimpleMeterRegistry para unit testing</note>
+        </dependency>
+      </java>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>MeterRegistry</name>
+      <kind>Spring Micrometer API</kind>
+      <signature>
+        public interface MeterRegistry {
+          Counter counter(String name, String... tags);
+          Timer timer(String name, String... tags);
+          Gauge gauge(String name, Iterable&lt;Tag&gt; tags, Number value);
+        }
+      </signature>
+      <path>io.micrometer.core.instrument.MeterRegistry</path>
+      <usage>Dependency injection en ProviderMetrics component para registrar métricas</usage>
+    </interface>
+
+    <interface>
+      <name>ProviderMetrics.recordProviderCall</name>
+      <kind>Method signature (to create)</kind>
+      <signature>
+        public void recordProviderCall(
+          String provider,           // SMS, PUSH, VOICE, BIOMETRIC
+          String channelType,        // Same as provider typically
+          ProviderResult result,     // Contains success, errorCode, timedOut, attemptNumber, retriedSuccess
+          Duration duration          // Total duration from startTime to endTime
+        )
+      </signature>
+      <path>com.bank.signature.infrastructure.observability.metrics.ProviderMetrics</path>
+      <usage>Llamado desde SignatureProviderAdapter.sendChallenge() después de provider execution</usage>
+    </interface>
+
+    <interface>
+      <name>ProviderMetrics.updateErrorRate</name>
+      <kind>Method signature (to create)</kind>
+      <signature>
+        public void updateErrorRate(String provider, double errorRate)
+      </signature>
+      <path>com.bank.signature.infrastructure.observability.metrics.ProviderMetrics</path>
+      <usage>Llamado desde ProviderErrorRateCalculator scheduled task cada 10s</usage>
+    </interface>
+
+    <interface>
+      <name>@Scheduled</name>
+      <kind>Spring annotation</kind>
+      <signature>
+        @Scheduled(fixedDelay = 10000)  // 10 seconds
+        public void calculateErrorRates() { ... }
+      </signature>
+      <path>org.springframework.scheduling.annotation.Scheduled</path>
+      <usage>Usar en ProviderErrorRateCalculator para trigger cada 10s</usage>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint type="architectural">
+      <rule>ProviderMetrics component DEBE estar en infrastructure.observability.metrics package</rule>
+      <rationale>Separación de concerns: observability es infrastructure concern, no domain</rationale>
+      <source>Hexagonal Architecture + Epic 3 Tech Spec</source>
+    </constraint>
+
+    <constraint type="architectural">
+      <rule>Domain layer NO puede depender de MeterRegistry o Micrometer</rule>
+      <rationale>Domain purity: metrics registration es infrastructure detail</rationale>
+      <source>HexagonalArchitectureTest validará con ArchUnit</source>
+    </constraint>
+
+    <constraint type="performance">
+      <rule>MeterRegistry lookups deben ser cacheados como fields en ProviderMetrics</rule>
+      <rationale>Evitar registry lookup en cada call (performance optimization)</rationale>
+      <source>Story 3.9 learnings: ProviderRetryMetrics pattern</source>
+    </constraint>
+
+    <constraint type="integration">
+      <rule>NO duplicar métricas existentes: provider.timeout.total (Story 3.8), provider.retry.* (Story 3.9)</rule>
+      <rationale>Reuse existing metrics, solo agregar nuevas (provider.calls.total, provider.latency, provider.error.rate)</rationale>
+      <source>Story 3.10 AC8</source>
+    </constraint>
+
+    <constraint type="naming">
+      <rule>Prometheus metric names DEBEN usar snake_case, NO camelCase</rule>
+      <rationale>Prometheus best practices: provider.calls.total NOT providerCallsTotal</rationale>
+      <source>Prometheus naming conventions</source>
+    </constraint>
+
+    <constraint type="naming">
+      <rule>Counters DEBEN tener sufijo _total (provider.calls.total, provider.failures.total)</rule>
+      <rationale>Prometheus convention: counters son acumulativos, siempre _total suffix</rationale>
+      <source>Prometheus naming conventions</source>
+    </constraint>
+
+    <constraint type="testing">
+      <rule>Unit tests DEBEN usar SimpleMeterRegistry, NO mock MeterRegistry</rule>
+      <rationale>SimpleMeterRegistry es lightweight registry para testing, más realista que mock</rationale>
+      <source>Story 3.9 learnings + Micrometer testing best practices</source>
+    </constraint>
+
+    <constraint type="testing">
+      <rule>Integration tests DEBEN verificar /actuator/prometheus endpoint contiene métricas</rule>
+      <rationale>Validar export completo end-to-end, no solo que métrica fue registrada</rationale>
+      <source>Story 3.10 AC12</source>
+    </constraint>
+
+    <constraint type="observability">
+      <rule>Error rate gauge DEBE actualizarse cada 10s máximo</rule>
+      <rationale>Circuit breaker decisions (Epic 4) requieren error rate actualizado frecuentemente</rationale>
+      <source>Story 3.10 AC5 + Epic 4 Story 4.4 dependency</source>
+    </constraint>
+
+    <constraint type="observability">
+      <rule>Histogram buckets DEBEN cubrir 50ms-10s para latency</rule>
+      <rationale>
+        50ms-500ms: normal provider latency
+        1s-5s: con retries y backoff
+        5s-10s: timeout scenarios (SMS=5s, VOICE=10s)
+      </rationale>
+      <source>Story 3.10 AC1 + Stories 3.8/3.9 timeout/retry configs</source>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Testing strategy para Story 3.10:
+      - **Unit Tests**: JUnit 5 + SimpleMeterRegistry para ProviderMetrics component (NO mock)
+      - **Integration Tests**: @SpringBootTest + TestRestTemplate para /actuator/prometheus validation
+      - **Coverage Target**: > 90% para ProviderMetrics class
+      - **Test Organization**: 
+        * Unit tests en src/test/java/.../metrics/ProviderMetricsTest.java
+        * Integration tests en src/test/java/.../metrics/ProviderMetricsIntegrationTest.java
+      - **Assertions**: AssertJ para fluent assertions, verify counters/histograms/gauges values
+      - **Test Naming**: shouldMethodName_whenCondition pattern (e.g., recordProviderCall_success_shouldIncrementSuccessCounter)
+    </standards>
+
+    <locations>
+      <location>src/test/java/com/bank/signature/infrastructure/observability/metrics/</location>
+      <location>src/test/java/com/bank/signature/infrastructure/adapter/outbound/provider/</location>
+    </locations>
+
+    <ideas>
+      <test-idea ac="AC1, AC7">
+        <name>testRecordProviderCall_success_shouldIncrementSuccessCounter</name>
+        <approach>
+          Unit test: Create SimpleMeterRegistry, inject to ProviderMetrics.
+          Call recordProviderCall() with success=true ProviderResult.
+          Verify provider.calls.total{provider="SMS", status="success"} counter = 1.0
+          Verify provider.latency histogram contains sample.
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC1, AC7">
+        <name>testRecordProviderCall_failure_shouldIncrementFailureCounters</name>
+        <approach>
+          Unit test: Call recordProviderCall() with failure ProviderResult (errorCode="TIMEOUT").
+          Verify provider.calls.total{status="failure"} = 1.0
+          Verify provider.failures.total{provider="SMS", error_code="TIMEOUT"} = 1.0
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC3">
+        <name>testRecordProviderCall_withRetry_shouldTagRetriedTrue</name>
+        <approach>
+          Unit test: Create ProviderResult.successAfterRetry(challengeId, proof, 3).
+          Call recordProviderCall().
+          Verify provider.calls.total{retried="true"} counter incremented.
+          Verify provider.latency{attempt_number="3"} histogram has sample.
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC5">
+        <name>testUpdateErrorRate_shouldSetGauge</name>
+        <approach>
+          Unit test: Call updateErrorRate("SMS", 0.15).
+          Verify gauge provider.error.rate{provider="SMS"} value = 0.15
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC2">
+        <name>testRecordTimeout_shouldIncrementTimeoutCounter</name>
+        <approach>
+          Unit test: Call recordTimeout("VOICE", Duration.ofSeconds(10)).
+          Verify provider.timeout.total{provider="VOICE"} counter = 1.0
+          Verify provider.timeout.duration histogram contains 10s sample.
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC12">
+        <name>testMetricsExportedToPrometheus</name>
+        <approach>
+          Integration test: @SpringBootTest, inject TestRestTemplate.
+          Mock provider call (success), trigger metrics recording.
+          GET /actuator/prometheus, verify response contains:
+          "provider_calls_total{provider=\"SMS\",status=\"success\"} 1.0"
+          "provider_latency_bucket{provider=\"SMS\",...}"
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC5">
+        <name>testErrorRateCalculated</name>
+        <approach>
+          Integration test: Trigger 3 provider calls (2 success, 1 failure).
+          Wait for scheduled task or trigger manually.
+          Verify provider.error.rate{provider="SMS"} ≈ 0.33 (33%)
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC2">
+        <name>testTimeoutMetricExported</name>
+        <approach>
+          Integration test: Mock provider with 10s delay (exceeds 5s timeout).
+          Verify provider.timeout.total incremented.
+          GET /actuator/prometheus, verify provider_timeout_total metric present.
+        </approach>
+      </test-idea>
+
+      <test-idea ac="AC6">
+        <name>testPerChannelMetrics</name>
+        <approach>
+          Integration test: Trigger calls to SMS, PUSH, VOICE providers.
+          Verify metrics tagged with channel_type="SMS", channel_type="PUSH", channel_type="VOICE".
+          Query /actuator/prometheus, parse metrics by channel_type tag.
+        </approach>
+      </test-idea>
+    </ideas>
+  </tests>
+
+  <notes>
+    <dev-note priority="critical">
+      **Pattern Reuse from Story 3.9**: ProviderRetryMetrics component es template perfecto.
+      Usar mismo pattern: @Component + @RequiredArgsConstructor + MeterRegistry injection.
+      Cache counter/histogram references como private final fields para performance.
+    </dev-note>
+
+    <dev-note priority="high">
+      **Integration Point**: SignatureProviderAdapter.sendChallenge() ya captura startTime (línea 78).
+      Agregar providerMetrics.recordProviderCall() después de línea 142 (return result).
+      Extraer tags: providerType.name(), challenge.getChannelType().name(), result.success() ? "success" : "failure".
+    </dev-note>
+
+    <dev-note priority="high">
+      **Histogram Buckets Configuration**: Personalizar buckets en MeterRegistry config.
+      Buckets: 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10 (seconds).
+      Rationale: 50ms-500ms normal, 1s-5s con retries, 5s-10s timeout scenarios.
+    </dev-note>
+
+    <dev-note priority="medium">
+      **Error Rate Calculator Scheduling**: @Scheduled(fixedDelay = 10000) cada 10s.
+      Query MeterRegistry para success/failure counts en 1min window.
+      Formula: errorRate = failures / (successes + failures).
+      Edge case: Si total calls = 0, errorRate = 0.0 (assume healthy).
+    </dev-note>
+
+    <dev-note priority="medium">
+      **Prometheus Best Practices**:
+      - Metric names: snake_case (provider.calls.total NOT providerCallsTotal)
+      - Counters: suffix _total (provider.calls.total, provider.failures.total)
+      - Base units: seconds for duration, NOT milliseconds
+      - Cardinality: 4 providers × 2 status × 4 channels × 2 retried = 64 time series (safe, <1000 threshold)
+    </dev-note>
+
+    <dev-note priority="low">
+      **Grafana Dashboard Spec**: Solo documentation en Story 3.10, implementation en Epic 6-7.
+      Crear JSON skeleton con panel definitions, PromQL queries, thresholds.
+      File: docs/development/grafana-provider-dashboard-spec.json
+    </dev-note>
+
+    <dev-note priority="low">
+      **Alert Rules Documentation**: Crear provider-metrics-alerts.yml con 3 alerts.
+      Format: Prometheus alert rule YAML (expr, for, severity, annotations).
+      Deployment instructions: cómo agregar a Prometheus config, validar con promtool.
+    </dev-note>
+
+    <dev-note priority="critical">
+      **Testing Strategy**: Unit tests usan SimpleMeterRegistry (NO mock).
+      Crear SimpleMeterRegistry en @BeforeEach, inject to ProviderMetrics.
+      Verify counter.count(), histogram.count(), gauge.value() con AssertJ.
+      Integration tests: @SpringBootTest + GET /actuator/prometheus + parse response.
+    </dev-note>
+
+    <dev-note priority="high">
+      **Epic 4 Dependency**: provider.error.rate gauge es prerequisito para Story 4.4 (Circuit Breaker).
+      Circuit breaker decision: if (errorRate > 0.50) openCircuit().
+      Scheduled task DEBE actualizar error rate cada 10s máximo para fast detection.
+    </dev-note>
+  </notes>
+
+  <learnings-from-previous-story>
+    <source>Story 3.9 - Provider Retry Logic (Status: done)</source>
+    
+    <learning category="pattern">
+      **ProviderRetryMetrics Component Pattern**: Centraliza metrics con MeterRegistry injection.
+      @Component + @RequiredArgsConstructor + private final MeterRegistry meterRegistry.
+      Methods: recordRetryAttempt(), recordRetrySuccess(), recordRetryExhausted().
+      → **Apply to Story 3.10**: Use same pattern for ProviderMetrics component.
+    </learning>
+
+    <learning category="performance">
+      **MeterRegistry Caching**: Store counter/histogram references como private final fields.
+      Evita registry lookups en cada call (performance optimization).
+      Example: private final Counter attemptsCounter = meterRegistry.counter("provider.retry.attempts.total");
+      → **Apply to Story 3.10**: Cache provider.calls.total, provider.latency counters/histograms.
+    </learning>
+
+    <learning category="tagging">
+      **Tag Strategy**: Counters con múltiples tags permite queries granulares.
+      provider.retry.attempts.total{provider="SMS", attempt="2"}
+      → **Apply to Story 3.10**: Use tags provider, status, channel_type, retried en provider.calls.total.
+    </learning>
+
+    <learning category="testing">
+      **SimpleMeterRegistry Testing**: Unit tests NO usan mock MeterRegistry.
+      SimpleMeterRegistry es lightweight in-memory registry para testing.
+      Verify counter.count(), histogram.count() values directamente.
+      → **Apply to Story 3.10**: Use SimpleMeterRegistry en ProviderMetricsTest.
+    </learning>
+
+    <learning category="integration">
+      **Prometheus Auto-Export**: /actuator/prometheus endpoint auto-exporta todas las métricas.
+      No requiere configuración adicional si micrometer-registry-prometheus está en classpath.
+      → **Apply to Story 3.10**: Metrics auto-exported, validar en integration test.
+    </learning>
+
+    <learning category="configuration">
+      **Histogram Buckets**: Resilience4j retry duration usa buckets default.
+      Para provider-specific ranges, personalizar buckets en MeterRegistry config.
+      → **Apply to Story 3.10**: Custom buckets 50ms-10s para provider.latency histogram.
+    </learning>
+
+    <learning category="scheduling">
+      **Scheduled Task Pattern**: RetryEventListener usa event-driven approach.
+      ProviderErrorRateCalculator puede usar @Scheduled(fixedDelay = 10000).
+      Ambos válidos: event-driven vs scheduled task.
+      → **Apply to Story 3.10**: Use @Scheduled para error rate calculation (simpler than events).
+    </learning>
+
+    <learning category="integration">
+      **Retry Metrics Integration**: Retry metrics son independientes de provider call metrics.
+      Story 3.10 integra ambos: tag retried="true" en provider.calls.total cuando retriedSuccess=true.
+      → **Apply to Story 3.10**: Check ProviderResult.retriedSuccess() field, tag accordingly.
+    </learning>
+
+    <learning category="technical-debt">
+      **Error Rate Not Calculated in 3.9**: Retry metrics NO calculan error rate.
+      → **Resolved in Story 3.10**: ProviderErrorRateCalculator implements error rate calculation.
+    </learning>
+  </learnings-from-previous-story>
+
+  <references>
+    <reference>
+      <title>Story 3.10 Full Specification</title>
+      <path>docs/sprint-artifacts/3-10-provider-metrics-tracking.md</path>
+    </reference>
+    <reference>
+      <title>Epic 3 Technical Specification</title>
+      <path>docs/sprint-artifacts/tech-spec-epic-3.md</path>
+    </reference>
+    <reference>
+      <title>Story 3.9 - Provider Retry Logic (Previous Story)</title>
+      <path>docs/sprint-artifacts/3-9-provider-retry-logic.md</path>
+    </reference>
+    <reference>
+      <title>Story 3.8 - Provider Timeout Configuration</title>
+      <path>docs/sprint-artifacts/3-8-provider-timeout-configuration.md</path>
+    </reference>
+    <reference>
+      <title>Prometheus Best Practices</title>
+      <url>https://prometheus.io/docs/practices/naming/</url>
+    </reference>
+    <reference>
+      <title>Micrometer Documentation</title>
+      <url>https://micrometer.io/docs/concepts</url>
+    </reference>
+  </references>
+</story-context>

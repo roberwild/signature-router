@@ -1,0 +1,14 @@
+# Bootstrap UAT Profile - UAT Environment
+
+spring:
+  cloud:
+    vault:
+      uri: https://vault-uat.internal:8200
+      authentication: KUBERNETES
+      kubernetes:
+        role: signature-router-uat
+        service-account-token-file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      ssl:
+        trust-store: classpath:truststore.jks
+        trust-store-password: ${TRUSTSTORE_PASSWORD}
+

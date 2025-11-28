@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Story Context: 4-8-circuit-breaker-event-publishing -->
+<!-- Generated: 2025-11-28 -->
+<!-- Status: ready-for-dev -->
+
+<story-context>
+  <metadata>
+    <story-id>4-8</story-id>
+    <story-key>4-8-circuit-breaker-event-publishing</story-key>
+    <story-title>Circuit Breaker Event Publishing</story-title>
+    <epic>Epic 4 - Resilience & Circuit Breaking</epic>
+    <sprint>Sprint 5</sprint>
+    <story-points>3</story-points>
+    <status>ready-for-dev</status>
+  </metadata>
+
+  <user-story>
+    <as-a>System</as-a>
+    <i-want>Publicar eventos de dominio a Kafka cuando circuit breakers cambian de estado</i-want>
+    <so-that>Sistemas consumidores pueden reaccionar a transiciones de circuit breakers (CLOSED → OPEN → HALF_OPEN) y degraded mode activations</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="AC1">CircuitBreakerEventListener escucha Resilience4j circuit breaker events: onStateTransition, onSuccess, onError, onReset</criterion>
+    <criterion id="AC2">Cuando circuit breaker transiciona CLOSED → OPEN: publica evento CIRCUIT_BREAKER_OPENED a Kafka topic `signature.circuit-breaker.events`</criterion>
+    <criterion id="AC3">Cuando circuit breaker transiciona OPEN → HALF_OPEN: publica evento CIRCUIT_BREAKER_HALF_OPEN</criterion>
+    <criterion id="AC4">Cuando circuit breaker transiciona HALF_OPEN → CLOSED: publica evento CIRCUIT_BREAKER_CLOSED (recovery success)</criterion>
+    <criterion id="AC5">Cuando circuit breaker transiciona HALF_OPEN → OPEN: publica evento CIRCUIT_BREAKER_FAILED_RECOVERY (recovery failed)</criterion>
+    <criterion id="AC6">Cuando circuit breaker se resetea manualmente (admin action): publica evento CIRCUIT_BREAKER_RESET</criterion>
+    <criterion id="AC7">Evento incluye: eventId (UUIDv7), providerType (SMS/PUSH/VOICE/BIOMETRIC), fromState, toState, occurredAt, failureRate, slowCallRate, traceId</criterion>
+    <criterion id="AC8">Si transition es CLOSED → OPEN (degraded mode): evento incluye degradedModeDuration (5 min), threshold breached (50%)</criterion>
+    <criterion id="AC9">Si transition es HALF_OPEN → CLOSED (recovery): evento incluye recoveryDuration (tiempo en estado OPEN)</criterion>
+    <criterion id="AC10">Eventos incluyen metrics snapshot: bufferedCalls, failedCalls, successfulCalls, slowCalls</criterion>
+    <criterion id="AC11">Eventos publicados usando EventPublisher port existente (hexagonal architecture)</criterion>
+    <criterion id="AC12">Kafka topic configurado en application.yml: `kafka.topics.circuit-breaker-events: signature.circuit-breaker.events`</criterion>
+    <criterion id="AC13">Eventos NO bloquean provider call flow (async publishing con error handling)</criterion>
+    <criterion id="AC14">Si Kafka está down: log error + increment metric `circuit_breaker.events.publish_failed` pero NO falla provider call</criterion>
+    <criterion id="AC15">Prometheus metric: `circuit_breaker.events.published.total{provider, event_type}` (counter)</criterion>
+    <criterion id="AC16">Structured log en cada evento publicado: `INFO - Circuit breaker event published: provider=SMS, event=OPENED, failureRate=65%`</criterion>
+    <criterion id="AC17">Si publishing falla: `ERROR - Failed to publish circuit breaker event: provider=SMS, event=OPENED, error=KafkaException`</criterion>
+    <criterion id="AC18">Unit tests simulan circuit breaker state transitions y verifican eventos publicados</criterion>
+    <criterion id="AC19">Integration test con Testcontainers Kafka verifica eventos escritos al topic</criterion>
+    <criterion id="AC20">Test verifica que Kafka failure NO impacta provider call flow (resilience)</criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1" estimate="1h 30min">
+      <title>Create CircuitBreakerEventListener Component</title>
+      <subtasks>
+        <subtask>Crear CircuitBreakerEventListener.java en package infrastructure.resilience</subtask>
+        <subtask>Inyectar EventPublisher port y CircuitBreakerRegistry</subtask>
+        <subtask>Implementar @EventListener methods para: onStateTransition, onSuccess, onError, onReset</subtask>
+        <subtask>Extraer provider name de circuit breaker name (e.g., "smsProvider" → ProviderType.SMS)</subtask>
+        <subtask>Log structured events con MDC traceId</subtask>
+        <subtask>Handle exceptions: si publishing falla, log error + increment metric pero NO re-throw</subtask>
+      </subtasks>
+    </task>
+
+    <task id="2" estimate="1h">
+      <title>Create Circuit Breaker Domain Events</title>
+      <subtasks>
+        <subtask>Crear CircuitBreakerOpenedEvent record en domain.event</subtask>
+        <subtask>Crear CircuitBreakerHalfOpenEvent record</subtask>
+        <subtask>Crear CircuitBreakerClosedEvent record (incluye recoveryDuration)</subtask>
+        <subtask>Crear CircuitBreakerFailedRecoveryEvent record</subtask>
+        <subtask>Crear CircuitBreakerResetEvent record (admin action)</subtask>
+        <subtask>Agregar factory method fromResilient4jEvent(CircuitBreakerOnStateTransitionEvent)</subtask>
+      </subtasks>
+    </task>
+
+    <task id="3" estimate="30min">
+      <title>Extend EventPublisher Port with Circuit Breaker Methods</title>
+      <subtasks>
+        <subtask>Abrir EventPublisher interface en application.port.output</subtask>
+        <subtask>Agregar métodos: publishCircuitBreakerOpened, publishCircuitBreakerHalfOpen, publishCircuitBreakerClosed, publishCircuitBreakerFailedRecovery, publishCircuitBreakerReset</subtask>
+        <subtask>Javadoc: "Publishes circuit breaker state transition events to Kafka"</subtask>
+      </subtasks>
+    </task>
+
+    <task id="4" estimate="1h">
+      <title>Implement Event Publishing in KafkaEventPublisher</title>
+      <subtasks>
+        <subtask>Abrir KafkaEventPublisher adapter en infrastructure.adapter.outbound.event</subtask>
+        <subtask>Inyectar @Value("${kafka.topics.circuit-breaker-events}") para topic name</subtask>
+        <subtask>Implementar publishCircuitBreakerOpened() con async publishing y error handling</subtask>
+        <subtask>Implementar métodos restantes (HalfOpen, Closed, FailedRecovery, Reset)</subtask>
+        <subtask>Async publishing con CompletableFuture.whenComplete() para error handling</subtask>
+      </subtasks>
+    </task>
+
+    <task id="5" estimate="30min">
+      <title>Configure Kafka Topic and Metrics</title>
+      <subtasks>
+        <subtask>Agregar topic configuration en application.yml: kafka.topics.circuit-breaker-events</subtask>
+        <subtask>Agregar topic bean circuitBreakerEventsTopic() en KafkaTopicConfig.java</subtask>
+        <subtask>Agregar Prometheus metrics en ProviderMetrics: circuit_breaker.events.published.total, circuit_breaker.events.publish_failed.total</subtask>
+      </subtasks>
+    </task>
+
+    <task id="6" estimate="45min">
+      <title>Register Event Listeners in CircuitBreakerRegistry</title>
+      <subtasks>
+        <subtask>Crear CircuitBreakerEventConfiguration.java en package infrastructure.config</subtask>
+        <subtask>Inyectar CircuitBreakerRegistry y CircuitBreakerEventListener</subtask>
+        <subtask>En @PostConstruct, registrar event listener en todos los circuit breakers</subtask>
+        <subtask>Log INFO: "Circuit breaker event listeners registered for: smsProvider, pushProvider, voiceProvider, biometricProvider"</subtask>
+      </subtasks>
+    </task>
+
+    <task id="7" estimate="1h 30min">
+      <title>Unit Tests</title>
+      <subtasks>
+        <subtask>Crear CircuitBreakerEventListenerTest.java</subtask>
+        <subtask>Test: shouldPublishOpenedEventWhenCircuitBreakerOpens()</subtask>
+        <subtask>Test: shouldPublishHalfOpenEventWhenCircuitBreakerHalfOpens()</subtask>
+        <subtask>Test: shouldPublishClosedEventWhenCircuitBreakerRecoveres()</subtask>
+        <subtask>Test: shouldPublishFailedRecoveryEventWhenRecoveryFails()</subtask>
+        <subtask>Test: shouldPublishResetEventWhenCircuitBreakerReset()</subtask>
+        <subtask>Test: shouldNotFailProviderCallWhenKafkaPublishingFails()</subtask>
+      </subtasks>
+    </task>
+
+    <task id="8" estimate="1h">
+      <title>Integration Test with Testcontainers Kafka</title>
+      <subtasks>
+        <subtask>Crear CircuitBreakerEventsKafkaIntegrationTest.java</subtask>
+        <subtask>Setup Testcontainers Kafka + Zookeeper</subtask>
+        <subtask>Test: shouldPublishCircuitBreakerEventsToKafka()</subtask>
+        <subtask>Test recovery scenario: OPEN → HALF_OPEN → CLOSED</subtask>
+        <subtask>Verify event ordering (OPENED → HALF_OPEN → CLOSED)</subtask>
+      </subtasks>
+    </task>
+
+    <task id="9" estimate="30min">
+      <title>Update Documentation</title>
+      <subtasks>
+        <subtask>Actualizar README.md con circuit breaker event publishing</subtask>
+        <subtask>Actualizar CHANGELOG.md con entry para Story 4-8</subtask>
+        <subtask>Actualizar docs/architecture/04-event-catalog.md con nuevos event schemas</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <artifact id="prd" path="docs/prd.md">
+        <section name="FR Group 4: Fallback &amp; Resilience">
+          <requirement id="FR33">El sistema puede calcular error rate por provider en ventana deslizante</requirement>
+          <requirement id="FR34">El sistema puede activar circuit breaker cuando error rate supera 50%</requirement>
+          <requirement id="FR35">El sistema puede pausar provider en degraded mode por duración configurable (5 min default)</requirement>
+          <requirement id="FR36">El sistema puede reactivar provider automáticamente tras periodo de pausa</requirement>
+        </section>
+        <section name="FR Group 5: Event Publishing">
+          <requirement id="FR39">El sistema puede persistir eventos de dominio en outbox table</requirement>
+          <requirement id="FR40">El sistema puede garantizar atomicidad entre cambio de estado y evento (misma TX)</requirement>
+          <requirement id="FR41">El sistema puede publicar eventos a Kafka vía Debezium CDC</requirement>
+          <requirement id="FR42">El sistema puede serializar eventos en formato Avro con schema validation</requirement>
+          <requirement id="FR43">El sistema puede particionar eventos por aggregate_id (ordering guarantee)</requirement>
+          <requirement id="FR44">El sistema puede incluir trace_id en eventos para distributed tracing</requirement>
+          <requirement id="FR45">El sistema puede publicar 8 tipos de eventos de dominio distintos</requirement>
+        </section>
+      </artifact>
+
+      <artifact id="architecture-resilience" path="docs/architecture/06-resilience-strategy.md">
+        <section name="Circuit Breaker Pattern" lines="93-227">
+          <snippet>Circuit breaker event listeners registrados para capturar state transitions. Cuando circuit breaker transiciona a OPEN, se activa degraded mode y se publica evento ProviderFailed.</snippet>
+        </section>
+      </artifact>
+
+      <artifact id="event-catalog" path="docs/architecture/04-event-catalog.md">
+        <section name="Event Types">
+          <snippet>Catálogo define 8 tipos de eventos de dominio: SIGNATURE_REQUEST_CREATED, CHALLENGE_SENT, CHALLENGE_FAILED, PROVIDER_FAILED, SIGNATURE_COMPLETED, SIGNATURE_EXPIRED, SIGNATURE_ABORTED, ROUTING_RULE_CHANGED.</snippet>
+        </section>
+        <section name="PROVIDER_FAILED Event Schema" lines="351-424">
+          <snippet>Evento incluye: provider, errorRate, degradedMode, circuitBreakerState, threshold.</snippet>
+        </section>
+      </artifact>
+
+      <artifact id="tech-spec-epic-3" path="docs/sprint-artifacts/tech-spec-epic-3.md">
+        <section name="Provider Abstraction Layer" lines="24-29">
+          <snippet>SignatureProviderPort domain interface (outbound port), ProviderResult value object, ProviderType enum (SMS, PUSH, VOICE, BIOMETRIC), Provider registry.</snippet>
+        </section>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact id="event-publisher-port" type="interface" path="src/main/java/com/bank/signature/domain/port/outbound/EventPublisher.java" lines="1-29">
+        <kind>port</kind>
+        <symbol>EventPublisher</symbol>
+        <reason>Port existente que se extenderá con métodos de circuit breaker events</reason>
+        <signature>
+          void publishSignatureCompleted(SignatureCompletedEvent event);
+          void publishSignatureAborted(SignatureAbortedEvent event);
+          // Story 4-8: Agregar métodos de circuit breaker events
+        </signature>
+      </artifact>
+
+      <artifact id="kafka-event-publisher" type="adapter" path="src/main/java/com/bank/signature/infrastructure/adapter/outbound/event/KafkaEventPublisher.java" lines="1-58">
+        <kind>adapter</kind>
+        <symbol>KafkaEventPublisher</symbol>
+        <reason>Adapter que implementa EventPublisher port, se extenderá para publicar circuit breaker events</reason>
+        <signature>
+          @Component
+          @ConditionalOnProperty(prefix = "spring.kafka", name = "enabled", havingValue = "true", matchIfMissing = true)
+          class KafkaEventPublisher implements EventPublisher
+        </signature>
+      </artifact>
+
+      <artifact id="retry-event-listener" type="component" path="src/main/java/com/bank/signature/infrastructure/resilience/RetryEventListener.java" lines="1-172">
+        <kind>resilience-listener</kind>
+        <symbol>RetryEventListener</symbol>
+        <reason>Ejemplo de event listener para Resilience4j Retry events, seguir mismo patrón para Circuit Breaker events</reason>
+        <signature>
+          @Component
+          class RetryEventListener {
+            @EventListener void onRetryEvent(RetryOnRetryEvent event);
+            @EventListener void onSuccessEvent(RetryOnSuccessEvent event);
+            @EventListener void onErrorEvent(RetryOnErrorEvent event);
+          }
+        </signature>
+      </artifact>
+
+      <artifact id="kafka-topic-config" type="config" path="src/main/java/com/bank/signature/infrastructure/config/KafkaTopicConfig.java" lines="1-110">
+        <kind>configuration</kind>
+        <symbol>KafkaTopicConfig</symbol>
+        <reason>Configuración de topics Kafka existentes, agregar topic para circuit breaker events</reason>
+        <signature>
+          @Configuration
+          @ConditionalOnProperty(prefix = "spring.kafka", name = "enabled", havingValue = "true", matchIfMissing = true)
+          class KafkaTopicConfig {
+            @Bean NewTopic signatureEventsTopic();
+            @Bean NewTopic signatureEventsDlqTopic();
+            // Story 4-8: Agregar @Bean NewTopic circuitBreakerEventsTopic();
+          }
+        </signature>
+      </artifact>
+
+      <artifact id="provider-metrics" type="component" path="src/main/java/com/bank/signature/infrastructure/metrics/ProviderMetrics.java">
+        <kind>metrics</kind>
+        <symbol>ProviderMetrics</symbol>
+        <reason>Componente de métricas Prometheus, agregar métricas de circuit breaker events</reason>
+        <signature>
+          @Component
+          class ProviderMetrics {
+            void recordProviderCall(...);
+            void recordProviderFailure(...);
+            // Story 4-8: Agregar recordCircuitBreakerEvent(...)
+          }
+        </signature>
+      </artifact>
+
+      <artifact id="domain-events" type="package" path="src/main/java/com/bank/signature/domain/event">
+        <kind>domain</kind>
+        <reason>Package donde se crearán los nuevos domain events de circuit breaker</reason>
+        <files>
+          <file>SignatureCompletedEvent.java</file>
+          <file>SignatureAbortedEvent.java</file>
+          <!-- Story 4-8: Crear CircuitBreakerOpenedEvent, CircuitBreakerHalfOpenEvent, CircuitBreakerClosedEvent, CircuitBreakerFailedRecoveryEvent, CircuitBreakerResetEvent -->
+        </files>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <java>
+        <dependency>org.springframework.boot:spring-boot-starter-web</dependency>
+        <dependency>org.springframework.kafka:spring-kafka</dependency>
+        <dependency>io.github.resilience4j:resilience4j-spring-boot3</dependency>
+        <dependency>io.github.resilience4j:resilience4j-circuitbreaker</dependency>
+        <dependency>io.micrometer:micrometer-registry-prometheus</dependency>
+        <dependency>org.projectlombok:lombok</dependency>
+        <dependency>org.springframework.boot:spring-boot-starter-test</dependency>
+        <dependency>org.testcontainers:kafka</dependency>
+      </java>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface name="EventPublisher (extension)" kind="domain-port">
+      <signature>
+        void publishCircuitBreakerOpened(CircuitBreakerOpenedEvent event);
+        void publishCircuitBreakerHalfOpen(CircuitBreakerHalfOpenEvent event);
+        void publishCircuitBreakerClosed(CircuitBreakerClosedEvent event);
+        void publishCircuitBreakerFailedRecovery(CircuitBreakerFailedRecoveryEvent event);
+        void publishCircuitBreakerReset(CircuitBreakerResetEvent event);
+      </signature>
+      <path>src/main/java/com/bank/signature/domain/port/outbound/EventPublisher.java</path>
+    </interface>
+
+    <interface name="Resilience4j CircuitBreakerOnStateTransitionEvent" kind="library-api">
+      <signature>
+        CircuitBreakerOnStateTransitionEvent {
+          String getCircuitBreakerName();
+          StateTransition getStateTransition();
+          CircuitBreaker.Metrics getMetrics();
+        }
+      </signature>
+      <path>io.github.resilience4j.circuitbreaker.event.CircuitBreakerOnStateTransitionEvent</path>
+    </interface>
+
+    <interface name="Kafka Topics Configuration" kind="configuration">
+      <signature>
+        kafka.topics.circuit-breaker-events: signature.circuit-breaker.events
+      </signature>
+      <path>src/main/resources/application.yml</path>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint id="C1">
+      <rule>Hexagonal Architecture</rule>
+      <description>Domain events en domain/event, EventPublisher port en domain/port/outbound, KafkaEventPublisher adapter en infrastructure/adapter/outbound/event. NO acoplamiento directo domain → Kafka.</description>
+    </constraint>
+
+    <constraint id="C2">
+      <rule>Async Event Publishing</rule>
+      <description>Eventos NO deben bloquear provider call flow. Usar CompletableFuture.whenComplete() para error handling. Si Kafka falla, log error + metric pero NO re-throw exception.</description>
+    </constraint>
+
+    <constraint id="C3">
+      <rule>Event Listener Pattern</rule>
+      <description>Seguir patrón de RetryEventListener: @Component + @EventListener + structured logging + metrics + MDC traceId.</description>
+    </constraint>
+
+    <constraint id="C4">
+      <rule>Domain Event Immutability</rule>
+      <description>Usar Java records para domain events (immutable by default). Incluir factory method fromResilient4jEvent() para mapeo desde Resilience4j events.</description>
+    </constraint>
+
+    <constraint id="C5">
+      <rule>Testing Standards</rule>
+      <description>Unit tests &gt; 90% coverage (circuit breaker event mapping, exception handling). Integration tests con Testcontainers Kafka verifican eventos escritos al topic.</description>
+    </constraint>
+
+    <constraint id="C6">
+      <rule>Observability</rule>
+      <description>Structured logging en cada evento (INFO para publish success, ERROR para failure). Prometheus metrics: circuit_breaker.events.published.total, circuit_breaker.events.publish_failed.total con tags {provider, event_type}.</description>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      Seguir patrón de testing existente: Unit tests en src/test/java con @ExtendWith(MockitoExtension.class). Integration tests con @SpringBootTest + @Testcontainers. Usar Testcontainers Kafka para testing de eventos. Target coverage: &gt; 90% unit, &gt; 85% integration. Tests deben verificar que Kafka failure NO impacta provider call flow.
+    </standards>
+
+    <locations>
+      <location>src/test/java/com/bank/signature/infrastructure/resilience/CircuitBreakerEventListenerTest.java</location>
+      <location>src/test/java/com/bank/signature/infrastructure/adapter/outbound/event/CircuitBreakerEventsKafkaIntegrationTest.java</location>
+    </locations>
+
+    <ideas>
+      <idea criteria="AC1,AC2,AC18">Unit test: shouldPublishOpenedEventWhenCircuitBreakerOpens - Mock CircuitBreakerOnStateTransitionEvent (CLOSED → OPEN), verify EventPublisher.publishCircuitBreakerOpened() called con payload correcto</idea>
+      <idea criteria="AC3,AC18">Unit test: shouldPublishHalfOpenEventWhenCircuitBreakerHalfOpens - Verify event includes fromState=OPEN, toState=HALF_OPEN</idea>
+      <idea criteria="AC4,AC9,AC18">Unit test: shouldPublishClosedEventWhenCircuitBreakerRecoveres - Verify event includes recoveryDuration field</idea>
+      <idea criteria="AC5,AC18">Unit test: shouldPublishFailedRecoveryEventWhenRecoveryFails - HALF_OPEN → OPEN transition</idea>
+      <idea criteria="AC6,AC18">Unit test: shouldPublishResetEventWhenCircuitBreakerReset - CircuitBreakerOnResetEvent handling</idea>
+      <idea criteria="AC14,AC20">Unit test: shouldNotFailProviderCallWhenKafkaPublishingFails - Mock EventPublisher.publishCircuitBreakerOpened() throws KafkaException, verify exception logged pero NO re-thrown, metric incremented</idea>
+      <idea criteria="AC19">Integration test: shouldPublishCircuitBreakerEventsToKafka - Testcontainers Kafka, trigger circuit breaker state transition, consume event from topic, verify payload</idea>
+      <idea criteria="AC19">Integration test: shouldPublishEventsInCorrectOrder - Verify OPENED → HALF_OPEN → CLOSED event ordering</idea>
+    </ideas>
+  </tests>
+</story-context>

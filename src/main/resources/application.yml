@@ -1,0 +1,276 @@
+spring:
+  application:
+    name: signature-router
+  
+  profiles:
+    active: local  # Default profile for development
+
+  # LiquidBase configuration (Story 1.2)
+  liquibase:
+    enabled: true
+    change-log: classpath:liquibase/changelog-master.yaml
+    # Contexts are configured per profile (dev/uat/prod)
+
+  # JPA configuration
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate  # LiquidBase manages schema
+
+server:
+  port: 8080
+  shutdown: graceful  # Graceful shutdown with 30s timeout
+
+  # Spring Security OAuth2 Resource Server (Story 1.7)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Development: Mock JWT issuer (local testing without real OAuth2 server)
+          # UAT/Prod: Real OAuth2 issuer (e.g., Keycloak)
+          issuer-uri: http://localhost:8080/realms/signature-router
+          # Alternative: jwk-set-uri for direct public key endpoint
+
+# Springdoc OpenAPI configuration (Story 1.7)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,configprops  # Story 3.6: Added configprops endpoint
+  endpoint:
+    health:
+      show-details: when-authorized  # Production: only show details to authorized users
+      show-components: always
+      probes:
+        enabled: true
+    configprops:
+      show-values: when-authorized  # Story 3.6: Mask secrets from unauthorized users
+  health:
+    vault:
+      enabled: true  # Vault health check (Story 1.4)
+    providers:
+      enabled: true  # Story 3.6: Provider health check (Twilio, FCM, Voice, Biometric)
+
+logging:
+  level:
+    root: INFO
+    com.bank.signature: INFO
+    org.springframework: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Routing Engine Configuration (Story 2.3)
+routing:
+  default-channel: SMS  # Default channel when no routing rule matches (SMS, PUSH, VOICE, BIOMETRIC)
+
+# Kafka Topics Configuration (Story 2.11, 2.12, 4.8)
+kafka:
+  topics:
+    signature-completed: signature.completed  # Topic for SIGNATURE_COMPLETED events
+    signature-aborted: signature.aborted      # Topic for SIGNATURE_ABORTED events (Story 2.12)
+    circuit-breaker-events: signature.circuit-breaker.events  # Topic for circuit breaker state transition events (Story 4.8)
+
+# Provider Configuration (Story 2.5, 2.6, 2.7, 3.3, 3.6)
+# Story 3.6: Unified configuration with ProviderConfigProperties (enabled, timeout-seconds, retry-max-attempts)
+providers:
+  twilio:
+    enabled: true  # Feature flag (Story 3.6)
+    timeout-seconds: 5  # API timeout (Twilio typically responds in 1-2s)
+    retry-max-attempts: 3  # Retry count (SMS retries on network issues)
+    account-sid: ${TWILIO_ACCOUNT_SID:default_sid}  # Loaded from Vault in production
+    auth-token: ${TWILIO_AUTH_TOKEN:default_token}  # Loaded from Vault in production
+    from-number: ${TWILIO_FROM_NUMBER:+1234567890}  # Loaded from Vault in production
+    api-url: https://api.twilio.com/2010-04-01
+  
+  push:
+    enabled: true  # Feature flag (Story 2.6 stub, Story 3.3 FCM)
+    timeout-seconds: 3  # FCM fast, but network-dependent
+    retry-max-attempts: 2  # FCM reliable, moderate retries
+    api-url: https://fcm.googleapis.com/fcm/send  # Future: Direct FCM API
+  
+  voice:
+    enabled: false  # DISABLED by default (expensive, ~$0.013/min in Latam)
+    timeout-seconds: 10  # Call initiation takes longer than SMS
+    retry-max-attempts: 2  # Voice retries acceptable for high-value transactions
+    api-url: https://api.twilio.com/2010-04-01  # Twilio Programmable Voice API
+    tts-language: es-ES  # Text-to-Speech language (español)
+    tts-voice: Polly.Mia  # Amazon Polly voice (español latinoamericano, mujer)
+    max-call-duration: 60  # Max call duration in seconds (cost control)
+
+# Fallback Chain Configuration (Story 4-2, Story 4-7)
+fallback:
+  enabled: true  # Enable automatic fallback when provider fails
+  chains:
+    SMS: VOICE      # SMS fails → try Voice (high-reach fallback)
+    PUSH: SMS       # Push fails → try SMS (universal fallback)
+    BIOMETRIC: SMS  # Biometric fails → try SMS (universal fallback)
+    # VOICE has no fallback (already high-reach channel, end of chain)
+
+# Firebase Cloud Messaging Configuration (Story 3.3)
+fcm:
+  enabled: false  # Set to true when FCM integration is ready (requires service account JSON)
+  service-account-path: ${FCM_SERVICE_ACCOUNT_PATH:classpath:firebase-service-account.json}
+  project-id: ${FCM_PROJECT_ID:}  # Optional - auto-detected from service account JSON
+
+  # Biometric Provider Configuration (Story 3.5, 3.6)
+  biometric:
+    enabled: false  # Stub implementation - not production-ready
+    timeout-seconds: 3  # Biometric prompt timeout
+    retry-max-attempts: 0  # No retries for biometric (user interaction)
+    # Future: Integration with TouchID, FaceID, Windows Hello, Android Biometric API
+
+# Resilience4j Configuration (Story 2.5, Story 3.9)
+resilience4j:
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 1s
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+    instances:
+      # Legacy instance (Story 2.5) - mantener para backward compatibility
+      twilioProvider:
+        max-attempts: 3
+        wait-duration: 500ms
+        exponential-backoff-multiplier: 2  # 500ms, 1s, 2s
+        retry-exceptions:
+          - com.bank.signature.domain.exception.ProviderException
+          - com.twilio.exception.ApiException
+      
+      # Story 3.9: Provider Retry Logic - Per-provider retry instances
+      smsRetry:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 1s  # 1s → 2s → 4s (total max: 7s)
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - com.twilio.exception.ApiException
+      
+      pushRetry:
+        base-config: default
+        max-attempts: 3
+        wait-duration: 500ms  # 500ms → 1s → 2s (total max: 3.5s)
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - com.google.firebase.messaging.FirebaseMessagingException
+      
+      voiceRetry:
+        base-config: default
+        max-attempts: 2  # Only 2 attempts for voice (expensive)
+        wait-duration: 2s  # 2s → 4s (total max: 6s)
+        exponential-backoff-multiplier: 2
+        retry-exceptions:
+          - java.io.IOException
+          - java.util.concurrent.TimeoutException
+          - com.twilio.exception.ApiException
+      
+      biometricRetry:
+        max-attempts: 1  # No retry for biometric (stub)
+        wait-duration: 0s
+  
+  # TimeLimiter Configuration (Story 3.8 - Provider Timeout Configuration)
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+        cancel-running-future: true
+    instances:
+      smsTimeout:
+        base-config: default
+        timeout-duration: 5s  # Twilio SMS (typical: 1-2s) → 2.5x safety margin
+      pushTimeout:
+        base-config: default
+        timeout-duration: 3s  # Firebase FCM (typical: 0.5-1s) → 3x safety margin
+      voiceTimeout:
+        base-config: default
+        timeout-duration: 10s  # Twilio Voice (typical: 4-6s) → 2x safety margin
+      biometricTimeout:
+        base-config: default
+        timeout-duration: 2s  # Biometric SDK (stub: instant, future real: 1-2s)
+      # Legacy instance (Story 2.5) - mantener para backward compatibility
+      twilioProvider:
+        base-config: default
+        timeout-duration: 5s
+  
+  # Circuit Breaker Configuration (Story 4-1, Story 4.4)
+  circuitbreaker:
+    instances:
+      smsProvider:
+        failure-rate-threshold: 50  # Open circuit if 50% of calls fail (Story 4.4: matches error-rate threshold)
+        wait-duration-in-open-state: 30s  # Stay open for 30s before testing
+        sliding-window-size: 100  # Track last 100 calls (Story 4.4: larger window for accuracy)
+        permitted-number-of-calls-in-half-open-state: 3  # Allow 3 test calls in HALF_OPEN
+        minimum-number-of-calls: 10  # Need at least 10 calls before evaluating (Story 4.4: more samples)
+        sliding-window-type: COUNT_BASED  # COUNT_BASED or TIME_BASED
+      pushProvider:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 100
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 10
+        sliding-window-type: COUNT_BASED
+      voiceProvider:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 100
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 10
+        sliding-window-type: COUNT_BASED
+      biometricProvider:
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        sliding-window-size: 100
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 10
+        sliding-window-type: COUNT_BASED
+        cancel-running-future: true
+
+# Degraded Mode Configuration (Story 4.3)
+degraded-mode:
+  enabled: true
+  error-rate-threshold: 80  # % - Enter degraded mode if error rate > 80%
+  min-duration: 120s  # 2 minutes - High error rate must sustain for 2min before degraded
+  recovery-threshold: 50  # % - Exit degraded mode if error rate < 50%
+  recovery-duration: 300s  # 5 minutes - Low error rate must sustain for 5min before recovery
+  circuit-open-threshold: 3  # providers - Enter degraded if >= 3 circuit breakers OPEN
+
+# Resilience - Error Rate Calculator Configuration (Story 4.4)
+resilience:
+  fallback:
+    max-attempts: 3  # Story 4-7: Max provider attempts per request (primary + 2 fallbacks)
+  reactivation:
+    enabled: true  # Story 4-5: Enable automatic provider reactivation
+    interval-seconds: 60  # Story 4-5: Check degraded providers every 60s
+    health-check-timeout-ms: 2000  # Story 4-5: Health check timeout (2s)
+  error-rate:
+    threshold: 0.50  # Publish event if error rate > 50%
+    sustained-duration-seconds: 30  # Threshold must be exceeded for 30s before event
+
+# Story 1.1: Basic configuration ✅
+# Story 1.2: PostgreSQL datasource, LiquidBase ✅
+# Story 1.3: Kafka producer/consumer, Schema Registry ✅
+# Story 1.4: Vault integration ✅
+# Story 1.7: Security OAuth2, Springdoc OpenAPI ✅
+# Story 2.3: Routing Engine configuration ✅
+# Story 2.5: Twilio provider, Resilience4j ✅
+# Story 2.6: Push notification provider (stub) ✅
+# Story 2.7: Voice call provider (stub) ✅
+# Story 4.3: Degraded Mode Manager ✅
+

@@ -1,0 +1,29 @@
+# Test profile (used for integration tests)
+
+spring:
+  liquibase:
+    contexts: dev
+  
+  # Embedded Kafka will be configured via @EmbeddedKafka annotation
+  kafka:
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      acks: all
+      enable-idempotence: true
+    
+    properties:
+      # Schema Registry will be mocked in tests
+      schema.registry.url: mock://test
+
+logging:
+  level:
+    com.bank.signature: DEBUG
+    org.apache.kafka: WARN
+    org.springframework.kafka: INFO
+
+management:
+  health:
+    kafka:
+      enabled: false  # Disable Kafka health check in tests
+

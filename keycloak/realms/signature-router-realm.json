@@ -1,0 +1,249 @@
+{
+  "id": "signature-router",
+  "realm": "signature-router",
+  "displayName": "Signature Router",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "resetPasswordAllowed": true,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  
+  "accessTokenLifespan": 3600,
+  "accessTokenLifespanForImplicitFlow": 900,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  
+  "roles": {
+    "realm": [
+      {
+        "name": "USER",
+        "description": "Standard user role - can create and view own signatures",
+        "composite": false
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administrator role - full access to all operations",
+        "composite": false
+      },
+      {
+        "name": "SUPPORT",
+        "description": "Support role - read-only access to signatures and routing rules",
+        "composite": false
+      },
+      {
+        "name": "AUDITOR",
+        "description": "Auditor role - read-only access to audit logs and metrics",
+        "composite": false
+      }
+    ]
+  },
+  
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@bank.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ADMIN", "USER"],
+      "attributes": {
+        "department": ["IT"],
+        "employeeId": ["EMP-001"]
+      }
+    },
+    {
+      "username": "user",
+      "enabled": true,
+      "email": "user@bank.com",
+      "firstName": "Standard",
+      "lastName": "User",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["USER"],
+      "attributes": {
+        "department": ["Operations"],
+        "employeeId": ["EMP-002"]
+      }
+    },
+    {
+      "username": "support",
+      "enabled": true,
+      "email": "support@bank.com",
+      "firstName": "Support",
+      "lastName": "Agent",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "support123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["SUPPORT", "USER"],
+      "attributes": {
+        "department": ["Support"],
+        "employeeId": ["EMP-003"]
+      }
+    },
+    {
+      "username": "auditor",
+      "enabled": true,
+      "email": "auditor@bank.com",
+      "firstName": "Audit",
+      "lastName": "Officer",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "auditor123",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["AUDITOR"],
+      "attributes": {
+        "department": ["Compliance"],
+        "employeeId": ["EMP-004"]
+      }
+    }
+  ],
+  
+  "clients": [
+    {
+      "clientId": "signature-router-api",
+      "name": "Signature Router REST API",
+      "description": "OAuth2 Resource Server for Signature Router",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "signature-router-secret-key-12345",
+      "redirectUris": [
+        "http://localhost:8080/*",
+        "http://localhost:3000/*",
+        "http://localhost:4200/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8080",
+        "http://localhost:3000",
+        "http://localhost:4200"
+      ],
+      "attributes": {
+        "access.token.lifespan": "3600",
+        "client.secret.creation.time": "1701000000",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "oidc.ciba.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "claim.name": "roles",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        },
+        {
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "email",
+            "claim.name": "email",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "username",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "username",
+            "claim.name": "preferred_username",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "employeeId",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "employeeId",
+            "claim.name": "employeeId",
+            "jsonType.label": "String",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "postman-client",
+      "name": "Postman Testing Client",
+      "description": "Client for testing with Postman",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "bearerOnly": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://oauth.pstmn.io/v1/callback",
+        "http://localhost:*"
+      ],
+      "webOrigins": [
+        "*"
+      ],
+      "attributes": {
+        "access.token.lifespan": "3600"
+      }
+    }
+  ]
+}
+

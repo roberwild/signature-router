@@ -1,0 +1,92 @@
+{
+  "type": "record",
+  "name": "SignatureExpiredEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when a signature request expires (FR44 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "SIGNATURE_EXPIRED"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "SignatureRequest ID"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "SignatureExpiredPayload",
+        "fields": [
+          {
+            "name": "requestId",
+            "type": "string",
+            "logicalType": "uuid"
+          },
+          {
+            "name": "userId",
+            "type": "string",
+            "doc": "User ID (pseudonymized: SHA-256 hash)"
+          },
+          {
+            "name": "transactionType",
+            "type": "string",
+            "doc": "Type of transaction (e.g., TRANSFER, PAYMENT)"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "default": "EXPIRED",
+            "doc": "Final status (EXPIRED)"
+          },
+          {
+            "name": "createdAt",
+            "type": "long",
+            "logicalType": "timestamp-millis",
+            "doc": "When the request was originally created"
+          },
+          {
+            "name": "expiredAt",
+            "type": "long",
+            "logicalType": "timestamp-millis",
+            "doc": "When the expiration was detected"
+          },
+          {
+            "name": "expirationTtlMinutes",
+            "type": "int",
+            "doc": "TTL used (e.g., 5 minutes)"
+          }
+        ]
+      }
+    }
+  ]
+}
+

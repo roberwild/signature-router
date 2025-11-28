@@ -1,0 +1,408 @@
+{
+	"info": {
+		"_postman_id": "signature-router-002",
+		"name": "Signature Router API (With Keycloak)",
+		"description": "Colección completa con autenticación OAuth2/Keycloak para el Signature Router",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "0. Authentication (Keycloak)",
+			"item": [
+				{
+					"name": "Get Admin Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('admin_token', response.access_token);",
+									"    console.log('✅ Admin token guardado');",
+									"    console.log('Token expira en:', response.expires_in, 'segundos');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "{{keycloak_client_id}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{keycloak_client_secret}}",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{admin_username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{admin_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token",
+							"host": ["{{keycloak_url}}"],
+							"path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
+						},
+						"description": "Obtiene un token JWT para el usuario admin (role: ADMIN)"
+					}
+				},
+				{
+					"name": "Get User Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('user_token', response.access_token);",
+									"    console.log('✅ User token guardado');",
+									"    console.log('Token expira en:', response.expires_in, 'segundos');",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "{{keycloak_client_id}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{keycloak_client_secret}}",
+									"type": "text"
+								},
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{user_username}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{user_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token",
+							"host": ["{{keycloak_url}}"],
+							"path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
+						},
+						"description": "Obtiene un token JWT para el usuario standard (role: USER)"
+					}
+				},
+				{
+					"name": "Verify Token (Introspect)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "client_id",
+									"value": "{{keycloak_client_id}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{keycloak_client_secret}}",
+									"type": "text"
+								},
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{keycloak_url}}/realms/{{keycloak_realm}}/protocol/openid-connect/token/introspect",
+							"host": ["{{keycloak_url}}"],
+							"path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token", "introspect"]
+						},
+						"description": "Verifica si el token es válido y muestra sus claims"
+					}
+				}
+			],
+			"description": "Endpoints para autenticación con Keycloak"
+		},
+		{
+			"name": "1. Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/health",
+							"host": ["{{base_url}}"],
+							"path": ["actuator", "health"]
+						},
+						"description": "Verifica el estado general de la aplicación (no requiere autenticación)"
+					}
+				},
+				{
+					"name": "Provider Health (Admin)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}",
+								"description": "Requiere rol ADMIN"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers", "health"]
+						},
+						"description": "Verifica el estado de todos los providers. **Requiere rol ADMIN**"
+					}
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/actuator/prometheus",
+							"host": ["{{base_url}}"],
+							"path": ["actuator", "prometheus"]
+						},
+						"description": "Métricas en formato Prometheus"
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Signature Requests",
+			"item": [
+				{
+					"name": "Create Signature Request - SMS (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('signature_request_id', response.id);",
+									"    console.log('✅ Request ID guardado:', response.id);",
+									"    console.log('   Status:', response.status);",
+									"    console.log('   Expires at:', response.expiresAt);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "{{$guid}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"CUST-{{$timestamp}}\",\n  \"phoneNumber\": \"+34612345678\",\n  \"transactionContext\": {\n    \"amount\": {\n      \"value\": 1500.00,\n      \"currency\": \"EUR\"\n    },\n    \"merchantId\": \"MERCHANT-{{$randomInt}}\",\n    \"orderId\": \"ORDER-{{$randomInt}}\",\n    \"description\": \"Transferencia a cuenta externa\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/signatures",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "signatures"]
+						},
+						"description": "Crea una solicitud de firma con token de admin"
+					}
+				},
+				{
+					"name": "Create Signature Request - SMS (User)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('signature_request_id', response.id);",
+									"    console.log('✅ Request ID guardado:', response.id);",
+									"    console.log('   Status:', response.status);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							},
+							{
+								"key": "Idempotency-Key",
+								"value": "{{$guid}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"CUST-{{$timestamp}}\",\n  \"phoneNumber\": \"+34612345678\",\n  \"transactionContext\": {\n    \"amount\": {\n      \"value\": 500.00,\n      \"currency\": \"EUR\"\n    },\n    \"merchantId\": \"MERCHANT-{{$randomInt}}\",\n    \"orderId\": \"ORDER-{{$randomInt}}\",\n    \"description\": \"Pago de factura\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/signatures",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "signatures"]
+						},
+						"description": "Crea una solicitud de firma con token de usuario estándar"
+					}
+				},
+				{
+					"name": "Get Signature Request by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/signatures/{{signature_request_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "signatures", "{{signature_request_id}}"]
+						},
+						"description": "Obtiene el detalle de una solicitud por ID"
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Challenge Verification",
+			"item": [
+				{
+					"name": "Verify Challenge",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{user_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userResponse\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/signatures/{{signature_request_id}}/challenges/{{challenge_id}}/verify",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "signatures", "{{signature_request_id}}", "challenges", "{{challenge_id}}", "verify"]
+						},
+						"description": "Verifica el código del challenge"
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global pre-request script",
+					"console.log('Executing:', pm.info.requestName);"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test('Response time < 5000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"if (pm.response.code === 401) {",
+					"    console.warn('⚠️ Unauthorized. Ejecuta primero: 0. Authentication > Get Admin Token (o Get User Token)');",
+					"}"
+				]
+			}
+		}
+	]
+}
+

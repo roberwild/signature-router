@@ -1,0 +1,60 @@
+# Prometheus Configuration for Signature Router
+# Author: BMAD DevOps
+# Version: 1.0
+# Purpose: Scrape metrics from Spring Boot Actuator endpoints
+
+global:
+  scrape_interval: 15s # Default scraping interval
+  evaluation_interval: 15s # How often to evaluate alerting rules
+  external_labels:
+    cluster: 'signature-router-dev'
+    environment: 'local'
+
+# Scrape configurations
+scrape_configs:
+  # Spring Boot Actuator Metrics
+  - job_name: 'signature-router-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:8080'] # Spring Boot app on host machine
+        labels:
+          application: 'signature-router'
+          service: 'backend-api'
+    
+    # Optional: Add basic auth if actuator is protected
+    # basic_auth:
+    #   username: 'actuator'
+    #   password: 'actuator-pass'
+
+  # Prometheus Self-Monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+
+  # PostgreSQL Exporter (optional - if installed)
+  # - job_name: 'postgres'
+  #   static_configs:
+  #     - targets: ['postgres-exporter:9187']
+  #       labels:
+  #         service: 'postgresql'
+
+  # Kafka Exporter (optional - if installed)
+  # - job_name: 'kafka'
+  #   static_configs:
+  #     - targets: ['kafka-exporter:9308']
+  #       labels:
+  #         service: 'kafka'
+
+# Alerting configuration (optional)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets: ['alertmanager:9093']
+
+# Rule files (optional)
+# rule_files:
+#   - 'alerts/*.yml'
+

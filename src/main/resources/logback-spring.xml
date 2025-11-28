@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Critical Improvement #5: Structured JSON Logging con Logstash Encoder -->
+    
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    
+    <springProfile name="local,test">
+        <!-- CONSOLE appender para desarrollo local (formato legible) -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+
+        <logger name="com.bank.signature" level="DEBUG"/>
+        <logger name="org.springframework.web" level="DEBUG"/>
+    </springProfile>
+
+    <springProfile name="uat,prod">
+        <!-- JSON appender para UAT/Prod (integración con ELK Stack) -->
+        <appender name="JSON_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <!-- Customización del formato JSON -->
+                <customFields>{"application":"signature-router","environment":"${ENVIRONMENT:-unknown}"}</customFields>
+                
+                <!-- Incluir MDC (traceId, userId, customerId, etc.) -->
+                <includeMdc>true</includeMdc>
+                
+                <!-- Incluir stack trace en JSON -->
+                <includeStackTrace>true</includeStackTrace>
+                
+                <!-- Incluir contexto de log -->
+                <includeContext>true</includeContext>
+                
+                <!-- Incluir caller data (clase, método, línea) -->
+                <includeCallerData>true</includeCallerData>
+                
+                <!-- Time zone UTC -->
+                <timeZone>UTC</timeZone>
+                
+                <!-- Campos customizados adicionales -->
+                <fieldNames>
+                    <timestamp>@timestamp</timestamp>
+                    <version>@version</version>
+                    <message>message</message>
+                    <logger>logger_name</logger>
+                    <thread>thread_name</thread>
+                    <level>level</level>
+                    <levelValue>[ignore]</levelValue>
+                </fieldNames>
+            </encoder>
+        </appender>
+
+        <!-- Appender para archivo (opcional, para local backup) -->
+        <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/signature-router.json</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/signature-router-%d{yyyy-MM-dd}.json</fileNamePattern>
+                <maxHistory>30</maxHistory>
+                <totalSizeCap>1GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"application":"signature-router","environment":"${ENVIRONMENT:-unknown}"}</customFields>
+                <includeMdc>true</includeMdc>
+                <includeStackTrace>true</includeStackTrace>
+                <timeZone>UTC</timeZone>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="JSON_CONSOLE"/>
+            <appender-ref ref="FILE"/>
+        </root>
+
+        <logger name="com.bank.signature" level="INFO"/>
+        <logger name="org.springframework.web" level="WARN"/>
+        <logger name="org.springframework.security" level="WARN"/>
+    </springProfile>
+
+    <!-- Audit logger separado (ALWAYS JSON, incluso en local) -->
+    <springProfile name="local,test,uat,prod">
+        <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>logs/audit.json</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>logs/audit-%d{yyyy-MM-dd}.json</fileNamePattern>
+                <maxHistory>365</maxHistory> <!-- Retener 1 año para compliance -->
+                <totalSizeCap>10GB</totalSizeCap>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder">
+                <customFields>{"log_type":"audit","application":"signature-router"}</customFields>
+                <includeMdc>true</includeMdc>
+                <timeZone>UTC</timeZone>
+            </encoder>
+        </appender>
+
+        <logger name="AUDIT_LOGGER" level="INFO" additivity="false">
+            <appender-ref ref="AUDIT_FILE"/>
+        </logger>
+    </springProfile>
+</configuration>

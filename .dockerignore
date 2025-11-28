@@ -1,0 +1,53 @@
+# Docker Ignore File for Signature Router
+# Purpose: Exclude unnecessary files from Docker build context
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+*.iml
+*.iws
+*.ipr
+
+# Maven
+target/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Documentation
+docs/
+*.md
+*.pdf
+
+# Tests
+src/test/
+
+# Observability (configs loaded via volume mounts)
+observability/
+
+# Vault scripts (loaded via volume mounts)
+vault/
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Scripts
+*.ps1
+*.sh
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+

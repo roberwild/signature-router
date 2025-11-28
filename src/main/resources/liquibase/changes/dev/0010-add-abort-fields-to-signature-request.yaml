@@ -1,0 +1,40 @@
+databaseChangeLog:
+  - changeSet:
+      id: 2.12-add-abort-fields-to-signature-request
+      author: signature-router-team
+      context: dev
+      comment: "Story 2.12: Add aborted_at and abort_reason fields to signature_request table"
+      changes:
+        - addColumn:
+            tableName: signature_request
+            columns:
+              - column:
+                  name: aborted_at
+                  type: TIMESTAMP WITH TIME ZONE
+                  remarks: "Timestamp when the signature request was aborted (Story 2.12)"
+              
+              - column:
+                  name: abort_reason
+                  type: VARCHAR(50)
+                  remarks: "Reason for aborting the signature (enum: USER_CANCELLED, FRAUD_DETECTED, etc.) (Story 2.12)"
+        
+        - createIndex:
+            indexName: idx_signature_request_aborted_at
+            tableName: signature_request
+            columns:
+              - column:
+                  name: aborted_at
+            remarks: "Index for querying aborted signatures (Story 2.12)"
+      
+      rollback:
+        - dropIndex:
+            indexName: idx_signature_request_aborted_at
+            tableName: signature_request
+        - dropColumn:
+            tableName: signature_request
+            columns:
+              - column:
+                  name: abort_reason
+              - column:
+                  name: aborted_at
+

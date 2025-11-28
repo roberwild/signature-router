@@ -1,0 +1,97 @@
+# Production environment profile
+
+spring:
+  liquibase:
+    contexts: prod
+  
+  datasource:
+    url: jdbc:postgresql://postgres-prod.internal:5432/signature_router_prod
+    username: ${DB_USERNAME}  # From Vault (Story 1.4)
+    password: ${DB_PASSWORD}  # From Vault (Story 1.4)
+    hikari:
+      maximum-pool-size: 50
+      connection-timeout: 2000
+      leak-detection-threshold: 0  # Disable leak detection in prod
+
+  kafka:
+    bootstrap-servers: kafka-prod-1.internal:9092,kafka-prod-2.internal:9092,kafka-prod-3.internal:9092
+    
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      acks: all  # Banking-grade durability
+      compression-type: snappy
+      max-in-flight-requests-per-connection: 5
+      retries: 2147483647
+      enable-idempotence: true  # Exactly-once semantics
+      max-block-ms: 30000  # 30s timeout for schema registry
+    
+    properties:
+      schema.registry.url: http://schema-registry-prod.internal:8081
+      # Security configuration (TLS, SASL) will be added in security story
+    
+    admin:
+      auto-create: false  # Topics MUST be pre-created in prod
+      properties:
+        default.replication.factor: 3  # Production-grade replication
+
+logging:
+  level:
+    com.bank.signature: INFO
+    org.springframework.web: WARN
+    org.apache.kafka: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg - traceId=%X{traceId} %n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus  # Minimal exposure in prod
+  health:
+    kafka:
+      enabled: true  # Critical for readiness probe
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+
+# Resilience4j - Strict timeouts and conservative retry for fail-fast behavior (Story 3.8, 3.9)
+# Production timeouts and retries aligned with NFR-P2 (P99 < 3s)
+resilience4j:
+  timelimiter:
+    instances:
+      smsTimeout:
+        timeout-duration: 4s  # Strict (typical: 1-2s)
+      pushTimeout:
+        timeout-duration: 2s  # Strict (typical: 0.5-1s)
+      voiceTimeout:
+        timeout-duration: 8s  # Conservative (typical: 4-6s)
+      biometricTimeout:
+        timeout-duration: 2s  # Future real SDK expected 1-2s
+  
+  # Story 3.9: Conservative retry for production (fast backoff)
+  retry:
+    instances:
+      smsRetry:
+        max-attempts: 3
+        wait-duration: 800ms  # Fast backoff: 800ms → 1.6s → 3.2s
+        exponential-backoff-multiplier: 2
+      pushRetry:
+        max-attempts: 3
+        wait-duration: 400ms  # Fast backoff: 400ms → 800ms → 1.6s
+        exponential-backoff-multiplier: 2
+      voiceRetry:
+        max-attempts: 2  # Expensive, only 2 attempts
+        wait-duration: 2s
+      biometricRetry:
+        max-attempts: 1  # No retry
+
+# Degraded Mode Configuration (Story 4.3) - Conservative production settings
+degraded-mode:
+  enabled: true
+  error-rate-threshold: 90  # Conservative - only enter degraded at 90% error rate
+  min-duration: 180s  # 3 minutes - Ensure sustained degradation before triggering
+  recovery-threshold: 50  # Standard recovery threshold (50%)
+  recovery-duration: 600s  # 10 minutes - Long recovery to ensure stability
+  circuit-open-threshold: 3  # Standard threshold (3 providers)

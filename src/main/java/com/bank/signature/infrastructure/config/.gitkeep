@@ -1,0 +1,3 @@
+# Infrastructure Configuration
+# PersistenceConfig, KafkaConfig, VaultConfig, SecurityConfig will be created in Stories 1.2-1.7
+

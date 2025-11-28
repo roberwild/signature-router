@@ -1,0 +1,88 @@
+{
+  "type": "record",
+  "name": "ProviderFailedEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when all provider attempts have failed (FR42 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "PROVIDER_FAILED"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "SignatureRequest ID"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "ProviderFailedPayload",
+        "fields": [
+          {
+            "name": "requestId",
+            "type": "string",
+            "logicalType": "uuid"
+          },
+          {
+            "name": "attemptedProviders",
+            "type": {
+              "type": "array",
+              "items": "string"
+            },
+            "doc": "List of providers attempted (e.g., [SMS_TWILIO, SMS_VONAGE])"
+          },
+          {
+            "name": "totalAttempts",
+            "type": "int",
+            "doc": "Total number of send attempts made"
+          },
+          {
+            "name": "lastFailureReason",
+            "type": "string",
+            "doc": "Failure reason from the last attempt"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "default": "FAILED",
+            "doc": "Final status (FAILED)"
+          },
+          {
+            "name": "failedAt",
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          }
+        ]
+      }
+    }
+  ]
+}
+

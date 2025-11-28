@@ -1,0 +1,137 @@
+# Prometheus Alert Rules for Provider Metrics
+# Story 3.10: Provider Metrics Tracking
+# 
+# Deploy these rules to Prometheus server configuration.
+# 
+# Deployment:
+# 1. Copy this file to Prometheus server: /etc/prometheus/rules/
+# 2. Add to prometheus.yml:
+#    rule_files:
+#      - "rules/provider-metrics-alerts.yml"
+# 3. Reload Prometheus: kill -HUP <prometheus-pid>
+# 4. Validate: promtool check rules provider-metrics-alerts.yml
+
+groups:
+  - name: provider_metrics
+    interval: 30s
+    rules:
+      
+      # Alert: Provider High Error Rate
+      # Fires when error rate exceeds 5% for 5 consecutive minutes
+      - alert: ProviderHighErrorRate
+        expr: provider_error_rate > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: provider
+        annotations:
+          summary: "Provider {{ $labels.provider }} error rate is {{ $value | humanizePercentage }}"
+          description: |
+            Error rate for provider {{ $labels.provider }} has exceeded 5% threshold for 5 minutes.
+            Current error rate: {{ $value | humanizePercentage }}
+            This may indicate provider degradation or connectivity issues.
+          runbook_url: "https://wiki.company.com/runbooks/provider-high-error-rate"
+          action: "Investigate provider logs and consider enabling fallback chain"
+      
+      # Alert: Provider High Latency
+      # Fires when P99 latency exceeds 500ms for 3 consecutive minutes
+      - alert: ProviderHighLatency
+        expr: histogram_quantile(0.99, rate(provider_latency_bucket[5m])) > 0.5
+        for: 3m
+        labels:
+          severity: warning
+          component: provider
+        annotations:
+          summary: "Provider {{ $labels.provider }} P99 latency is {{ $value }}s"
+          description: |
+            P99 latency for provider {{ $labels.provider }} has exceeded 500ms for 3 minutes.
+            Current P99 latency: {{ $value }}s
+            This may impact SLO compliance (NFR-P1: P99 < 300ms target).
+          runbook_url: "https://wiki.company.com/runbooks/provider-high-latency"
+          action: "Check provider status page and review retry/timeout configuration"
+      
+      # Alert: Provider Availability Low
+      # Fires when success rate drops below 95% for 10 consecutive minutes
+      - alert: ProviderAvailabilityLow
+        expr: |
+          (
+            sum(rate(provider_calls_total{status="success"}[5m])) by (provider)
+            /
+            sum(rate(provider_calls_total[5m])) by (provider)
+          ) < 0.95
+        for: 10m
+        labels:
+          severity: critical
+          component: provider
+        annotations:
+          summary: "Provider {{ $labels.provider }} availability is {{ $value | humanizePercentage }}"
+          description: |
+            Provider {{ $labels.provider }} availability has dropped below 95% for 10 minutes.
+            Current availability: {{ $value | humanizePercentage }}
+            SLO target: 99.9% (NFR-A1)
+            This is a CRITICAL issue requiring immediate investigation.
+          runbook_url: "https://wiki.company.com/runbooks/provider-availability-low"
+          action: "Page on-call engineer. Check circuit breaker status and enable fallback if not already active."
+      
+      # Alert: Provider Timeout Rate High
+      # Fires when timeout rate exceeds 10% for 5 consecutive minutes
+      - alert: ProviderTimeoutRateHigh
+        expr: |
+          (
+            rate(provider_timeout_total[5m])
+            /
+            rate(provider_calls_total[5m])
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          component: provider
+        annotations:
+          summary: "Provider {{ $labels.provider }} timeout rate is {{ $value | humanizePercentage }}"
+          description: |
+            Provider {{ $labels.provider }} is experiencing high timeout rate (>10%) for 5 minutes.
+            Current timeout rate: {{ $value | humanizePercentage }}
+            This may indicate provider performance degradation or network issues.
+          runbook_url: "https://wiki.company.com/runbooks/provider-timeout-rate-high"
+          action: "Review timeout configuration and provider health endpoint"
+      
+      # Alert: Provider Retry Exhaustion High
+      # Fires when retry exhaustion rate exceeds 5% for 5 consecutive minutes
+      - alert: ProviderRetryExhaustionHigh
+        expr: |
+          (
+            rate(provider_retry_exhausted_total[5m])
+            /
+            rate(provider_retry_attempts_total{attempt="1"}[5m])
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: provider
+        annotations:
+          summary: "Provider {{ $labels.provider }} retry exhaustion rate is {{ $value | humanizePercentage }}"
+          description: |
+            Provider {{ $labels.provider }} is exhausting retries frequently (>5%).
+            Current exhaustion rate: {{ $value | humanizePercentage }}
+            This indicates persistent provider failures that retries cannot recover from.
+          runbook_url: "https://wiki.company.com/runbooks/provider-retry-exhaustion-high"
+          action: "Investigate provider errors and consider circuit breaker activation"
+
+# Example Prometheus Queries for Validation:
+# 
+# 1. Test ProviderHighErrorRate alert:
+#    provider_error_rate > 0.05
+# 
+# 2. Test ProviderHighLatency alert:
+#    histogram_quantile(0.99, rate(provider_latency_bucket[5m])) > 0.5
+# 
+# 3. Test ProviderAvailabilityLow alert:
+#    sum(rate(provider_calls_total{status="success"}[5m])) by (provider) /
+#    sum(rate(provider_calls_total[5m])) by (provider) < 0.95
+# 
+# 4. Check all firing alerts:
+#    ALERTS{alertstate="firing"}
+# 
+# 5. Check pending alerts:
+#    ALERTS{alertstate="pending"}
+

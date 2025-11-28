@@ -1,0 +1,886 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/1-2-postgresql-database-setup-liquidbase-changesets" v="1.0">
+  <metadata>
+    <epicId>epic-1</epicId>
+    <storyId>1.2</storyId>
+    <title>PostgreSQL Database Setup &amp; LiquidBase Changesets</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-2-postgresql-database-setup-liquidbase-changesets.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Developer</asA>
+    <iWant>PostgreSQL 15 configurado con LiquidBase changesets y schema base</iWant>
+    <soThat>Puedo persistir aggregates con garantía de esquema versionado siguiendo estándares corporativos</soThat>
+    <tasks>
+      - Task 1: Configure LiquidBase Dependencies &amp; Directory Structure (5 subtasks)
+      - Task 2: Create Docker Compose for PostgreSQL 15 (4 subtasks)
+      - Task 3: Configure Spring Datasource &amp; HikariCP Pool (5 subtasks)
+      - Task 4: Create ChangeSet 0001 - UUIDv7 Function (7 subtasks)
+      - Task 5: Create ChangeSet 0002 - Table signature_request (9 subtasks)
+      - Task 6: Create ChangeSet 0003 - Table signature_challenge (9 subtasks)
+      - Task 7: Create ChangeSets 0004-0007 for Remaining Tables (5 subtasks)
+      - Task 8: Validate LiquidBase Execution on Startup (4 subtasks)
+      - Task 9: Create Integration Test with Testcontainers (6 subtasks)
+      - Task 10: Document Schema &amp; LiquidBase Workflow (4 subtasks)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1" title="LiquidBase Infrastructure Ready">
+      <given>El proyecto tiene Spring Boot 3.2+ y Java 21</given>
+      <when>Agrego las dependencias de LiquidBase Core</when>
+      <then>
+        - pom.xml incluye liquibase-core (versión gestionada por Spring Boot)
+        - Estructura de directorios creada: src/main/resources/liquibase/
+          - changelog-master.yaml
+          - changes/dev/
+          - changes/uat/
+          - changes/prod/
+        - Configuration en application.yml:
+          - spring.liquibase.enabled=true
+          - spring.liquibase.change-log=classpath:liquibase/changelog-master.yaml
+          - spring.liquibase.contexts=dev (en application-local.yml)
+      </then>
+    </criterion>
+
+    <criterion id="AC2" title="PostgreSQL Docker Compose Service">
+      <given>El proyecto tiene Docker instalado</given>
+      <when>Creo docker-compose.yml en root</when>
+      <then>
+        - Servicio postgres configurado con:
+          - Imagen: postgres:15-alpine
+          - Puerto: 5432:5432
+          - Variables de entorno: POSTGRES_DB=signature_router, POSTGRES_USER=siguser, POSTGRES_PASSWORD=sigpass
+          - Volume: postgres-data:/var/lib/postgresql/data
+          - Healthcheck: pg_isready -U siguser
+        - Comando docker-compose up -d postgres levanta PostgreSQL exitosamente
+        - Logs muestran "database system is ready to accept connections"
+      </then>
+    </criterion>
+
+    <criterion id="AC3" title="Datasource Configuration &amp; HikariCP Pool">
+      <given>PostgreSQL running en Docker</given>
+      <when>Configuro application-local.yml</when>
+      <then>
+        - Datasource configurado:
+          - spring.datasource.url=jdbc:postgresql://localhost:5432/signature_router
+          - spring.datasource.username=siguser
+          - spring.datasource.password=sigpass (nota: usar Vault en prod)
+          - spring.datasource.driver-class-name=org.postgresql.Driver
+        - HikariCP pool optimizado:
+          - spring.datasource.hikari.maximum-pool-size=20
+          - spring.datasource.hikari.connection-timeout=2000
+          - spring.datasource.hikari.idle-timeout=600000
+          - spring.datasource.hikari.pool-name=SignatureRouterPool
+      </then>
+    </criterion>
+
+    <criterion id="AC4" title="ChangeSet 0001 - UUIDv7 Function">
+      <given>LiquidBase configurado</given>
+      <when>Creo src/main/resources/liquibase/changes/dev/0001-create-uuidv7-function.yaml</when>
+      <then>
+        - ChangeSet incluye campos obligatorios:
+          - id: "0001"
+          - author: "BMAD Dev Agent &lt;bmad@signature-router.com&gt;"
+          - context: dev
+        - SQL crea función uuid_generate_v7() según spec en docs/architecture/03-database-schema.md líneas 350-367
+        - Bloque rollback incluido: DROP FUNCTION IF EXISTS uuid_generate_v7()
+        - Al iniciar app, función existe en PostgreSQL: SELECT uuid_generate_v7() retorna UUID válido
+      </then>
+    </criterion>
+
+    <criterion id="AC5" title="ChangeSet 0002 - Table signature_request">
+      <given>UUIDv7 function creada</given>
+      <when>Creo 0002-create-signature-request-table.yaml</when>
+      <then>
+        - Tabla signature_request creada con 8 columnas (según docs/architecture/03-database-schema.md líneas 121-138)
+        - Constraint CHECK: status IN ('PENDING', 'CHALLENGE_SENT', 'COMPLETED', 'FAILED', 'EXPIRED')
+        - Índice GIN en transaction_context: CREATE INDEX idx_signature_request_context ON signature_request USING GIN (transaction_context)
+        - Índice B-tree en customer_id: CREATE INDEX idx_signature_request_customer ON signature_request (customer_id)
+        - Rollback: DROP TABLE IF EXISTS signature_request CASCADE
+      </then>
+    </criterion>
+
+    <criterion id="AC6" title="ChangeSet 0003 - Table signature_challenge">
+      <given>Tabla signature_request creada</given>
+      <when>Creo 0003-create-signature-challenge-table.yaml</when>
+      <then>
+        - Tabla signature_challenge creada con 13 columnas (docs/architecture/03-database-schema.md líneas 161-192)
+        - FK constraint: signature_request_id REFERENCES signature_request(id) ON DELETE CASCADE
+        - Constraint CHECK: channel_type IN ('SMS', 'PUSH', 'VOICE', 'BIOMETRIC')
+        - Constraint CHECK: status IN ('PENDING', 'SENT', 'COMPLETED', 'FAILED', 'EXPIRED')
+        - Índices: idx_challenge_request (signature_request_id), idx_challenge_provider (provider, status)
+        - Rollback incluido
+      </then>
+    </criterion>
+
+    <criterion id="AC7" title="ChangeSet 0004-0007 - Remaining Tables">
+      <given>Tablas core creadas</given>
+      <when>Creo changesets 0004, 0005, 0006, 0007</when>
+      <then>
+        - 0004-create-routing-rule-table.yaml: Tabla routing_rule (11 columnas, UNIQUE constraint en name)
+        - 0005-create-connector-config-table.yaml: Tabla connector_config (11 columnas, UNIQUE en provider, GIN index en config)
+        - 0006-create-outbox-event-table.yaml: Tabla outbox_event (8 columnas, índices en published_at y aggregate_id)
+        - 0007-create-audit-log-table.yaml: Tabla audit_log (8 columnas, índices en created_at y entity_type/entity_id)
+        - Todos incluyen rollback obligatorio
+      </then>
+    </criterion>
+
+    <criterion id="AC8" title="Changelog Master Configuration">
+      <given>Los 7 changesets creados en changes/dev/</given>
+      <when>Configuro changelog-master.yaml</when>
+      <then>
+        - Contenido YAML incluye includeAll para changes/dev, changes/uat, changes/prod
+        - LiquidBase ejecuta changesets en orden alfabético (0001, 0002, ... 0007)
+        - Changesets uat/prod inicialmente vacíos (se copiarán de dev cuando se promueva)
+      </then>
+    </criterion>
+
+    <criterion id="AC9" title="LiquidBase Execution on Startup">
+      <given>Todos los changesets configurados</given>
+      <when>Inicio la aplicación con ./mvnw spring-boot:run -Dspring.profiles.active=local</when>
+      <then>
+        - Logs muestran: "Liquibase: Reading from liquibase.changelog-master.yaml", "Running Changeset" (7 veces), "Successfully released change log lock"
+        - Tabla DATABASECHANGELOG contiene 7 registros
+        - Re-iniciar app NO ejecuta changesets de nuevo (idempotencia)
+      </then>
+    </criterion>
+
+    <criterion id="AC10" title="Schema Validation with psql">
+      <given>LiquidBase ejecutó exitosamente</given>
+      <when>Ejecuto docker exec -it &lt;postgres-container&gt; psql -U siguser -d signature_router -c "\dt"</when>
+      <then>
+        - Lista de tablas muestra: signature_request, signature_challenge, routing_rule, connector_config, outbox_event, audit_log, databasechangelog, databasechangeloglock
+        - Comando \d signature_request muestra columnas correctas con tipos UUIDv7, JSONB, constraints
+      </then>
+    </criterion>
+
+    <criterion id="AC11" title="Integration Test with Testcontainers">
+      <given>Changesets listos</given>
+      <when>Creo test de integración DatabaseSchemaIntegrationTest.java</when>
+      <then>
+        - Test usa @Testcontainers con PostgreSQL 15
+        - Verifica que las 6 tablas de negocio existen
+        - Verifica que uuid_generate_v7() function existe
+        - Inserta un registro en signature_request con ID generado por función UUIDv7
+        - Query recupera el registro exitosamente
+        - Test pasa en mvn verify
+      </then>
+    </criterion>
+
+    <criterion id="AC12" title="Rollback Test (Manual Validation)">
+      <given>Schema creado con LiquidBase</given>
+      <when>Ejecuto ./mvnw liquibase:rollback -Dliquibase.rollbackCount=1</when>
+      <then>
+        - Última tabla (audit_log) es eliminada
+        - Log muestra: "Rolling Back Changeset: changes/dev/0007-create-audit-log-table.yaml::0007::BMAD Dev Agent"
+        - Tabla DATABASECHANGELOG ahora tiene 6 registros (en lugar de 7)
+        - Re-ejecutar app vuelve a crear tabla audit_log
+      </then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact id="database-schema" path="docs/architecture/03-database-schema.md">
+        <section name="UUIDv7 Function" lines="350-367">
+          <purpose>Función PostgreSQL para generar UUIDs sortables por timestamp</purpose>
+          <usage>Default value para columnas id de tipo UUID</usage>
+        </section>
+        <section name="Table signature_request" lines="121-156">
+          <purpose>Aggregate root para solicitudes de firma digital</purpose>
+          <columns>id, customer_id, transaction_context (JSONB), status, active_challenge_id, created_at, updated_at, expires_at</columns>
+          <constraints>CHECK status, GIN index on JSONB, B-tree index on customer_id</constraints>
+        </section>
+        <section name="Table signature_challenge" lines="161-192">
+          <purpose>Entity para challenges enviados a providers</purpose>
+          <columns>id, signature_request_id (FK), channel_type, provider, provider_challenge_id, provider_proof, status, sent_at, responded_at, expires_at, error_code, raw_response, created_at</columns>
+          <constraints>FK CASCADE, CHECK channel_type, CHECK status</constraints>
+        </section>
+        <section name="Table routing_rule" lines="197-225">
+          <purpose>SpEL routing rules para selección de canal</purpose>
+          <columns>id, name (UNIQUE), description, priority, condition (SpEL), target_channel, enabled, created_at, updated_at, created_by, updated_by</columns>
+        </section>
+        <section name="Table connector_config" lines="230-257">
+          <purpose>Configuración de providers (Twilio, Push, etc.)</purpose>
+          <columns>id, provider (UNIQUE), enabled, config (JSONB), vault_path, degraded_mode, degraded_since, error_rate, last_health_check, created_at, updated_at</columns>
+        </section>
+        <section name="Table outbox_event" lines="262-285">
+          <purpose>Outbox pattern para event publishing atómico</purpose>
+          <columns>id, aggregate_id, aggregate_type, event_type, payload (JSONB), payload_hash, created_at, published_at</columns>
+          <critical>Índice en published_at es crucial para Debezium CDC (Story 1.3)</critical>
+        </section>
+        <section name="Table audit_log" lines="290-318">
+          <purpose>Audit trail para compliance bancario (PCI-DSS, SOC 2)</purpose>
+          <columns>id, entity_type, entity_id, action, user_id, ip_address, changes (JSONB), created_at</columns>
+          <retention>Particionamiento por mes, retención 365 días</retention>
+        </section>
+        <section name="HikariCP Configuration" lines="689-701">
+          <purpose>Connection pool optimizations</purpose>
+          <config>maximum-pool-size: 20, connection-timeout: 2000ms, leak-detection-threshold: 60000ms</config>
+        </section>
+      </artifact>
+
+      <artifact id="tech-spec-epic-1" path="docs/sprint-artifacts/tech-spec-epic-1.md">
+        <section name="LiquidBase Migration Strategy" lines="176-221">
+          <purpose>Corporate standards for LiquidBase changesets</purpose>
+          <directory_structure>liquibase/changes/{dev,uat,prod}/</directory_structure>
+          <naming_convention>0001-create-uuidv7-function.yaml, 0002-create-table.yaml</naming_convention>
+          <mandatory_fields>id, author, context, changes, rollback</mandatory_fields>
+        </section>
+        <section name="Example ChangeSet YAML" lines="233-305">
+          <purpose>Template for 0002-create-signature-request-table.yaml</purpose>
+          <shows>Complete YAML structure: createTable, createIndex, rollback</shows>
+        </section>
+        <section name="Technology Stack" lines="82-104">
+          <entry>LiquidBase | 4.x | Story 1.2</entry>
+          <entry>PostgreSQL | 15 | Story 1.2</entry>
+          <entry>HikariCP | (Spring Boot managed) | Story 1.2</entry>
+        </section>
+      </artifact>
+
+      <artifact id="epics" path="docs/epics.md">
+        <section name="Story 1.2 Definition" lines="175-208">
+          <acceptance_criteria>LiquidBase ejecuta changesets automáticamente en orden</acceptance_criteria>
+          <technical_notes>LiquidBase Core dependency, ChangeSet files en liquibase/changes/{dev,uat,prod}/</technical_notes>
+        </section>
+      </artifact>
+
+      <artifact id="prd" path="docs/prd.md">
+        <section name="Functional Requirements">
+          <fr_group_1>FR1-FR19 - Signature Request Lifecycle (maps to signature_request table)</fr_group_1>
+          <fr_group_2>FR20-FR28 - Multi-Channel Delivery (maps to signature_challenge table)</fr_group_2>
+          <fr_group_3>FR29-FR38 - Fallback &amp; Resilience (maps to connector_config table)</fr_group_3>
+          <fr_group_4>FR39-FR46 - Event Publishing (maps to outbox_event table)</fr_group_4>
+        </section>
+        <section name="Non-Functional Requirements">
+          <nfr_compliance>PCI-DSS, GDPR, SOC 2 (requires audit_log table)</nfr_compliance>
+          <nfr_performance>p99 latency &lt; 500ms (requires HikariCP pool tuning)</nfr_performance>
+        </section>
+      </artifact>
+
+      <artifact id="hexagonal-architecture" path="docs/architecture/02-hexagonal-structure.md">
+        <section name="Infrastructure Layer - Database">
+          <purpose>JPA entities, repositories implementan outbound ports</purpose>
+          <next_story>Story 1.6 creará JPA entities para estas tablas</next_story>
+        </section>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact id="changelog-master-template" type="yaml" path="src/main/resources/liquibase/changelog-master.yaml">
+        <content><![CDATA[
+databaseChangeLog:
+  - includeAll:
+      path: changes/dev
+      relativeToChangelogFile: true
+  - includeAll:
+      path: changes/uat
+      relativeToChangelogFile: true
+  - includeAll:
+      path: changes/prod
+      relativeToChangelogFile: true
+]]></content>
+        <note>LiquidBase ejecutará changesets en orden alfabético dentro de cada directorio</note>
+      </artifact>
+
+      <artifact id="changeset-0001-uuidv7" type="yaml" path="src/main/resources/liquibase/changes/dev/0001-create-uuidv7-function.yaml">
+        <content><![CDATA[
+databaseChangeLog:
+  - changeSet:
+      id: "0001"
+      author: "BMAD Dev Agent <bmad@signature-router.com>"
+      context: dev
+      changes:
+        - sql:
+            sql: |
+              CREATE OR REPLACE FUNCTION uuid_generate_v7()
+              RETURNS UUID AS $$
+              DECLARE
+                  unix_ts_ms BIGINT;
+                  uuid_bytes BYTEA;
+              BEGIN
+                  unix_ts_ms := FLOOR(EXTRACT(EPOCH FROM clock_timestamp()) * 1000);
+                  
+                  uuid_bytes := 
+                      substring(int8send(unix_ts_ms) FROM 3 FOR 6) ||
+                      gen_random_bytes(10);
+                      
+                  uuid_bytes := set_byte(uuid_bytes, 6, (get_byte(uuid_bytes, 6) & 15) | 112);
+                  uuid_bytes := set_byte(uuid_bytes, 8, (get_byte(uuid_bytes, 8) & 63) | 128);
+                  
+                  RETURN encode(uuid_bytes, 'hex')::UUID;
+              END;
+              $$ LANGUAGE plpgsql VOLATILE;
+              
+              COMMENT ON FUNCTION uuid_generate_v7() IS 'Genera UUIDv7 sortable con timestamp embebido';
+      rollback:
+        - sql:
+            sql: "DROP FUNCTION IF EXISTS uuid_generate_v7();"
+]]></content>
+        <critical_notes>
+          - Copiar este archivo a changes/uat/ y changes/prod/ con context: uat y context: prod
+          - UUIDv7 format: timestamp (48 bits) + version (4 bits) + random (74 bits)
+          - Sortable by time, mejor performance que UUIDv4 random
+        </critical_notes>
+      </artifact>
+
+      <artifact id="changeset-0002-signature-request" type="yaml" path="src/main/resources/liquibase/changes/dev/0002-create-signature-request-table.yaml">
+        <content><![CDATA[
+databaseChangeLog:
+  - changeSet:
+      id: "0002"
+      author: "BMAD Dev Agent <bmad@signature-router.com>"
+      context: dev
+      changes:
+        - createTable:
+            tableName: signature_request
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  defaultValueComputed: uuid_generate_v7()
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: customer_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: transaction_context
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active_challenge_id
+                  type: uuid
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+        - addCheckConstraint:
+            tableName: signature_request
+            constraintName: chk_signature_request_status
+            checkCondition: "status IN ('PENDING', 'CHALLENGE_SENT', 'COMPLETED', 'FAILED', 'EXPIRED')"
+        - createIndex:
+            indexName: idx_signature_request_customer_id
+            tableName: signature_request
+            columns:
+              - column:
+                  name: customer_id
+        - createIndex:
+            indexName: idx_signature_request_status
+            tableName: signature_request
+            columns:
+              - column:
+                  name: status
+        - createIndex:
+            indexName: idx_signature_request_created_at
+            tableName: signature_request
+            columns:
+              - column:
+                  name: created_at
+        - sql:
+            sql: "CREATE INDEX idx_signature_request_context_gin ON signature_request USING GIN (transaction_context);"
+      rollback:
+        - dropTable:
+            tableName: signature_request
+            cascade: true
+]]></content>
+        <critical_notes>
+          - GIN index en JSONB requiere SQL raw (no hay createIndex YAML para GIN)
+          - customer_id es pseudonimizado (no PII directo), cumple GDPR
+          - transaction_context inmutable después de creación (no UPDATE en application layer)
+        </critical_notes>
+      </artifact>
+
+      <artifact id="docker-compose-template" type="yaml" path="docker-compose.yml">
+        <content><![CDATA[
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: signature-router-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: signature_router
+      POSTGRES_USER: siguser
+      POSTGRES_PASSWORD: sigpass
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U siguser"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+volumes:
+  postgres-data:
+
+networks:
+  signature-router-network:
+    driver: bridge
+]]></content>
+        <usage>
+          - Start: docker-compose up -d postgres
+          - Logs: docker-compose logs -f postgres
+          - Stop: docker-compose down
+          - Reset: docker-compose down -v (elimina volumen)
+        </usage>
+      </artifact>
+
+      <artifact id="application-yml-liquibase-config" type="yaml" path="src/main/resources/application.yml">
+        <content><![CDATA[
+spring:
+  liquibase:
+    enabled: true
+    change-log: classpath:liquibase/changelog-master.yaml
+    # Contexts se configuran por perfil (dev/uat/prod)
+]]></content>
+        <note>Configuración base, contexts se definen en application-{profile}.yml</note>
+      </artifact>
+
+      <artifact id="application-local-yml-datasource" type="yaml" path="src/main/resources/application-local.yml">
+        <content><![CDATA[
+spring:
+  liquibase:
+    contexts: dev
+    
+  datasource:
+    url: jdbc:postgresql://localhost:5432/signature_router
+    username: siguser
+    password: sigpass  # TODO: usar Vault en prod
+    driver-class-name: org.postgresql.Driver
+    
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 2000  # 2s según especificación
+      idle-timeout: 600000      # 10 min
+      max-lifetime: 1800000     # 30 min
+      leak-detection-threshold: 60000  # 1 min
+      pool-name: SignatureRouterPool
+]]></content>
+        <critical_notes>
+          - HikariCP timeout 2s cumple NFR de p99 latency &lt; 500ms
+          - Pool size 20 balancea throughput vs PostgreSQL max_connections=200
+          - Leak detection habilitado para debugging en dev
+        </critical_notes>
+      </artifact>
+
+      <artifact id="database-schema-integration-test" type="java" path="src/test/java/com/bank/signature/infrastructure/DatabaseSchemaIntegrationTest.java">
+        <content><![CDATA[
+package com.bank.signature.infrastructure;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
+@Testcontainers
+class DatabaseSchemaIntegrationTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")
+            .withDatabaseName("signature_router_test")
+            .withUsername("testuser")
+            .withPassword("testpass");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.liquibase.contexts", () -> "dev");
+    }
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Test
+    void testAllTablesExist() {
+        List<String> tables = jdbcTemplate.queryForList(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
+                String.class
+        );
+        
+        assertThat(tables).contains(
+                "signature_request",
+                "signature_challenge",
+                "routing_rule",
+                "connector_config",
+                "outbox_event",
+                "audit_log",
+                "databasechangelog",
+                "databasechangeloglock"
+        );
+    }
+
+    @Test
+    void testUuidV7FunctionExists() {
+        UUID uuid = jdbcTemplate.queryForObject("SELECT uuid_generate_v7()", UUID.class);
+        assertThat(uuid).isNotNull();
+        
+        // UUIDv7 format validation: version bits should be 0111 (7)
+        String uuidString = uuid.toString();
+        assertThat(uuidString.charAt(14)).isEqualTo('7');
+    }
+
+    @Test
+    void testInsertSignatureRequest() {
+        // Insert con UUIDv7 auto-generado
+        jdbcTemplate.update(
+                "INSERT INTO signature_request (customer_id, transaction_context, status, expires_at) " +
+                "VALUES (?, ?::jsonb, ?, CURRENT_TIMESTAMP + INTERVAL '15 minutes')",
+                "customer-12345",
+                "{\"amount\": {\"value\": 1000, \"currency\": \"USD\"}}",
+                "PENDING"
+        );
+        
+        // Verify
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM signature_request WHERE customer_id = ?",
+                Integer.class,
+                "customer-12345"
+        );
+        assertThat(count).isEqualTo(1);
+    }
+
+    @Test
+    void testJsonbColumnWorks() {
+        // Insert con JSONB complex
+        jdbcTemplate.update(
+                "INSERT INTO signature_request (customer_id, transaction_context, status, expires_at) " +
+                "VALUES (?, ?::jsonb, ?, CURRENT_TIMESTAMP + INTERVAL '15 minutes')",
+                "customer-jsonb-test",
+                "{\"riskLevel\": \"HIGH\", \"amount\": {\"value\": 50000, \"currency\": \"EUR\"}}",
+                "PENDING"
+        );
+        
+        // Query usando JSONB operators
+        Integer highRiskCount = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM signature_request WHERE transaction_context->>'riskLevel' = ?",
+                Integer.class,
+                "HIGH"
+        );
+        assertThat(highRiskCount).isGreaterThanOrEqualTo(1);
+    }
+}
+]]></content>
+        <dependencies>
+          - org.testcontainers:testcontainers-junit-jupiter (scope: test)
+          - org.testcontainers:postgresql (scope: test)
+          - org.assertj:assertj-core (scope: test)
+        </dependencies>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <maven>
+        <dependency>
+          <groupId>org.liquibase</groupId>
+          <artifactId>liquibase-core</artifactId>
+          <scope>compile</scope>
+          <version>Spring Boot managed (4.x)</version>
+          <story>1.2</story>
+        </dependency>
+        <dependency>
+          <groupId>org.postgresql</groupId>
+          <artifactId>postgresql</artifactId>
+          <scope>runtime</scope>
+          <version>Spring Boot managed (42.x)</version>
+          <story>1.2</story>
+        </dependency>
+        <dependency>
+          <groupId>org.testcontainers</groupId>
+          <artifactId>junit-jupiter</artifactId>
+          <scope>test</scope>
+          <version>1.19.x</version>
+          <story>1.2</story>
+        </dependency>
+        <dependency>
+          <groupId>org.testcontainers</groupId>
+          <artifactId>postgresql</artifactId>
+          <scope>test</scope>
+          <version>1.19.x</version>
+          <story>1.2</story>
+        </dependency>
+      </maven>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="ARCH-1" type="architectural">
+      <rule>Database schema must support Hexagonal Architecture: JPA entities (Story 1.6) will be in infrastructure layer, domain models in domain layer</rule>
+      <validation>Tables map 1:1 to domain aggregates (signature_request = SignatureRequest aggregate, signature_challenge = Challenge entity)</validation>
+    </constraint>
+
+    <constraint id="ARCH-2" type="architectural">
+      <rule>Outbox pattern mandatory for event publishing atomicity (FR39-FR46)</rule>
+      <validation>Table outbox_event must have index on published_at for Debezium CDC efficiency (Story 1.3)</validation>
+    </constraint>
+
+    <constraint id="TECH-1" type="technology">
+      <rule>LiquidBase changesets must follow corporate standards</rule>
+      <standards>
+        - Directory structure: liquibase/changes/{dev,uat,prod}/
+        - YAML format (not XML or SQL)
+        - Naming: 0001-descriptive-name.yaml (numeric prefix for ordering)
+        - Mandatory fields: id, author, context, changes, rollback
+        - Rollback block is MANDATORY in every changeset (critical for prod)
+      </standards>
+    </constraint>
+
+    <constraint id="TECH-2" type="technology">
+      <rule>PostgreSQL 15+ required for UUIDv7 function (uses gen_random_bytes())</rule>
+      <validation>Docker image must be postgres:15-alpine or higher</validation>
+    </constraint>
+
+    <constraint id="TECH-3" type="technology">
+      <rule>HikariCP connection pool must meet NFR performance requirements</rule>
+      <config>
+        - maximum-pool-size: 20 (balance throughput vs PostgreSQL max_connections)
+        - connection-timeout: 2000ms (supports p99 latency &lt; 500ms)
+        - leak-detection-threshold: 60000ms (debugging in dev)
+      </config>
+    </constraint>
+
+    <constraint id="SEC-1" type="security">
+      <rule>No PII in plain text (GDPR compliance)</rule>
+      <validation>customer_id must be pseudonimized (hashed/tokenized), transaction_context puede contener business data pero no PII directo</validation>
+    </constraint>
+
+    <constraint id="SEC-2" type="security">
+      <rule>TDE (Transparent Data Encryption) at rest (PCI-DSS requirement)</rule>
+      <implementation>PostgreSQL config: ssl = on, usar AWS RDS encryption en prod, LUKS filesystem encryption para local dev</implementation>
+    </constraint>
+
+    <constraint id="COMP-1" type="compliance">
+      <rule>Audit log required for PCI-DSS, SOC 2 compliance</rule>
+      <validation>Table audit_log must capture all changes to signature_request, routing_rule, connector_config with user_id, ip_address, changes JSONB</validation>
+    </constraint>
+
+    <constraint id="COMP-2" type="compliance">
+      <rule>Non-repudiation for signature challenges (banking compliance)</rule>
+      <validation>signature_challenge.provider_proof must store cryptographic receipt from provider (Twilio message SID, Push notification ID, etc.)</validation>
+    </constraint>
+
+    <constraint id="PERF-1" type="performance">
+      <rule>JSONB columns must have GIN indexes for query performance</rule>
+      <validation>transaction_context, config, payload, changes columns must have GIN index</validation>
+    </constraint>
+
+    <constraint id="PERF-2" type="performance">
+      <rule>UUIDv7 (sortable) preferred over UUIDv4 (random) for PK performance</rule>
+      <rationale>UUIDv7 embeds timestamp, mejor performance en B-tree indexes, reduce index fragmentation</rationale>
+    </constraint>
+
+    <constraint id="TEST-1" type="testing">
+      <rule>Integration tests with Testcontainers mandatory before merge</rule>
+      <validation>DatabaseSchemaIntegrationTest must verify: all tables exist, UUIDv7 function works, JSONB queries work, constraints enforced</validation>
+    </constraint>
+
+    <constraint id="OPS-1" type="operational">
+      <rule>LiquidBase changesets must be idempotent</rule>
+      <validation>Re-ejecutar app múltiples veces NO debe fallar (DATABASECHANGELOG tracking), rollback debe ser reversible</validation>
+    </constraint>
+
+    <constraint id="OPS-2" type="operational">
+      <rule>Docker Compose healthcheck mandatory for postgres service</rule>
+      <validation>App startup should wait for postgres healthcheck PASS before executing LiquidBase</validation>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface id="IFC-1" name="LiquidBase to PostgreSQL">
+      <description>LiquidBase ejecuta changesets contra PostgreSQL 15</description>
+      <protocol>JDBC (jdbc:postgresql://localhost:5432/signature_router)</protocol>
+      <contract>
+        - LiquidBase lee changelog-master.yaml
+        - Filtra changesets por context (dev/uat/prod)
+        - Ejecuta en orden alfabético (0001, 0002, ...)
+        - Registra en DATABASECHANGELOG (id, author, filename, orderexecuted)
+        - Lock en DATABASECHANGELOGLOCK durante ejecución
+      </contract>
+    </interface>
+
+    <interface id="IFC-2" name="Spring Boot to HikariCP to PostgreSQL">
+      <description>Application datasource connection pooling</description>
+      <protocol>JDBC connection pool</protocol>
+      <contract>
+        - Spring Boot auto-configura HikariCP con application-local.yml
+        - Pool size: 20 connections (max)
+        - Connection timeout: 2s (fail fast si DB no disponible)
+        - Leak detection: 60s (log warning si connection no se cierra)
+      </contract>
+    </interface>
+
+    <interface id="IFC-3" name="Testcontainers to PostgreSQL">
+      <description>Integration tests usan PostgreSQL containerizado</description>
+      <protocol>Docker container (postgres:15-alpine)</protocol>
+      <contract>
+        - @Testcontainers inicia container antes de @SpringBootTest
+        - DynamicPropertySource configura datasource.url dinámicamente
+        - LiquidBase ejecuta changesets contra container
+        - Container se detiene automáticamente después de tests
+      </contract>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard id="TS-1">Integration tests with Testcontainers are MANDATORY for database schema validation</standard>
+      <standard id="TS-2">Manual tests: docker-compose up, app startup, psql validation, rollback test</standard>
+      <standard id="TS-3">Unit tests NO aplicables (schema creation es responsabilidad de LiquidBase, no application code)</standard>
+      <standard id="TS-4">Test naming: *IntegrationTest.java for Testcontainers tests</standard>
+      <standard id="TS-5">Test must verify: tables exist, constraints enforced, indexes created, UUIDv7 function works, JSONB queries work</standard>
+    </standards>
+
+    <locations>
+      <location>src/test/java/com/bank/signature/infrastructure/DatabaseSchemaIntegrationTest.java</location>
+      <location>src/test/resources/application-test.yml (test profile config)</location>
+    </locations>
+
+    <ideas>
+      <test id="TEST-1" maps_to="AC1,AC8,AC9">
+        <name>LiquidBase Execution Integration Test</name>
+        <approach>@SpringBootTest with Testcontainers verifies LiquidBase executes 7 changesets, DATABASECHANGELOG has 7 records</approach>
+      </test>
+
+      <test id="TEST-2" maps_to="AC4">
+        <name>UUIDv7 Function Test</name>
+        <approach>SELECT uuid_generate_v7() returns UUID, validate version bits = 0111 (7), verify sortable (timestamp embedded)</approach>
+      </test>
+
+      <test id="TEST-3" maps_to="AC5">
+        <name>Signature Request Table Test</name>
+        <approach>INSERT row with auto-generated UUIDv7 PK, verify JSONB column, CHECK constraint enforced, GIN index used in query plan</approach>
+      </test>
+
+      <test id="TEST-4" maps_to="AC6">
+        <name>Signature Challenge FK Cascade Test</name>
+        <approach>INSERT signature_request, INSERT signature_challenge, DELETE signature_request, verify challenge cascade deleted (ON DELETE CASCADE)</approach>
+      </test>
+
+      <test id="TEST-5" maps_to="AC7">
+        <name>Remaining Tables Exist Test</name>
+        <approach>Query information_schema.tables for routing_rule, connector_config, outbox_event, audit_log</approach>
+      </test>
+
+      <test id="TEST-6" maps_to="AC10">
+        <name>JSONB Query Test</name>
+        <approach>INSERT signature_request with complex JSONB, SELECT using -&gt;&gt; operator (transaction_context-&gt;&gt;'riskLevel'), verify GIN index improves performance</approach>
+      </test>
+
+      <test id="TEST-7" maps_to="AC11">
+        <name>HikariCP Pool Test</name>
+        <approach>Verify HikariPool-1 logs show pool-name=SignatureRouterPool, maximum-pool-size=20, connection-timeout=2000ms</approach>
+      </test>
+
+      <test id="TEST-8" maps_to="AC12">
+        <name>Manual Rollback Test</name>
+        <approach>./mvnw liquibase:rollback -Dliquibase.rollbackCount=1, verify audit_log dropped, re-run app, verify audit_log recreated</approach>
+      </test>
+
+      <test id="TEST-9" maps_to="AC2">
+        <name>Docker Compose PostgreSQL Healthcheck Test</name>
+        <approach>docker-compose up -d postgres, docker-compose ps shows healthy status, logs show "database system is ready"</approach>
+      </test>
+
+      <test id="TEST-10" maps_to="AC9">
+        <name>LiquidBase Idempotency Test</name>
+        <approach>Start app twice, verify LiquidBase skips already-executed changesets (check logs for "Skipping changeset" or no "Running Changeset")</approach>
+      </test>
+    </ideas>
+  </tests>
+
+  <implementation_notes>
+    <priority level="CRITICAL">
+      <note>ChangeSet 0001 (UUIDv7 function) MUST execute before 0002-0007 (tables depend on it for default values)</note>
+      <note>Rollback blocks are MANDATORY in every changeset (corporate standard, critical for prod)</note>
+      <note>GIN index on JSONB columns requires raw SQL (LiquidBase YAML createIndex no soporta USING GIN)</note>
+      <note>Copiar changesets de dev/ a uat/ y prod/ con context correcto (dev/uat/prod)</note>
+    </priority>
+
+    <priority level="HIGH">
+      <note>HikariCP connection-timeout=2000ms critical for NFR p99 latency &lt; 500ms</note>
+      <note>Testcontainers integration test mandatory antes de merge (validates schema end-to-end)</note>
+      <note>Docker Compose healthcheck evita race condition (LiquidBase ejecuta antes de que PostgreSQL esté ready)</note>
+      <note>Table outbox_event index en published_at es crítico para Debezium CDC performance (Story 1.3)</note>
+    </priority>
+
+    <priority level="MEDIUM">
+      <note>README.md documentar comandos Docker Compose, LiquidBase (liquibase:status, liquibase:rollback)</note>
+      <note>application-local.yml comment: "TODO: usar Vault en prod" para datasource.password</note>
+      <note>Crear docs/development/database-migrations.md con LiquidBase workflow, promotion flow (dev-&gt;uat-&gt;prod)</note>
+    </priority>
+
+    <priority level="LOW">
+      <note>PostgreSQL config optimizations (postgresql.conf) se harán en entorno productivo (fuera de scope Story 1.2)</note>
+      <note>Audit log partitioning (líneas 636-651) es opcional para dev, mandatory para prod (futuro story)</note>
+    </priority>
+  </implementation_notes>
+
+  <definition_of_done>
+    <checklist>
+      <item>Code Complete: 7 changesets YAML creados (0001-0007) en changes/dev/, copiados a uat/ y prod/</item>
+      <item>Code Complete: changelog-master.yaml configurado con includeAll</item>
+      <item>Code Complete: docker-compose.yml con servicio postgres:15-alpine + healthcheck</item>
+      <item>Code Complete: application.yml y application-local.yml configurados (LiquidBase + datasource + HikariCP)</item>
+      <item>Code Complete: pom.xml dependencies agregadas (liquibase-core, postgresql, testcontainers)</item>
+      <item>Code Complete: DatabaseSchemaIntegrationTest.java creado con 4+ test methods</item>
+      <item>Tests Passing: mvn verify exitoso (Testcontainers tests pasan)</item>
+      <item>Tests Passing: Manual test docker-compose up + mvn spring-boot:run ejecuta changesets exitosamente</item>
+      <item>Tests Passing: psql \dt muestra 8 tablas (6 negocio + 2 LiquidBase)</item>
+      <item>Tests Passing: Manual rollback test exitoso (elimina tabla, re-ejecutar recrea)</item>
+      <item>Architecture Validated: ChangeSet structure cumple estándares corporativos (YAML, contexts, rollback)</item>
+      <item>Architecture Validated: UUIDv7 function validada (SELECT uuid_generate_v7() retorna UUID sortable)</item>
+      <item>Architecture Validated: GIN indexes en JSONB verificados (EXPLAIN query plan usa GIN index)</item>
+      <item>Architecture Validated: FK constraints con ON DELETE CASCADE verificados (cascade delete test)</item>
+      <item>Documentation Updated: README.md sección "Database Setup" con comandos Docker Compose</item>
+      <item>Documentation Updated: docs/development/database-migrations.md creado con LiquidBase workflow</item>
+      <item>Documentation Updated: Cada changeset incluye comentarios explicando propósito</item>
+      <item>Documentation Updated: CHANGELOG.md entry "Added PostgreSQL 15 setup with LiquidBase changesets"</item>
+      <item>Code Review Approved: Peer review valida YAML syntax, rollback blocks, contexts correctos</item>
+      <item>Story Marked as Done: Todos los 12 Acceptance Criteria verificados</item>
+      <item>Story Marked as Done: Sprint status actualizado a done en docs/sprint-artifacts/sprint-status.yaml</item>
+    </checklist>
+  </definition_of_done>
+</story-context>

@@ -1,0 +1,106 @@
+{
+  "type": "record",
+  "name": "SignatureCompletedEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when user successfully completes signature verification (FR43 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "SIGNATURE_COMPLETED"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "SignatureRequest ID"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "SignatureCompletedPayload",
+        "fields": [
+          {
+            "name": "requestId",
+            "type": "string",
+            "logicalType": "uuid"
+          },
+          {
+            "name": "userId",
+            "type": "string",
+            "doc": "User ID (pseudonymized: SHA-256 hash)"
+          },
+          {
+            "name": "transactionType",
+            "type": "string",
+            "doc": "Type of transaction (e.g., TRANSFER, PAYMENT)"
+          },
+          {
+            "name": "transactionAmount",
+            "type": ["null", "double"],
+            "default": null,
+            "doc": "Transaction amount (if financial operation)"
+          },
+          {
+            "name": "provider",
+            "type": "string",
+            "doc": "Provider used for final successful challenge"
+          },
+          {
+            "name": "channel",
+            "type": "string",
+            "doc": "Channel used (SMS, EMAIL, PUSH, etc.)"
+          },
+          {
+            "name": "verifiedCode",
+            "type": "string",
+            "doc": "SHA-256 hash of the verified code (NOT the plain code)"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "default": "COMPLETED",
+            "doc": "Final status (COMPLETED)"
+          },
+          {
+            "name": "completedAt",
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          },
+          {
+            "name": "timeTakenMs",
+            "type": "long",
+            "doc": "Time from request creation to completion (milliseconds)"
+          }
+        ]
+      }
+    }
+  ]
+}
+

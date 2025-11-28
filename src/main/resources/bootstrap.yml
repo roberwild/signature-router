@@ -1,0 +1,23 @@
+# Bootstrap configuration - loads BEFORE application.yml
+# Used for Vault configuration (PropertySource priority)
+
+spring:
+  application:
+    name: signature-router
+  
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      authentication: TOKEN
+      token: dev-token-123
+      kv:
+        enabled: true
+        backend: secret
+        default-context: signature-router
+      fail-fast: true
+      config:
+        lifecycle:
+          enabled: true
+          min-renewal: 60s
+          expiry-threshold: 120s
+

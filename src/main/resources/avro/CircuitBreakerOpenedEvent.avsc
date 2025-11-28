@@ -1,0 +1,90 @@
+{
+  "type": "record",
+  "name": "CircuitBreakerOpenedEvent",
+  "namespace": "com.bank.signature.events.avro",
+  "doc": "Event published when a circuit breaker opens (FR46 - Story 5.4)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "logicalType": "uuid"
+    },
+    {
+      "name": "eventType",
+      "type": "string",
+      "default": "CIRCUIT_BREAKER_OPENED"
+    },
+    {
+      "name": "occurredAt",
+      "type": "long",
+      "logicalType": "timestamp-millis"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "logicalType": "uuid",
+      "doc": "Provider Circuit Breaker ID (generated UUID)"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "CircuitBreaker"
+    },
+    {
+      "name": "correlationId",
+      "type": ["null", "string"],
+      "default": null
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "CircuitBreakerOpenedPayload",
+        "fields": [
+          {
+            "name": "providerName",
+            "type": "string",
+            "doc": "Provider whose circuit breaker opened (e.g., SMS_TWILIO)"
+          },
+          {
+            "name": "failureRate",
+            "type": "float",
+            "doc": "Failure rate percentage that triggered opening (e.g., 0.75 = 75%)"
+          },
+          {
+            "name": "failureThreshold",
+            "type": "float",
+            "doc": "Configured threshold (e.g., 0.5 = 50%)"
+          },
+          {
+            "name": "totalCalls",
+            "type": "int",
+            "doc": "Total calls in sliding window when circuit opened"
+          },
+          {
+            "name": "failedCalls",
+            "type": "int",
+            "doc": "Number of failed calls in sliding window"
+          },
+          {
+            "name": "state",
+            "type": "string",
+            "default": "OPEN",
+            "doc": "New state (OPEN)"
+          },
+          {
+            "name": "openedAt",
+            "type": "long",
+            "logicalType": "timestamp-millis"
+          }
+        ]
+      }
+    }
+  ]
+}
+

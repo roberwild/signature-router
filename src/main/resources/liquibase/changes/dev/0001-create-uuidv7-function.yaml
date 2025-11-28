@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: "0001"
+      author: "BMAD Dev Agent <bmad@signature-router.com>"
+      context: dev
+      changes:
+        - sqlFile:
+            path: liquibase/sql/uuid_generate_v7.sql
+            splitStatements: false
+      
+      rollback:
+        - sql:
+            sql: "DROP FUNCTION IF EXISTS uuid_generate_v7();"
+

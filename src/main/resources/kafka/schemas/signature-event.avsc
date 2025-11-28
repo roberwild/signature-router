@@ -1,0 +1,115 @@
+{
+  "namespace": "com.bank.signature.event",
+  "type": "record",
+  "name": "SignatureEvent",
+  "doc": "Domain event for Signature Request lifecycle (banking-grade event streaming)",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event ID (UUIDv7 - time-sortable)"
+    },
+    {
+      "name": "eventType",
+      "type": {
+        "type": "enum",
+        "name": "EventType",
+        "doc": "Type of domain event (lifecycle phases)",
+        "symbols": [
+          "SIGNATURE_REQUEST_CREATED",
+          "CHALLENGE_SENT",
+          "CHALLENGE_COMPLETED",
+          "CHALLENGE_FAILED",
+          "SIGNATURE_COMPLETED",
+          "SIGNATURE_FAILED",
+          "FALLBACK_TRIGGERED",
+          "PROVIDER_DEGRADED"
+        ]
+      },
+      "doc": "Type of domain event"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "doc": "SignatureRequest ID (UUIDv7) - partition key for Kafka"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest",
+      "doc": "Always 'SignatureRequest' for this bounded context"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp in milliseconds since epoch (UTC)"
+    },
+    {
+      "name": "traceId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Distributed tracing ID for correlation (OpenTelemetry/Jaeger)"
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "EventPayload",
+        "doc": "Event-specific payload (fields may be null depending on event type)",
+        "fields": [
+          {
+            "name": "customerId",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Pseudonimized customer ID (GDPR-compliant, no PII)"
+          },
+          {
+            "name": "requestStatus",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Current status of signature request (PENDING, CHALLENGE_SENT, SIGNED, FAILED, EXPIRED, ABORTED)"
+          },
+          {
+            "name": "channel",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Channel used (SMS, PUSH, VOICE, BIOMETRIC)"
+          },
+          {
+            "name": "provider",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Provider name (TWILIO, PUSH_SERVICE, VONAGE, BIOMETRIC_SDK)"
+          },
+          {
+            "name": "errorCode",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Error code if event is failure type (e.g., PROVIDER_TIMEOUT, INVALID_OTP)"
+          },
+          {
+            "name": "errorMessage",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Human-readable error message (non-sensitive)"
+          },
+          {
+            "name": "attemptCount",
+            "type": ["null", "int"],
+            "default": null,
+            "doc": "Number of attempts for this request (retry tracking)"
+          },
+          {
+            "name": "durationMs",
+            "type": ["null", "long"],
+            "default": null,
+            "doc": "Duration in milliseconds (for COMPLETED/FAILED events)"
+          }
+        ]
+      },
+      "doc": "Event-specific payload (fields may be null depending on event type)"
+    }
+  ]
+}
+
