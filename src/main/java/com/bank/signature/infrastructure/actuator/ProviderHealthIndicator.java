@@ -61,7 +61,7 @@ import java.util.Map;
  * 
  * @since Story 4.4 - Provider Error Rate Calculator
  */
-@Component("providersHealthIndicator")
+@Component("providerErrorRateHealthIndicator")
 @RequiredArgsConstructor
 @Slf4j
 public class ProviderHealthIndicator implements HealthIndicator {

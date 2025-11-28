@@ -64,7 +64,7 @@ import java.util.concurrent.*;
  * @see org.springframework.boot.actuate.health.HealthIndicator
  * @see SignatureProviderPort#checkHealth(ProviderType)
  */
-@Component("providersHealthIndicator")
+@Component("allProvidersHealthIndicator")
 @ConditionalOnProperty(name = "management.health.providers.enabled", matchIfMissing = true)
 @RequiredArgsConstructor
 @Slf4j
