@@ -1,6 +1,6 @@
 package com.bank.signature.domain.model.entity;
 
-import com.bank.signature.domain.model.valueobject.Channel;
+import com.bank.signature.domain.model.valueobject.ChannelType;
 import lombok.*;
 
 import java.time.Instant;
@@ -39,13 +39,13 @@ public class RoutingRuleAuditLog {
     
     // Estado ANTES del cambio
     private String previousExpression;
-    private Channel previousChannel;
+    private ChannelType previousChannel;
     private Integer previousPriority;
     private Boolean previousEnabled;
     
     // Estado DESPUÉS del cambio
     private String newExpression;
-    private Channel newChannel;
+    private ChannelType newChannel;
     private Integer newPriority;
     private Boolean newEnabled;
     
@@ -69,7 +69,7 @@ public class RoutingRuleAuditLog {
     public static RoutingRuleAuditLog created(
         UUID ruleId,
         String expression,
-        Channel channel,
+        ChannelType channel,
         Integer priority,
         String changedBy,
         String ipAddress,
@@ -97,8 +97,8 @@ public class RoutingRuleAuditLog {
         UUID ruleId,
         String previousExpression,
         String newExpression,
-        Channel previousChannel,
-        Channel newChannel,
+        ChannelType previousChannel,
+        ChannelType newChannel,
         Integer previousPriority,
         Integer newPriority,
         String changedBy,
@@ -176,7 +176,7 @@ public class RoutingRuleAuditLog {
     public static RoutingRuleAuditLog deleted(
         UUID ruleId,
         String expression,
-        Channel channel,
+        ChannelType channel,
         Integer priority,
         String changedBy,
         String ipAddress,

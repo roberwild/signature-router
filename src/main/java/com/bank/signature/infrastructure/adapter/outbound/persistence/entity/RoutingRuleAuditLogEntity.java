@@ -1,7 +1,7 @@
 package com.bank.signature.infrastructure.adapter.outbound.persistence.entity;
 
 import com.bank.signature.domain.model.entity.RoutingRuleAuditLog;
-import com.bank.signature.domain.model.valueobject.Channel;
+import com.bank.signature.domain.model.valueobject.ChannelType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -58,7 +58,7 @@ public class RoutingRuleAuditLogEntity {
     
     @Enumerated(EnumType.STRING)
     @Column(name = "previous_channel", length = 20, updatable = false)
-    private Channel previousChannel;
+    private ChannelType previousChannel;
     
     @Column(name = "previous_priority", updatable = false)
     private Integer previousPriority;
@@ -72,7 +72,7 @@ public class RoutingRuleAuditLogEntity {
     
     @Enumerated(EnumType.STRING)
     @Column(name = "new_channel", length = 20, updatable = false)
-    private Channel newChannel;
+    private ChannelType newChannel;
     
     @Column(name = "new_priority", updatable = false)
     private Integer newPriority;
