@@ -1,7 +1,7 @@
 package com.bank.signature.application.service;
 
 import com.bank.signature.domain.model.entity.RoutingRuleAuditLog;
-import com.bank.signature.domain.model.valueobject.Channel;
+import com.bank.signature.domain.model.valueobject.ChannelType;
 import com.bank.signature.infrastructure.adapter.outbound.persistence.RoutingRuleAuditLogJpaRepository;
 import com.bank.signature.infrastructure.adapter.outbound.persistence.entity.RoutingRuleAuditLogEntity;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +43,7 @@ class RoutingRuleAuditServiceTest {
         RoutingRuleAuditLog auditLog = RoutingRuleAuditLog.created(
             ruleId,
             "context.amount.value > 1000",
-            Channel.VOICE,
+            ChannelType.VOICE,
             10,
             "admin@bank.com",
             "192.168.1.1",
@@ -63,7 +63,7 @@ class RoutingRuleAuditServiceTest {
         assertThat(entity.getAction()).isEqualTo(RoutingRuleAuditLog.AuditAction.CREATE);
         assertThat(entity.getChangedBy()).isEqualTo("admin@bank.com");
         assertThat(entity.getNewExpression()).isEqualTo("context.amount.value > 1000");
-        assertThat(entity.getNewChannel()).isEqualTo(Channel.VOICE);
+        assertThat(entity.getNewChannel()).isEqualTo(ChannelType.VOICE);
     }
     
     @Test
@@ -75,8 +75,8 @@ class RoutingRuleAuditServiceTest {
             ruleId,
             "context.amount.value > 1000",
             "context.amount.value > 1500",
-            Channel.VOICE,
-            Channel.BIOMETRIC,
+            ChannelType.VOICE,
+            ChannelType.BIOMETRIC,
             10,
             5,
             "admin@bank.com",
@@ -97,8 +97,8 @@ class RoutingRuleAuditServiceTest {
         assertThat(entity.getAction()).isEqualTo(RoutingRuleAuditLog.AuditAction.UPDATE);
         assertThat(entity.getPreviousExpression()).isEqualTo("context.amount.value > 1000");
         assertThat(entity.getNewExpression()).isEqualTo("context.amount.value > 1500");
-        assertThat(entity.getPreviousChannel()).isEqualTo(Channel.VOICE);
-        assertThat(entity.getNewChannel()).isEqualTo(Channel.BIOMETRIC);
+        assertThat(entity.getPreviousChannel()).isEqualTo(ChannelType.VOICE);
+        assertThat(entity.getNewChannel()).isEqualTo(ChannelType.BIOMETRIC);
         assertThat(entity.getChangeReason()).isEqualTo("Updated threshold");
     }
     
@@ -110,7 +110,7 @@ class RoutingRuleAuditServiceTest {
         RoutingRuleAuditLog auditLog = RoutingRuleAuditLog.deleted(
             ruleId,
             "context.amount.value > 1000",
-            Channel.VOICE,
+            ChannelType.VOICE,
             10,
             "admin@bank.com",
             "192.168.1.1",
