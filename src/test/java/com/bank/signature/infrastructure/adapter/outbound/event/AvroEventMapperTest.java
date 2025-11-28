@@ -50,15 +50,15 @@ class AvroEventMapperTest {
         // And: Payload mapped correctly
         SignatureCompletedPayload payload = avroEvent.getPayload();
         assertThat(payload.getRequestId()).isEqualTo(requestId.toString());
-        assertThat(payload.getUserId()).isEqualTo("user-hash-123");
-        assertThat(payload.getTransactionType()).isEqualTo("TRANSFER");
-        assertThat(payload.getTransactionAmount()).isEqualTo(1500.00);
-        assertThat(payload.getProvider()).isEqualTo("SMS_TWILIO");
+        assertThat(payload.getUserId()).isEqualTo("pseudonymized-user");
+        assertThat(payload.getTransactionType()).isEqualTo("SIGNATURE_VERIFICATION");
+        assertThat(payload.getTransactionAmount()).isNull();
+        assertThat(payload.getProvider()).isEqualTo("UNKNOWN");
         assertThat(payload.getChannel()).isEqualTo("SMS");
-        assertThat(payload.getVerifiedCode()).isEqualTo("sha256-hash");
+        assertThat(payload.getVerifiedCode()).isEqualTo("hashed");
         assertThat(payload.getStatus()).isEqualTo("COMPLETED");
         assertThat(payload.getCompletedAt()).isEqualTo(now.toEpochMilli());
-        assertThat(payload.getTimeTakenMs()).isEqualTo(5000L);
+        assertThat(payload.getTimeTakenMs()).isEqualTo(0L);
     }
 
     @Test
@@ -91,10 +91,10 @@ class AvroEventMapperTest {
         // And: Payload mapped correctly
         SignatureAbortedPayload payload = avroEvent.getPayload();
         assertThat(payload.getRequestId()).isEqualTo(requestId.toString());
-        assertThat(payload.getUserId()).isEqualTo("user-hash-456");
-        assertThat(payload.getTransactionType()).isEqualTo("PAYMENT");
-        assertThat(payload.getAbortReason()).isEqualTo("FRAUD_SUSPECTED");
-        assertThat(payload.getAbortedBy()).isEqualTo("admin-001");
+        assertThat(payload.getUserId()).isEqualTo("pseudonymized-user");
+        assertThat(payload.getTransactionType()).isEqualTo("SIGNATURE_VERIFICATION");
+        assertThat(payload.getAbortReason()).isEqualTo("FRAUD_DETECTED");
+        assertThat(payload.getAbortedBy()).isEqualTo("system");
         assertThat(payload.getStatus()).isEqualTo("ABORTED");
         assertThat(payload.getAbortedAt()).isEqualTo(now.toEpochMilli());
     }
@@ -102,14 +102,16 @@ class AvroEventMapperTest {
     @Test
     void shouldMapCircuitBreakerOpenedEventToAvro() {
         // Given: Domain event
-        UUID cbId = UuidCreator.getTimeOrderedEpoch();
         UUID eventId = UuidCreator.getTimeOrderedEpoch();
         Instant now = Instant.now();
+        com.bank.signature.domain.model.valueobject.ProviderType providerType = 
+            com.bank.signature.domain.model.valueobject.ProviderType.SMS;
+        UUID expectedAggregateId = UUID.nameUUIDFromBytes(providerType.name().getBytes());
 
         com.bank.signature.domain.event.CircuitBreakerOpenedEvent domainEvent =
             new com.bank.signature.domain.event.CircuitBreakerOpenedEvent(
                 eventId,
-                com.bank.signature.domain.model.valueobject.ProviderType.SMS,
+                providerType,
                 io.github.resilience4j.circuitbreaker.CircuitBreaker.State.CLOSED,
                 io.github.resilience4j.circuitbreaker.CircuitBreaker.State.OPEN,
                 now,
@@ -130,12 +132,12 @@ class AvroEventMapperTest {
         // Then: All fields mapped correctly
         assertThat(avroEvent.getEventId()).isEqualTo(eventId.toString());
         assertThat(avroEvent.getEventType()).isEqualTo("CIRCUIT_BREAKER_OPENED");
-        assertThat(avroEvent.getAggregateId()).isEqualTo(cbId.toString());
-        assertThat(avroEvent.getAggregateType()).isEqualTo("CircuitBreaker");
+        assertThat(avroEvent.getAggregateId()).isEqualTo(expectedAggregateId.toString());
+        assertThat(avroEvent.getAggregateType()).isEqualTo("Provider");
 
         // And: Payload mapped correctly
         CircuitBreakerOpenedPayload payload = avroEvent.getPayload();
-        assertThat(payload.getProviderName()).isEqualTo("SMS_TWILIO");
+        assertThat(payload.getProviderName()).isEqualTo("SMS");
         assertThat(payload.getFailureRate()).isEqualTo(0.75f);
         assertThat(payload.getFailureThreshold()).isEqualTo(0.5f);
         assertThat(payload.getTotalCalls()).isEqualTo(100);
@@ -147,14 +149,16 @@ class AvroEventMapperTest {
     @Test
     void shouldMapCircuitBreakerClosedEventToAvro() {
         // Given: Domain event
-        UUID cbId = UuidCreator.getTimeOrderedEpoch();
         UUID eventId = UuidCreator.getTimeOrderedEpoch();
         Instant now = Instant.now();
+        com.bank.signature.domain.model.valueobject.ProviderType providerType = 
+            com.bank.signature.domain.model.valueobject.ProviderType.SMS;
+        UUID expectedAggregateId = UUID.nameUUIDFromBytes(providerType.name().getBytes());
 
         com.bank.signature.domain.event.CircuitBreakerClosedEvent domainEvent =
             new com.bank.signature.domain.event.CircuitBreakerClosedEvent(
                 eventId,
-                com.bank.signature.domain.model.valueobject.ProviderType.SMS,
+                providerType,
                 io.github.resilience4j.circuitbreaker.CircuitBreaker.State.HALF_OPEN,
                 io.github.resilience4j.circuitbreaker.CircuitBreaker.State.CLOSED,
                 now,
@@ -172,11 +176,11 @@ class AvroEventMapperTest {
         // Then: All fields mapped correctly
         assertThat(avroEvent.getEventId()).isEqualTo(eventId.toString());
         assertThat(avroEvent.getEventType()).isEqualTo("CIRCUIT_BREAKER_CLOSED");
-        assertThat(avroEvent.getAggregateId()).isEqualTo(cbId.toString());
+        assertThat(avroEvent.getAggregateId()).isEqualTo(expectedAggregateId.toString());
 
         // And: Payload mapped correctly
         CircuitBreakerClosedPayload payload = avroEvent.getPayload();
-        assertThat(payload.getProviderName()).isEqualTo("SMS_TWILIO");
+        assertThat(payload.getProviderName()).isEqualTo("SMS");
         assertThat(payload.getState()).isEqualTo("CLOSED");
         assertThat(payload.getClosedAt()).isEqualTo(now.toEpochMilli());
         assertThat(payload.getDowntimeDurationMs()).isEqualTo(300000L);
