@@ -158,21 +158,19 @@ development_status:
   9-6-slo-compliance-reporting: backlog
   epic-9-retrospective: optional
 
-  # Epic 10: Quality Improvements & Technical Debt (15 stories) 🔴 CRÍTICO - Bloquea producción
-  epic-10: contexted
-  10-1-archunit-tests: done
-  10-2-domain-layer-tests: done ✅
-  10-3-use-case-tests: done ✅
-  10-4-testcontainers-integration: done ✅
-  10-5-idempotency-functional: done
-  10-6-spel-security: done
-  10-7-distributed-tracing: backlog
-  10-8-mdc-logging: backlog
-  10-9-db-partitioning: backlog
-  10-10-gdpr-compliance: backlog
-  10-11-exception-handling: backlog
-  10-12-todo-cleanup: done ✅
-  10-13-rate-limiting: backlog
-  10-14-secrets-rotation: backlog
-  10-15-database-constraints: backlog
+  # Epic 10 v2: Quality & Testing Excellence (4 stories) 🔴 CRÍTICO - Bloquea producción
+  # NOTA: Epic 10 v1 fue descartada (Composer-1 disaster 2025-11-29). Epic 10 v2 replaneada con scope reducido.
+  # Ver: docs/EPIC-10-QUALITY-TESTING-EXCELLENCE.md, docs/EPIC-10-MIGRATION-GUIDE.md, RESUMEN-SESION-EPIC-10.md
+  epic-10: backlog # Epic 10 v2 NO iniciada (en bandeja)
+  10-1-testing-coverage-75: backlog # Story 10.1: Testing Coverage 75%+ (JaCoCo, Unit/Integration/E2E)
+  10-2-exception-handling-structured: backlog # Story 10.2: Exception Handling Structured (error codes, I18N)
+  10-3-mdc-logging-traceability: backlog # Story 10.3: MDC Logging & Traceability (MDC, TraceId)
+  10-4-documentation-quality: backlog # Story 10.4: Documentation Quality (JavaDoc, ADRs, Runbooks)
   epic-10-retrospective: optional
+  
+  # NOTA IMPORTANTE: Las siguientes features YA ESTABAN implementadas ANTES de Epic 10:
+  # - Idempotency (IdempotencyService, IdempotencyFilter) ✅ Implementado en Epic 2
+  # - SpEL Security (SpELValidatorServiceImpl) ✅ Implementado con validación básica
+  # - ArchUnit Tests ✅ Implementados en Epic 1
+  # - Testcontainers Integration ✅ Implementados en Epic 1
+  # Epic 10 v1 intentó mejorarlos pero rompió todo. Epic 10 v2 enfoque: cobertura + calidad, NO features nuevas.

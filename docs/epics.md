@@ -33,7 +33,7 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E7** | Admin Portal - Monitoring & Ops | Admins monitorean providers y visualizan routing timelines | 9 stories | FR57-FR72 |
 | **E8** | Security & Compliance | Cumplir compliance bancario (PCI-DSS, GDPR, SOC 2) | 8 stories | FR73-FR90, NFR-S1-S16 |
 | **E9** | Observability & SLO Tracking | Métricas, logs, traces para SLO ≥99.9% y P99 <300ms | 6 stories | NFR-O1-O14, NFR-P1-P10 |
-| **E10** | Quality Improvements & Technical Debt | Corregir problemas críticos identificados en evaluación de calidad | 15 stories | Quality Report 2025-11-28 |
+| **E10** | Quality & Testing Excellence (v2) | Testing coverage 75%+, exception handling, MDC logging, documentation | 4 stories | Epic v1 descartada 29-Nov-2025 |
 
 **Total**: 10 Epics, ~93 Stories
 
@@ -880,7 +880,17 @@ Sistema ahora puede:
 
 ## Epic 10: Quality Improvements & Technical Debt 🔧
 
-**Epic Goal:** Resolver problemas críticos identificados en la evaluación de calidad (28-Nov-2025) para alcanzar production-readiness bancario
+> **⚠️ ADVERTENCIA (29-Nov-2025):** Esta Epic 10 v1 fue DESCARTADA debido a implementación fallida con Composer-1.  
+> **✅ Epic 10 v2 REPLANEADA** con scope reducido (4 stories en lugar de 15).  
+> **📄 Nueva documentación:** `docs/EPIC-10-QUALITY-TESTING-EXCELLENCE.md` + `docs/stories/STORY-10.1-TESTING-COVERAGE-75.md`  
+> **📊 Estado actual:** backlog (en bandeja, esperando decisión para iniciar)  
+> **📋 Ver:** `RESUMEN-SESION-EPIC-10.md` para detalles del incidente y replanning.  
+>
+> **La siguiente documentación es HISTÓRICA (Epic 10 v1 - NO usar):**
+
+---
+
+**Epic Goal (v1 - DESCARTADA):** Resolver problemas críticos identificados en la evaluación de calidad (28-Nov-2025) para alcanzar production-readiness bancario
 
 **Business Value:**
 - ✅ Reducir riesgo de bugs en producción (testing coverage 14% → 75%)

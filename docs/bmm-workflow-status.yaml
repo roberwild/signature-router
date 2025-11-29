@@ -844,3 +844,40 @@ workflow_status:
           - "5 interfaces defined: SignatureProviderPort.sendChallengeAsync() NEW method signature, ProviderResult record enhanced with timedOut boolean + timeout() factory, ScheduledExecutorService bean (10 threads), TimeLimiterRegistry.decorateFuture() pattern, Prometheus counter provider.timeout.total"
           - "20 test ideas covering all 12 ACs: AC1 (4 instances config, cancelRunningFuture), AC2 (4 provider async tests), AC3 (timeout handling, TimeLimiter selection), AC4 (cancel future, thread pool), AC5 (metrics increment, Prometheus export), AC7 (slow provider simulation), AC8 (adapter timeout logic), AC9 (multi-environment config), AC10 (timedOut field), AC11 (logging with traceId)"
           - "Critical implementation notes: BACKWARD COMPATIBILITY mandatory (NO romper ChallengeServiceImpl), TimeLimiter decoration en infrastructure layer NOT domain, ScheduledExecutorService injection en providers, dynamic TimeLimiter instance selection por ProviderType, timeout=WARNING NOT ERROR, multi-environment strategy (local 10s, prod 4s)"
+
+# ============================================================================
+# NOTAS IMPORTANTES - EPIC 10 (2025-11-29)
+# ============================================================================
+# 
+# Epic 10 v1 (DESCARTADA - Composer-1 Disaster):
+# - Fecha: 2025-11-29
+# - Problema: Implementación con Composer-1 rompió tests y código existente
+# - Acción: Revertida completamente (git stash + git reset --hard HEAD)
+# - Documentación del incidente: RESUMEN-SESION-EPIC-10.md
+#
+# Epic 10 v2 (REPLANEADA - EN BANDEJA):
+# - Estado: backlog (NO iniciada, esperando decisión para empezar)
+# - Scope: 4 stories (reducido de 15 stories originales)
+# - Documentación: 
+#   - docs/EPIC-10-QUALITY-TESTING-EXCELLENCE.md (nueva epic)
+#   - docs/stories/STORY-10.1-TESTING-COVERAGE-75.md (story detallada)
+#   - docs/EPIC-10-CHECKLIST.md (checklist de progreso)
+#   - docs/EPIC-10-MIGRATION-GUIDE.md (guía de migración)
+# - Duración estimada: 5-6 semanas
+# - Stories:
+#   - 10.1: Testing Coverage 75%+ (3-4 semanas)
+#   - 10.2: Exception Handling Structured (1 semana)
+#   - 10.3: MDC Logging & Traceability (1 semana)
+#   - 10.4: Documentation Quality (1 semana)
+#
+# Features que YA estaban implementadas ANTES de Epic 10 v1:
+# - Idempotency (IdempotencyService, IdempotencyFilter) - Epic 2
+# - SpEL Security (SpELValidatorServiceImpl) - Epic 2
+# - ArchUnit Tests - Epic 1
+# - Testcontainers Integration - Epic 1
+#
+# Próximos pasos recomendados (decisión pendiente):
+# 1. Epic 8: Security & Compliance (2-3 semanas)
+# 2. Epic 9: Observability (2-3 semanas)
+# 3. Epic 10 v2: Quality & Testing Excellence (5-6 semanas)
+# ============================================================================
