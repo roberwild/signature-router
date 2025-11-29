@@ -8,6 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledIf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
@@ -42,6 +43,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   <li>UUIDv7 generación y ordenamiento temporal</li>
  *   <li>Relaciones con challenges (one-to-many)</li>
  * </ul>
+ */
+/**
+ * Integration tests for SignatureRequestRepositoryAdapter using Testcontainers PostgreSQL.
+ * 
+ * <p><b>Note:</b> These tests require Docker to be running. If Docker is not available,
+ * the tests will be skipped automatically by Testcontainers.</p>
  */
 @SpringBootTest
 @Testcontainers

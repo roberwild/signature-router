@@ -5,7 +5,6 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
-import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 
 /**
  * ArchUnit tests for validating Hexagonal Architecture constraints.
@@ -110,6 +109,7 @@ public class HexagonalArchitectureTest {
     static final ArchRule applicationLayerShouldNotDependOnInfrastructureAdapters =
         noClasses()
             .that().resideInAPackage("..application..")
+            .and().haveSimpleNameNotContaining("Test") // Exclude test classes
             .should().dependOnClassesThat()
             .resideInAnyPackage("..infrastructure.adapter..");
 

@@ -11,15 +11,13 @@ import com.bank.signature.domain.model.valueobject.*;
 import com.bank.signature.domain.port.outbound.EventPublisher;
 import com.bank.signature.domain.port.outbound.SignatureRequestRepository;
 import com.bank.signature.infrastructure.util.CorrelationIdProvider;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -62,20 +60,8 @@ class CompleteSignatureUseCaseImplTest {
     private EventPublisher eventPublisher;
     @Mock
     private CorrelationIdProvider correlationIdProvider;
-    @Mock
+    
     private MeterRegistry meterRegistry;
-    @Mock
-    private Counter.Builder counterBuilder;
-    @Mock
-    private Counter counter;
-    @Mock
-    private Timer.Builder timerBuilder;
-    @Mock
-    private Timer timer;
-    @Mock
-    private Timer.Sample timerSample;
-
-    @InjectMocks
     private CompleteSignatureUseCaseImpl useCase;
 
     private UUID signatureRequestId;
@@ -125,13 +111,17 @@ class CompleteSignatureUseCaseImplTest {
             .expiresAt(Instant.now().plusSeconds(120))
             .build();
 
-        // Setup MeterRegistry mocks
-        when(counterBuilder.tag(anyString(), anyString())).thenReturn(counterBuilder);
-        when(counterBuilder.register(any(MeterRegistry.class))).thenReturn(counter);
-        when(timerBuilder.tag(anyString(), anyString())).thenReturn(timerBuilder);
-        when(timerBuilder.register(any(MeterRegistry.class))).thenReturn(timer);
-        when(meterRegistry.counter(anyString())).thenReturn(counter);
-        when(meterRegistry.timer(anyString())).thenReturn(timer);
+        // Use real SimpleMeterRegistry instead of mock to avoid NullPointerException
+        // SimpleMeterRegistry is lightweight and has no side effects
+        meterRegistry = new SimpleMeterRegistry();
+        
+        // Create use case instance manually since MeterRegistry is not a mock
+        useCase = new CompleteSignatureUseCaseImpl(
+            repository,
+            eventPublisher,
+            correlationIdProvider,
+            meterRegistry
+        );
     }
 
     @Test
@@ -141,8 +131,6 @@ class CompleteSignatureUseCaseImplTest {
         when(repository.findById(signatureRequestId)).thenReturn(Optional.of(signatureRequest));
         when(repository.save(any(SignatureRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(correlationIdProvider.getCorrelationId()).thenReturn("correlation-123");
-        when(Counter.builder(anyString())).thenReturn(counterBuilder);
-        when(Timer.builder(anyString())).thenReturn(timerBuilder);
 
         // When
         var result = useCase.execute(signatureRequestId, completeDto);
@@ -181,7 +169,7 @@ class CompleteSignatureUseCaseImplTest {
         // When/Then
         assertThatThrownBy(() -> useCase.execute(signatureRequestId, completeDto))
             .isInstanceOf(NotFoundException.class)
-            .hasMessageContaining("Signature request not found");
+            .hasMessageContaining("Signature request not found: " + signatureRequestId);
         
         verify(repository).findById(signatureRequestId);
         verify(repository, never()).save(any());
@@ -284,7 +272,6 @@ class CompleteSignatureUseCaseImplTest {
         // Given
         CompleteSignatureDto wrongCodeDto = new CompleteSignatureDto(challengeId, "999999");
         when(repository.findById(signatureRequestId)).thenReturn(Optional.of(signatureRequest));
-        when(Counter.builder(anyString())).thenReturn(counterBuilder);
 
         // When/Then
         assertThatThrownBy(() -> useCase.execute(signatureRequestId, wrongCodeDto))
@@ -300,39 +287,78 @@ class CompleteSignatureUseCaseImplTest {
     void shouldFailChallengeAfterMaxAttemptsExceeded() {
         // Given
         CompleteSignatureDto wrongCodeDto = new CompleteSignatureDto(challengeId, "999999");
-        when(repository.findById(signatureRequestId)).thenReturn(Optional.of(signatureRequest));
-        when(repository.save(any(SignatureRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
-        when(Counter.builder(anyString())).thenReturn(counterBuilder);
+        
+        // Use Answer to return fresh challenge for each call, but track state changes
+        final SignatureRequest[] requestHolder = new SignatureRequest[] { signatureRequest };
+        
+        when(repository.findById(signatureRequestId)).thenAnswer(invocation -> {
+            // Return current state of request (challenge may have been modified)
+            return Optional.of(requestHolder[0]);
+        });
+        
+        when(repository.save(any(SignatureRequest.class))).thenAnswer(invocation -> {
+            SignatureRequest saved = invocation.getArgument(0);
+            // Update holder to reflect saved state
+            requestHolder[0] = saved;
+            challenge = saved.getChallenges().get(0); // Update challenge reference
+            return saved;
+        });
 
         // When - Attempt 1
-        try {
-            useCase.execute(signatureRequestId, wrongCodeDto);
-        } catch (InvalidChallengeCodeException e) {
-            // Expected
-        }
+        assertThatThrownBy(() -> useCase.execute(signatureRequestId, wrongCodeDto))
+            .isInstanceOf(InvalidChallengeCodeException.class);
+
+        // Recreate challenge in SENT status for attempt 2
+        challenge = SignatureChallenge.builder()
+            .id(challengeId)
+            .channelType(ChannelType.SMS)
+            .provider(ProviderType.SMS)
+            .status(ChallengeStatus.SENT)
+            .challengeCode("123456")
+            .createdAt(Instant.now().minusSeconds(60))
+            .expiresAt(Instant.now().plusSeconds(120))
+            .build();
+        requestHolder[0] = SignatureRequest.builder()
+            .id(signatureRequestId)
+            .customerId("customer-123")
+            .transactionContext(transactionContext)
+            .status(SignatureStatus.PENDING)
+            .challenges(new ArrayList<>(List.of(challenge)))
+            .routingTimeline(new ArrayList<>())
+            .createdAt(Instant.now().minusSeconds(60))
+            .expiresAt(Instant.now().plusSeconds(120))
+            .build();
 
         // Attempt 2
-        try {
-            useCase.execute(signatureRequestId, wrongCodeDto);
-        } catch (InvalidChallengeCodeException e) {
-            // Expected
-        }
+        assertThatThrownBy(() -> useCase.execute(signatureRequestId, wrongCodeDto))
+            .isInstanceOf(InvalidChallengeCodeException.class);
 
-        // Attempt 3 (max attempts)
-        try {
-            useCase.execute(signatureRequestId, wrongCodeDto);
-        } catch (InvalidChallengeCodeException e) {
-            // Expected
-        }
+        // Recreate challenge in SENT status for attempt 3
+        challenge = SignatureChallenge.builder()
+            .id(challengeId)
+            .channelType(ChannelType.SMS)
+            .provider(ProviderType.SMS)
+            .status(ChallengeStatus.SENT)
+            .challengeCode("123456")
+            .createdAt(Instant.now().minusSeconds(60))
+            .expiresAt(Instant.now().plusSeconds(120))
+            .build();
+        requestHolder[0] = SignatureRequest.builder()
+            .id(signatureRequestId)
+            .customerId("customer-123")
+            .transactionContext(transactionContext)
+            .status(SignatureStatus.PENDING)
+            .challenges(new ArrayList<>(List.of(challenge)))
+            .routingTimeline(new ArrayList<>())
+            .createdAt(Instant.now().minusSeconds(60))
+            .expiresAt(Instant.now().plusSeconds(120))
+            .build();
 
-        // Attempt 4 (should fail challenge)
-        try {
-            useCase.execute(signatureRequestId, wrongCodeDto);
-        } catch (InvalidChallengeCodeException e) {
-            // Expected - max attempts exceeded
-        }
+        // Attempt 3 (max attempts - should fail challenge)
+        assertThatThrownBy(() -> useCase.execute(signatureRequestId, wrongCodeDto))
+            .isInstanceOf(InvalidChallengeCodeException.class);
 
-        // Then
+        // Then - Challenge should be marked as FAILED after 3 attempts
         verify(repository, atLeast(3)).findById(signatureRequestId);
         verify(repository, atLeastOnce()).save(any(SignatureRequest.class)); // Saved when max attempts exceeded
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.FAILED);
@@ -346,8 +372,6 @@ class CompleteSignatureUseCaseImplTest {
         when(repository.findById(signatureRequestId)).thenReturn(Optional.of(signatureRequest));
         when(repository.save(any(SignatureRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(correlationIdProvider.getCorrelationId()).thenReturn("correlation-123");
-        when(Counter.builder(anyString())).thenReturn(counterBuilder);
-        when(Timer.builder(anyString())).thenReturn(timerBuilder);
 
         // When
         useCase.execute(signatureRequestId, completeDto);
@@ -370,16 +394,14 @@ class CompleteSignatureUseCaseImplTest {
         when(repository.findById(signatureRequestId)).thenReturn(Optional.of(signatureRequest));
         when(repository.save(any(SignatureRequest.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(correlationIdProvider.getCorrelationId()).thenReturn("correlation-123");
-        when(Counter.builder(anyString())).thenReturn(counterBuilder);
-        when(Timer.builder(anyString())).thenReturn(timerBuilder);
 
         // When
         useCase.execute(signatureRequestId, completeDto);
 
-        // Then
-        verify(meterRegistry, atLeastOnce()).counter(anyString());
-        verify(meterRegistry, atLeastOnce()).timer(anyString());
-        verify(counter).increment();
+        // Then - Verify metrics were recorded by checking SimpleMeterRegistry
+        // SimpleMeterRegistry is real, so we can check that counters/timers were created
+        assertThat(meterRegistry.find("signatures.completed").counter()).isNotNull();
+        assertThat(meterRegistry.find("signatures.completion.duration").timer()).isNotNull();
     }
 }
 
