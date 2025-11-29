@@ -109,31 +109,33 @@ development_status:
   ci-4-contract-testing: done # Documentado (Pact approach para Twilio/FCM)
   ci-5-structured-json-logging: done # Logstash encoder + MDC + ELK integration
 
-  # Epic 6: Admin Portal - Rule Management (10 stories)
-  epic-6: backlog
-  6-1-react-project-setup-material-ui: backlog
-  6-2-api-client-axios-configuration: backlog
-  6-3-authentication-jwt-integration: backlog
-  6-4-rule-list-component-data-grid: backlog
-  6-5-rule-editor-form-spel-input: backlog
-  6-6-spel-validator-real-time: backlog
-  6-7-rule-priority-drag-drop-reorder: backlog
-  6-8-rule-enable-disable-toggle: backlog
-  6-9-rule-crud-operations: backlog
-  6-10-rule-audit-history-viewer: backlog
+  # Epic 6: Admin Portal - Rule Management (10 stories) 🎨 FRONTEND - React + Material-UI
+  # NOTA: Este epic es 100% frontend. Requiere React, Material-UI, Axios
+  epic-6: backlog # ⏳ FRONTEND PENDIENTE - Admin portal para gestión de reglas
+  6-1-react-project-setup-material-ui: backlog # React + Material-UI + Vite/CRA setup
+  6-2-api-client-axios-configuration: backlog # Axios client + API integration
+  6-3-authentication-jwt-integration: backlog # JWT auth flow en frontend
+  6-4-rule-list-component-data-grid: backlog # DataGrid con reglas de routing
+  6-5-rule-editor-form-spel-input: backlog # Form para editar reglas SpEL
+  6-6-spel-validator-real-time: backlog # Validación SpEL en tiempo real
+  6-7-rule-priority-drag-drop-reorder: backlog # Drag & drop para reordenar reglas
+  6-8-rule-enable-disable-toggle: backlog # Toggle para activar/desactivar reglas
+  6-9-rule-crud-operations: backlog # CRUD completo de reglas
+  6-10-rule-audit-history-viewer: backlog # Visor de historial de auditoría
   epic-6-retrospective: optional
 
-  # Epic 7: Admin Portal - Monitoring & Ops (9 stories)
-  epic-7: backlog
-  7-1-provider-health-dashboard: backlog
-  7-2-routing-timeline-visualizer: backlog
-  7-3-cost-optimization-charts: backlog
-  7-4-signature-search-filter: backlog
-  7-5-connector-management-ui: backlog
-  7-6-circuit-breaker-status-indicator: backlog
-  7-7-real-time-metrics-display: backlog
-  7-8-audit-log-viewer-read-only: backlog
-  7-9-grafana-dashboard-embed: backlog
+  # Epic 7: Admin Portal - Monitoring & Ops (9 stories) 🎨 FRONTEND - Dashboards & Visualizers
+  # NOTA: Este epic es 100% frontend. Requiere React, Material-UI, Chart.js/Recharts
+  epic-7: backlog # ⏳ FRONTEND PENDIENTE - Portal de monitoreo operativo
+  7-1-provider-health-dashboard: backlog # Dashboard de salud de proveedores
+  7-2-routing-timeline-visualizer: backlog # Visualizador de timeline de routing
+  7-3-cost-optimization-charts: backlog # Gráficos de optimización de costos
+  7-4-signature-search-filter: backlog # Búsqueda y filtros de firmas
+  7-5-connector-management-ui: backlog # UI para gestión de conectores
+  7-6-circuit-breaker-status-indicator: backlog # Indicador de estado circuit breaker
+  7-7-real-time-metrics-display: backlog # Display de métricas en tiempo real
+  7-8-audit-log-viewer-read-only: backlog # Visor de audit logs (read-only)
+  7-9-grafana-dashboard-embed: backlog # Embed de dashboards Grafana
   epic-7-retrospective: optional
 
   # Epic 8: Security & Compliance (8 stories) - 🎯 75% COMPLETE (6/8 stories) - Updated 2025-11-29
