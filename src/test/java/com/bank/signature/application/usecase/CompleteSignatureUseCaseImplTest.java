@@ -60,6 +60,12 @@ class CompleteSignatureUseCaseImplTest {
     private EventPublisher eventPublisher;
     @Mock
     private CorrelationIdProvider correlationIdProvider;
+    @Mock
+    private com.bank.signature.infrastructure.observability.metrics.SignatureRequestMetrics signatureRequestMetrics;
+    @Mock
+    private com.bank.signature.infrastructure.observability.metrics.ChallengeMetrics challengeMetrics;
+    @Mock
+    private io.micrometer.observation.ObservationRegistry observationRegistry;
     
     private MeterRegistry meterRegistry;
     private CompleteSignatureUseCaseImpl useCase;
@@ -120,7 +126,10 @@ class CompleteSignatureUseCaseImplTest {
             repository,
             eventPublisher,
             correlationIdProvider,
-            meterRegistry
+            meterRegistry,
+            signatureRequestMetrics,
+            challengeMetrics,
+            observationRegistry
         );
     }
 

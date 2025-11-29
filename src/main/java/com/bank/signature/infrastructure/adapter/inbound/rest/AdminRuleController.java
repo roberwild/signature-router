@@ -30,16 +30,21 @@ import java.util.stream.Collectors;
 /**
  * REST controller for routing rule management (Admin operations).
  * Story 2.2: Routing Rules - CRUD API
+ * Story 8.2: RBAC - Role-Based Access Control
  * 
- * Requires ADMIN role for all operations.
+ * <p><b>Access Control:</b></p>
+ * <ul>
+ *   <li>Create/Read/Update: ADMIN or SUPPORT</li>
+ *   <li>Delete: ADMIN only</li>
+ *   <li>List/Get: ADMIN, SUPPORT, or AUDITOR (read-only for AUDITOR)</li>
+ * </ul>
  */
 @RestController
 @RequestMapping("/api/v1/admin/rules")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Admin - Routing Rules", description = "Routing rule management operations (Admin only)")
+@Tag(name = "Admin - Routing Rules", description = "Routing rule management operations")
 @SecurityRequirement(name = "Bearer Authentication")
-@PreAuthorize("hasRole('ADMIN')")
 public class AdminRuleController {
     
     private final ManageRoutingRulesUseCase manageRoutingRulesUseCase;
@@ -53,6 +58,7 @@ public class AdminRuleController {
      * @return ResponseEntity with RoutingRuleResponseDto
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT')")
     @Operation(
         summary = "Create routing rule",
         description = "Creates a new routing rule with SpEL condition validation. " +
@@ -105,6 +111,7 @@ public class AdminRuleController {
      * @return ResponseEntity with list of RoutingRuleResponseDto
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'AUDITOR')")
     @Operation(
         summary = "List all routing rules",
         description = "Returns all routing rules (including disabled, but not deleted) ordered by priority ascending."
@@ -144,6 +151,7 @@ public class AdminRuleController {
      * @return ResponseEntity with RoutingRuleResponseDto
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'AUDITOR')")
     @Operation(
         summary = "Get routing rule by ID",
         description = "Returns a specific routing rule details."
@@ -194,6 +202,7 @@ public class AdminRuleController {
      * @return ResponseEntity with updated RoutingRuleResponseDto
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT')")
     @Operation(
         summary = "Update routing rule",
         description = "Updates an existing routing rule. SpEL condition is re-validated."
@@ -252,6 +261,7 @@ public class AdminRuleController {
      * @return ResponseEntity with 204 No Content
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
         summary = "Delete routing rule",
         description = "Soft-deletes a routing rule. The rule is marked as deleted but kept for audit purposes."

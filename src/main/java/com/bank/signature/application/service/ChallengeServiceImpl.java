@@ -12,8 +12,10 @@ import com.bank.signature.domain.service.ChallengeService;
 import com.bank.signature.domain.service.FallbackLoopDetector;
 import com.bank.signature.domain.service.ProviderSelectorService;
 import com.bank.signature.infrastructure.config.FallbackChainConfig;
+import com.bank.signature.infrastructure.observability.metrics.ChallengeMetrics;
 import com.bank.signature.infrastructure.resilience.DegradedModeManager;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ import org.springframework.stereotype.Service;
  * Story 4-2: Added fallback chain support (SMS→VOICE, PUSH→SMS, etc.)
  * Story 4-3: Added degraded mode support (skip challenge sending when degraded)
  * Story 4-7: Added fallback loop prevention (max attempts limit, duplicate detection)
+ * Story 9.2: Prometheus Metrics Export (@Timed annotation + ChallengeMetrics integration)
  */
 @Service
 @RequiredArgsConstructor
@@ -40,6 +43,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     private final FallbackChainConfig fallbackChainConfig;
     private final MeterRegistry meterRegistry;
     private final DegradedModeManager degradedModeManager;
+    private final ChallengeMetrics challengeMetrics;
     
     /**
      * Maximum number of provider attempts per signature request.
@@ -50,6 +54,9 @@ public class ChallengeServiceImpl implements ChallengeService {
     private int maxFallbackAttempts;
     
     @Override
+    @Timed(value = "challenge.send", 
+           description = "Time to send challenge to provider", 
+           percentiles = {0.5, 0.95, 0.99})
     public SignatureChallenge createChallenge(SignatureRequest signatureRequest, ChannelType channelType, String phoneNumber) {
         log.info("Creating and sending challenge for signature request: id={}, channel={}", 
             signatureRequest.getId(), channelType);
@@ -87,6 +94,9 @@ public class ChallengeServiceImpl implements ChallengeService {
         
         // 4. Handle final result (after fallback attempts)
         if (providerResult.success()) {
+            // Story 9.2: Record challenge sent metric
+            challengeMetrics.recordSent(challenge, providerType);
+            
             log.info("Challenge sent successfully (possibly via fallback): id={}, providerChallengeId={}", 
                 challenge.getId(), providerResult.providerChallengeId());
         } else {

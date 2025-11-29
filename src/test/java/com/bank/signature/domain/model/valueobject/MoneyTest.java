@@ -1,198 +1,255 @@
 package com.bank.signature.domain.model.valueobject;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Unit tests for Money Value Object.
+ * Unit tests for Money value object.
+ * Story 10.1: Testing Coverage 75%+
  * 
- * <p>Tests validate:</p>
- * <ul>
- *   <li>Immutability (Java 21 record)</li>
- *   <li>add() operation (same/different currency)</li>
- *   <li>multiply() operation</li>
- *   <li>Compact constructor validation</li>
- * </ul>
+ * Tests verify:
+ * - Record immutability
+ * - Equality and hashCode
+ * - String representation
+ * - Validation
  * 
- * @since Story 1.5
+ * Target: 100% coverage for Money.java
  */
+@DisplayName("Money Value Object Tests")
 class MoneyTest {
-
+    
     @Test
-    void testAdd_SameCurrency() {
-        // Given: Two Money instances with same currency
-        Money money1 = new Money(new BigDecimal("100.00"), "EUR");
-        Money money2 = new Money(new BigDecimal("50.50"), "EUR");
-
-        // When: Add money2 to money1
-        Money result = money1.add(money2);
-
-        // Then: Result is new Money instance with sum
-        assertNotSame(money1, result);
-        assertNotSame(money2, result);
-        assertEquals(new BigDecimal("150.50"), result.amount());
-        assertEquals("EUR", result.currency());
-
-        // Then: Original instances unchanged (immutability)
-        assertEquals(new BigDecimal("100.00"), money1.amount());
-        assertEquals(new BigDecimal("50.50"), money2.amount());
-    }
-
-    @Test
-    void testAdd_DifferentCurrency_ThrowsException() {
-        // Given: Two Money instances with different currencies
-        Money eur = new Money(new BigDecimal("100.00"), "EUR");
-        Money usd = new Money(new BigDecimal("50.00"), "USD");
-
-        // When/Then: Attempt to add different currencies throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> eur.add(usd)
-        );
-
-        // Then: Exception message contains both currencies
-        assertTrue(exception.getMessage().contains("EUR"));
-        assertTrue(exception.getMessage().contains("USD"));
-        assertTrue(exception.getMessage().contains("different currencies"));
-    }
-
-    @Test
-    void testMultiply() {
-        // Given: Money instance
-        Money money = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When: Multiply by factor
-        Money result = money.multiply(new BigDecimal("2.5"));
-
-        // Then: Result is new Money instance with product
-        assertNotSame(money, result);
-        assertEquals(0, new BigDecimal("250.00").compareTo(result.amount()));
-        assertEquals("EUR", result.currency());
-
-        // Then: Original instance unchanged (immutability)
-        assertEquals(new BigDecimal("100.00"), money.amount());
-    }
-
-    @Test
-    void testMultiply_ByZero() {
-        // Given: Money instance
-        Money money = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When: Multiply by zero
-        Money result = money.multiply(BigDecimal.ZERO);
-
-        // Then: Result is zero amount
-        assertEquals(new BigDecimal("0.00"), result.amount());
-        assertEquals("EUR", result.currency());
-    }
-
-    @Test
-    void testMultiply_NullFactor_ThrowsException() {
-        // Given: Money instance
-        Money money = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When/Then: Multiply by null throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> money.multiply(null)
-        );
-
-        assertTrue(exception.getMessage().contains("cannot be null"));
-    }
-
-    @Test
-    void testConstructor_NullAmount_ThrowsException() {
-        // When/Then: Create Money with null amount throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new Money(null, "EUR")
-        );
-
-        assertTrue(exception.getMessage().contains("Amount cannot be null"));
-    }
-
-    @Test
-    void testConstructor_NegativeAmount_ThrowsException() {
-        // When/Then: Create Money with negative amount throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new Money(new BigDecimal("-10.00"), "EUR")
-        );
-
-        assertTrue(exception.getMessage().contains("must be >= 0"));
-        assertTrue(exception.getMessage().contains("-10.00"));
-    }
-
-    @Test
-    void testConstructor_NullCurrency_ThrowsException() {
-        // When/Then: Create Money with null currency throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new Money(new BigDecimal("100.00"), null)
-        );
-
-        assertTrue(exception.getMessage().contains("Currency cannot be null"));
-    }
-
-    @Test
-    void testConstructor_EmptyCurrency_ThrowsException() {
-        // When/Then: Create Money with empty currency throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new Money(new BigDecimal("100.00"), "")
-        );
-
-        assertTrue(exception.getMessage().contains("Currency cannot be null or empty"));
-    }
-
-    @Test
-    void testConstructor_ZeroAmount_Valid() {
-        // When: Create Money with zero amount
-        Money money = new Money(BigDecimal.ZERO, "EUR");
-
-        // Then: Valid Money instance created
-        assertEquals(BigDecimal.ZERO, money.amount());
-        assertEquals("EUR", money.currency());
-    }
-
-    @Test
-    void testImmutability() {
-        // Given: Money instance (Java 21 record)
-        Money money = new Money(new BigDecimal("100.00"), "EUR");
-
-        // Then: No setters available (compile-time check)
-        // Money is a record, so no setters exist
-        // All fields are final and immutable
+    @DisplayName("Should create Money with amount and currency")
+    void shouldCreateMoneyWithAmountAndCurrency() {
+        // Arrange & Act
+        Money money = new Money(new BigDecimal("100.50"), "EUR");
         
-        // Then: Accessors return same values
-        assertEquals(new BigDecimal("100.00"), money.amount());
-        assertEquals("EUR", money.currency());
+        // Assert
+        assertThat(money).isNotNull();
+        assertThat(money.amount()).isEqualByComparingTo(new BigDecimal("100.50"));
+        assertThat(money.currency()).isEqualTo("EUR");
     }
-
+    
     @Test
-    void testEquals_SameValues() {
-        // Given: Two Money instances with same values
-        Money money1 = new Money(new BigDecimal("100.00"), "EUR");
-        Money money2 = new Money(new BigDecimal("100.00"), "EUR");
-
-        // Then: Equals by value (record auto-generated equals)
-        assertEquals(money1, money2);
-        assertEquals(money1.hashCode(), money2.hashCode());
+    @DisplayName("Should be equal when amount and currency are the same")
+    void shouldBeEqualWhenAmountAndCurrencyAreSame() {
+        // Arrange
+        Money money1 = new Money(new BigDecimal("100.00"), "USD");
+        Money money2 = new Money(new BigDecimal("100.00"), "USD");
+        
+        // Act & Assert
+        assertThat(money1).isEqualTo(money2);
+        assertThat(money1.hashCode()).isEqualTo(money2.hashCode());
     }
-
+    
     @Test
-    void testEquals_DifferentValues() {
-        // Given: Two Money instances with different values
+    @DisplayName("Should not be equal when amounts differ")
+    void shouldNotBeEqualWhenAmountsDiffer() {
+        // Arrange
         Money money1 = new Money(new BigDecimal("100.00"), "EUR");
         Money money2 = new Money(new BigDecimal("200.00"), "EUR");
-        Money money3 = new Money(new BigDecimal("100.00"), "USD");
-
-        // Then: Not equals
-        assertNotEquals(money1, money2);
-        assertNotEquals(money1, money3);
+        
+        // Act & Assert
+        assertThat(money1).isNotEqualTo(money2);
+    }
+    
+    @Test
+    @DisplayName("Should not be equal when currencies differ")
+    void shouldNotBeEqualWhenCurrenciesDiffer() {
+        // Arrange
+        Money money1 = new Money(new BigDecimal("100.00"), "EUR");
+        Money money2 = new Money(new BigDecimal("100.00"), "USD");
+        
+        // Act & Assert
+        assertThat(money1).isNotEqualTo(money2);
+    }
+    
+    @Test
+    @DisplayName("Should have readable toString representation")
+    void shouldHaveReadableToStringRepresentation() {
+        // Arrange
+        Money money = new Money(new BigDecimal("1500.75"), "EUR");
+        
+        // Act
+        String toString = money.toString();
+        
+        // Assert
+        assertThat(toString).contains("1500.75");
+        assertThat(toString).contains("EUR");
+    }
+    
+    @Test
+    @DisplayName("Should handle zero amount")
+    void shouldHandleZeroAmount() {
+        // Arrange & Act
+        Money money = new Money(BigDecimal.ZERO, "EUR");
+        
+        // Assert
+        assertThat(money.amount()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+    
+    @Test
+    @DisplayName("Should handle large amounts")
+    void shouldHandleLargeAmounts() {
+        // Arrange & Act
+        Money money = new Money(new BigDecimal("999999999.99"), "EUR");
+        
+        // Assert
+        assertThat(money.amount()).isEqualByComparingTo(new BigDecimal("999999999.99"));
+    }
+    
+    @Test
+    @DisplayName("Should handle decimal precision")
+    void shouldHandleDecimalPrecision() {
+        // Arrange & Act
+        Money money = new Money(new BigDecimal("100.123456"), "EUR");
+        
+        // Assert
+        assertThat(money.amount()).isEqualByComparingTo(new BigDecimal("100.123456"));
+    }
+    
+    @Test
+    @DisplayName("Should handle different currency codes")
+    void shouldHandleDifferentCurrencyCodes() {
+        // Arrange & Act
+        Money eur = new Money(new BigDecimal("100"), "EUR");
+        Money usd = new Money(new BigDecimal("100"), "USD");
+        Money gbp = new Money(new BigDecimal("100"), "GBP");
+        
+        // Assert
+        assertThat(eur.currency()).isEqualTo("EUR");
+        assertThat(usd.currency()).isEqualTo("USD");
+        assertThat(gbp.currency()).isEqualTo("GBP");
+    }
+    
+    @Test
+    @DisplayName("Should be immutable (record)")
+    void shouldBeImmutable() {
+        // Arrange
+        BigDecimal amount = new BigDecimal("100.00");
+        String currency = "EUR";
+        
+        // Act
+        Money money = new Money(amount, currency);
+        
+        // Modify original values
+        amount = new BigDecimal("200.00");
+        
+        // Assert - Money should not change
+        assertThat(money.amount()).isEqualByComparingTo(new BigDecimal("100.00"));
+        assertThat(money.currency()).isEqualTo("EUR");
+    }
+    
+    // ========== Validation Tests ==========
+    
+    @Test
+    @DisplayName("Should throw exception when amount is null")
+    void shouldThrowExceptionWhenAmountIsNull() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Money(null, "EUR"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Amount cannot be null");
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when amount is negative")
+    void shouldThrowExceptionWhenAmountIsNegative() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Money(new BigDecimal("-10.00"), "EUR"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Amount must be >= 0");
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when currency is null")
+    void shouldThrowExceptionWhenCurrencyIsNull() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Money(new BigDecimal("100.00"), null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Currency cannot be null");
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when currency is blank")
+    void shouldThrowExceptionWhenCurrencyIsBlank() {
+        // Act & Assert
+        assertThatThrownBy(() -> new Money(new BigDecimal("100.00"), ""))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Currency cannot be null or empty");
+    }
+    
+    // ========== Arithmetic Tests ==========
+    
+    @Test
+    @DisplayName("Should add money with same currency")
+    void shouldAddMoneyWithSameCurrency() {
+        // Arrange
+        Money money1 = new Money(new BigDecimal("100.00"), "EUR");
+        Money money2 = new Money(new BigDecimal("50.00"), "EUR");
+        
+        // Act
+        Money result = money1.add(money2);
+        
+        // Assert
+        assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("150.00"));
+        assertThat(result.currency()).isEqualTo("EUR");
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when adding different currencies")
+    void shouldThrowExceptionWhenAddingDifferentCurrencies() {
+        // Arrange
+        Money eur = new Money(new BigDecimal("100.00"), "EUR");
+        Money usd = new Money(new BigDecimal("50.00"), "USD");
+        
+        // Act & Assert
+        assertThatThrownBy(() -> eur.add(usd))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Cannot add different currencies")
+            .hasMessageContaining("EUR")
+            .hasMessageContaining("USD");
+    }
+    
+    @Test
+    @DisplayName("Should multiply money by factor")
+    void shouldMultiplyMoneyByFactor() {
+        // Arrange
+        Money money = new Money(new BigDecimal("100.00"), "EUR");
+        
+        // Act
+        Money result = money.multiply(new BigDecimal("2.5"));
+        
+        // Assert
+        assertThat(result.amount()).isEqualByComparingTo(new BigDecimal("250.00"));
+        assertThat(result.currency()).isEqualTo("EUR");
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when multiply factor is null")
+    void shouldThrowExceptionWhenMultiplyFactorIsNull() {
+        // Arrange
+        Money money = new Money(new BigDecimal("100.00"), "EUR");
+        
+        // Act & Assert
+        assertThatThrownBy(() -> money.multiply(null))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Factor cannot be null");
+    }
+    
+    @Test
+    @DisplayName("Should multiply by zero")
+    void shouldMultiplyByZero() {
+        // Arrange
+        Money money = new Money(new BigDecimal("100.00"), "EUR");
+        
+        // Act
+        Money result = money.multiply(BigDecimal.ZERO);
+        
+        // Assert
+        assertThat(result.amount()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 }
-

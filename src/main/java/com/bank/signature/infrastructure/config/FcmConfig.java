@@ -92,7 +92,7 @@ public class FcmConfig extends ProviderConfigProperties {
     @Bean
     public FirebaseApp firebaseApp(ResourceLoader resourceLoader) throws IOException {
         log.info("Initializing Firebase Admin SDK...");
-        log.info("FCM enabled: {}", isEnabled());
+        log.info("FCM enabled: {}", super.isEnabled());
         log.info("Service account path: {}", serviceAccountPath);
         log.info("Project ID: {}", projectId != null ? projectId : "(auto-detect from service account)");
         

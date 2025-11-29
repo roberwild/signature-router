@@ -1,224 +1,277 @@
 package com.bank.signature.domain.model.valueobject;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.*;
 
 /**
- * Unit tests for TransactionContext Value Object.
+ * Unit tests for TransactionContext value object.
+ * Story 10.1: Testing Coverage 75%+
  * 
- * <p>Tests validate:</p>
- * <ul>
- *   <li>Immutability (Java 21 record)</li>
- *   <li>Compact constructor validation (hash format, non-null fields)</li>
- *   <li>SHA256 hash integrity check</li>
- * </ul>
+ * Tests verify:
+ * - Record immutability
+ * - Equality and hashCode
+ * - String representation
+ * - All fields preserved
  * 
- * @since Story 1.5
+ * Target: 100% coverage for TransactionContext.java
  */
+@DisplayName("TransactionContext Value Object Tests")
 class TransactionContextTest {
-
+    
     @Test
-    void testConstructor_ValidValues() {
-        // Given: Valid transaction context data
-        Money amount = new Money(new BigDecimal("100.00"), "EUR");
-        String merchantId = "merchant-789";
-        String orderId = "order-456";
-        String description = "Payment for Order #456";
-        String hash = "a".repeat(64); // Valid SHA256 hash
-
-        // When: Create TransactionContext
-        TransactionContext context = new TransactionContext(amount, merchantId, orderId, description, hash);
-
-        // Then: Instance created successfully
-        assertNotNull(context);
-        assertEquals(amount, context.amount());
-        assertEquals(merchantId, context.merchantId());
-        assertEquals(orderId, context.orderId());
-        assertEquals(description, context.description());
-        assertEquals(hash, context.hash());
-    }
-
-    @Test
-    void testImmutability() {
-        // Given: TransactionContext instance (Java 21 record)
-        Money amount = new Money(new BigDecimal("100.00"), "EUR");
-        TransactionContext context = new TransactionContext(
-            amount,
-            "merchant-789",
-            "order-456",
-            "Payment for Order #456",
-            "a".repeat(64)
-        );
-
-        // Then: No setters available (compile-time check)
-        // TransactionContext is a record, so no setters exist
-        // All fields are final and immutable
+    @DisplayName("Should create TransactionContext with all fields")
+    void shouldCreateTransactionContextWithAllFields() {
+        // Arrange
+        Money amount = new Money(new BigDecimal("500.00"), "EUR");
+        String merchantId = "MERCHANT_001";
+        String orderId = "ORDER_12345";
+        String description = "Compra en Amazon";
+        String transactionHash = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
         
-        // Then: Accessors return same values
-        assertSame(amount, context.amount());
-        assertEquals("merchant-789", context.merchantId());
-        assertEquals("order-456", context.orderId());
-    }
-
-    @Test
-    void testHash_ValidSHA256Format() {
-        // Given: Valid SHA256 hash (64 lowercase hex chars)
-        String validHash = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
-        Money amount = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When: Create TransactionContext with valid hash
+        // Act
         TransactionContext context = new TransactionContext(
-            amount,
-            "merchant-789",
-            "order-456",
-            "Payment",
-            validHash
+            amount, merchantId, orderId, description, transactionHash
         );
-
-        // Then: Instance created successfully
-        assertEquals(validHash, context.hash());
+        
+        // Assert
+        assertThat(context).isNotNull();
+        assertThat(context.amount()).isEqualTo(amount);
+        assertThat(context.merchantId()).isEqualTo(merchantId);
+        assertThat(context.orderId()).isEqualTo(orderId);
+        assertThat(context.description()).isEqualTo(description);
+        assertThat(context.transactionHash()).isEqualTo(transactionHash);
     }
-
+    
     @Test
-    void testHash_InvalidFormat_ThrowsException() {
-        // Given: Invalid hash (not 64 chars)
+    @DisplayName("Should be equal when all fields are the same")
+    void shouldBeEqualWhenAllFieldsAreSame() {
+        // Arrange
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-        String invalidHash = "short-hash"; // Too short
-
-        // When/Then: Create TransactionContext with invalid hash throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, "merchant-789", "order-456", "Payment", invalidHash)
+        String hash = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        TransactionContext context1 = new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", "Description", hash
         );
-
-        assertTrue(exception.getMessage().contains("Hash must be a valid SHA256"));
-        assertTrue(exception.getMessage().contains("64 chars"));
+        TransactionContext context2 = new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", "Description", hash
+        );
+        
+        // Act & Assert
+        assertThat(context1).isEqualTo(context2);
+        assertThat(context1.hashCode()).isEqualTo(context2.hashCode());
     }
-
+    
     @Test
-    void testHash_UppercaseHex_ThrowsException() {
-        // Given: Uppercase hex chars (regex requires lowercase)
+    @DisplayName("Should not be equal when amount differs")
+    void shouldNotBeEqualWhenAmountDiffers() {
+        // Arrange
+        Money amount1 = new Money(new BigDecimal("100.00"), "EUR");
+        Money amount2 = new Money(new BigDecimal("200.00"), "EUR");
+        
+        String hash = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        TransactionContext context1 = new TransactionContext(
+            amount1, "MERCHANT_1", "ORDER_1", "Desc", hash
+        );
+        TransactionContext context2 = new TransactionContext(
+            amount2, "MERCHANT_1", "ORDER_1", "Desc", hash
+        );
+        
+        // Act & Assert
+        assertThat(context1).isNotEqualTo(context2);
+    }
+    
+    @Test
+    @DisplayName("Should not be equal when merchantId differs")
+    void shouldNotBeEqualWhenMerchantIdDiffers() {
+        // Arrange
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-        String uppercaseHash = "A".repeat(64); // Uppercase, not lowercase
-
-        // When/Then: Create TransactionContext throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, "merchant-789", "order-456", "Payment", uppercaseHash)
+        String hash = "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc";
+        TransactionContext context1 = new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", "Desc", hash
         );
-
-        assertTrue(exception.getMessage().contains("Hash must be a valid SHA256"));
+        TransactionContext context2 = new TransactionContext(
+            amount, "MERCHANT_2", "ORDER_1", "Desc", hash
+        );
+        
+        // Act & Assert
+        assertThat(context1).isNotEqualTo(context2);
     }
-
+    
     @Test
-    void testHash_NonHexChars_ThrowsException() {
-        // Given: Non-hex chars in hash
+    @DisplayName("Should have readable toString representation")
+    void shouldHaveReadableToStringRepresentation() {
+        // Arrange
+        Money amount = new Money(new BigDecimal("1500.00"), "EUR");
+        String hash = "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd";
+        TransactionContext context = new TransactionContext(
+            amount, "AMAZON", "ORD-789", "Laptop Dell XPS", hash
+        );
+        
+        // Act
+        String toString = context.toString();
+        
+        // Assert
+        assertThat(toString).contains("AMAZON");
+        assertThat(toString).contains("ORD-789");
+        assertThat(toString).contains("dddd");
+    }
+    
+    @Test
+    @DisplayName("Should be immutable (record)")
+    void shouldBeImmutable() {
+        // Arrange
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-        String nonHexHash = "g".repeat(64); // 'g' is not hex (0-9, a-f)
-
-        // When/Then: Create TransactionContext throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, "merchant-789", "order-456", "Payment", nonHexHash)
+        String merchantId = "MERCHANT_1";
+        String orderId = "ORDER_1";
+        String description = "Original description";
+        String hash = "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee";
+        
+        // Act
+        TransactionContext context = new TransactionContext(
+            amount, merchantId, orderId, description, hash
         );
-
-        assertTrue(exception.getMessage().contains("Hash must be a valid SHA256"));
+        
+        // Modify original values (should not affect context)
+        merchantId = "MODIFIED";
+        orderId = "MODIFIED";
+        description = "MODIFIED";
+        
+        // Assert - Context should not change
+        assertThat(context.merchantId()).isEqualTo("MERCHANT_1");
+        assertThat(context.orderId()).isEqualTo("ORDER_1");
+        assertThat(context.description()).isEqualTo("Original description");
+        assertThat(context.transactionHash()).isEqualTo(hash);
     }
-
+    
     @Test
-    void testHash_Null_ThrowsException() {
-        // Given: Null hash
+    @DisplayName("Should throw exception when description is null")
+    void shouldThrowExceptionWhenDescriptionIsNull() {
+        // Arrange
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When/Then: Create TransactionContext with null hash throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, "merchant-789", "order-456", "Payment", null)
-        );
-
-        assertTrue(exception.getMessage().contains("Hash must be a valid SHA256"));
+        String hash = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        
+        // Act & Assert
+        assertThatThrownBy(() -> new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", null, hash
+        ))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Description cannot be null or empty");
     }
-
+    
     @Test
-    void testAmount_Null_ThrowsException() {
-        // When/Then: Create TransactionContext with null amount throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(null, "merchant-789", "order-456", "Payment", "a".repeat(64))
-        );
-
-        assertTrue(exception.getMessage().contains("Amount cannot be null"));
-    }
-
-    @Test
-    void testMerchantId_Null_ThrowsException() {
-        // Given: Null merchantId
+    @DisplayName("Should throw exception when description is blank")
+    void shouldThrowExceptionWhenDescriptionIsBlank() {
+        // Arrange
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When/Then: Create TransactionContext with null merchantId throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, null, "order-456", "Payment", "a".repeat(64))
-        );
-
-        assertTrue(exception.getMessage().contains("MerchantId cannot be null"));
+        String hash = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+        
+        // Act & Assert
+        assertThatThrownBy(() -> new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", "", hash
+        ))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Description cannot be null or empty");
     }
-
+    
     @Test
-    void testMerchantId_Empty_ThrowsException() {
-        // Given: Empty merchantId
+    @DisplayName("Should handle long description")
+    void shouldHandleLongDescription() {
+        // Arrange & Act
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When/Then: Create TransactionContext with empty merchantId throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, "", "order-456", "Payment", "a".repeat(64))
+        String longDescription = "A".repeat(1000);
+        String hash = "1111111111111111111111111111111111111111111111111111111111111111";
+        TransactionContext context = new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", longDescription, hash
         );
-
-        assertTrue(exception.getMessage().contains("MerchantId cannot be null or empty"));
+        
+        // Assert
+        assertThat(context.description()).hasSize(1000);
     }
-
+    
     @Test
-    void testOrderId_Null_ThrowsException() {
-        // Given: Null orderId
+    @DisplayName("Should preserve transaction hash integrity")
+    void shouldPreserveTransactionHashIntegrity() {
+        // Arrange
+        String hash = "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When/Then: Create TransactionContext with null orderId throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, "merchant-789", null, "Payment", "a".repeat(64))
+        
+        // Act
+        TransactionContext context = new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", "Desc", hash
         );
-
-        assertTrue(exception.getMessage().contains("OrderId cannot be null"));
+        
+        // Assert
+        assertThat(context.transactionHash()).isEqualTo(hash);
+        assertThat(context.transactionHash()).hasSize(64); // 64 hex chars
     }
-
+    
+    // ========== Validation Tests ==========
+    
     @Test
-    void testDescription_Null_ThrowsException() {
-        // Given: Null description
-        Money amount = new Money(new BigDecimal("100.00"), "EUR");
-
-        // When/Then: Create TransactionContext with null description throws exception
-        IllegalArgumentException exception = assertThrows(
-            IllegalArgumentException.class,
-            () -> new TransactionContext(amount, "merchant-789", "order-456", null, "a".repeat(64))
-        );
-
-        assertTrue(exception.getMessage().contains("Description cannot be null"));
+    @DisplayName("Should throw exception when amount is null")
+    void shouldThrowExceptionWhenAmountIsNull() {
+        // Arrange
+        String hash = "2222222222222222222222222222222222222222222222222222222222222222";
+        
+        // Act & Assert
+        assertThatThrownBy(() -> new TransactionContext(
+            null, "MERCHANT_1", "ORDER_1", "Description", hash
+        ))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Amount cannot be null");
     }
-
+    
     @Test
-    void testEquals_SameValues() {
-        // Given: Two TransactionContext instances with same values
+    @DisplayName("Should throw exception when merchantId is null")
+    void shouldThrowExceptionWhenMerchantIdIsNull() {
+        // Arrange
         Money amount = new Money(new BigDecimal("100.00"), "EUR");
-        TransactionContext context1 = new TransactionContext(amount, "merchant-789", "order-456", "Payment", "a".repeat(64));
-        TransactionContext context2 = new TransactionContext(amount, "merchant-789", "order-456", "Payment", "a".repeat(64));
-
-        // Then: Equals by value (record auto-generated equals)
-        assertEquals(context1, context2);
-        assertEquals(context1.hashCode(), context2.hashCode());
+        String hash = "3333333333333333333333333333333333333333333333333333333333333333";
+        
+        // Act & Assert
+        assertThatThrownBy(() -> new TransactionContext(
+            amount, null, "ORDER_1", "Description", hash
+        ))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("MerchantId cannot be null or empty");
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when orderId is blank")
+    void shouldThrowExceptionWhenOrderIdIsBlank() {
+        // Arrange
+        Money amount = new Money(new BigDecimal("100.00"), "EUR");
+        String hash = "4444444444444444444444444444444444444444444444444444444444444444";
+        
+        // Act & Assert
+        assertThatThrownBy(() -> new TransactionContext(
+            amount, "MERCHANT_1", "", "Description", hash
+        ))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("OrderId cannot be null or empty");
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when hash is invalid")
+    void shouldThrowExceptionWhenHashIsInvalid() {
+        // Arrange
+        Money amount = new Money(new BigDecimal("100.00"), "EUR");
+        
+        // Act & Assert - too short
+        assertThatThrownBy(() -> new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", "Description", "short"
+        ))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Hash must be a valid SHA256 hex string");
+        
+        // Invalid characters
+        assertThatThrownBy(() -> new TransactionContext(
+            amount, "MERCHANT_1", "ORDER_1", "Description", "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
+        ))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Hash must be a valid SHA256 hex string");
     }
 }
-

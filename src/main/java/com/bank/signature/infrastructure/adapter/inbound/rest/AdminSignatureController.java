@@ -23,8 +23,9 @@ import java.util.UUID;
 /**
  * REST controller for administrative signature operations.
  * Story 2.12: Signature Abort (Admin Action)
+ * Story 8.2: RBAC - Role-Based Access Control
  * 
- * <p><b>Security:</b> All endpoints require ADMIN role.</p>
+ * <p><b>Security:</b> ADMIN or SUPPORT role required.</p>
  * 
  * @since Story 2.12
  */
@@ -32,7 +33,7 @@ import java.util.UUID;
 @RequestMapping("/api/v1/admin/signatures")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Admin - Signatures", description = "Administrative operations on signature requests (ADMIN role required)")
+@Tag(name = "Admin - Signatures", description = "Administrative operations on signature requests (ADMIN or SUPPORT)")
 @SecurityRequirement(name = "Bearer Authentication")
 public class AdminSignatureController {
     
@@ -54,9 +55,9 @@ public class AdminSignatureController {
      * @return ResponseEntity with AbortSignatureResponseDto
      */
     @PostMapping("/{id}/abort")
-    @PreAuthorize("hasRole('ADMIN')")  // Require ADMIN role
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT')")
     @Operation(
-        summary = "Abort signature request (Admin only)",
+        summary = "Abort signature request (Admin or Support)",
         description = "Manually aborts a signature request. This action fails any active challenges " +
                       "and publishes an audit event. Only PENDING signatures can be aborted."
     )

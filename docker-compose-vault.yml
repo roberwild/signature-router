@@ -1,0 +1,87 @@
+version: '3.8'
+
+# Docker Compose for HashiCorp Vault + PostgreSQL (Story 8.5)
+# This setup enables:
+# - Vault server with PostgreSQL database secrets engine
+# - Automatic secret rotation for database credentials
+# - Pseudonymization key storage and rotation
+# - Development mode (NOT for production)
+
+services:
+  # PostgreSQL Database (stores application data)
+  postgres:
+    image: postgres:16-alpine
+    container_name: signature-router-postgres
+    environment:
+      POSTGRES_DB: signature_router_dev
+      POSTGRES_USER: signature_admin
+      POSTGRES_PASSWORD: dev_password_123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/vault/init-postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signature_admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vault-network
+
+  # HashiCorp Vault (secrets management)
+  vault:
+    image: hashicorp/vault:1.15
+    container_name: signature-router-vault
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: dev-root-token
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+      VAULT_ADDR: http://0.0.0.0:8200
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault_data:/vault/data
+      - ./scripts/vault:/vault/scripts
+    command: server -dev -dev-root-token-id=dev-root-token
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vault-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Vault Initializer (one-time setup)
+  vault-init:
+    image: hashicorp/vault:1.15
+    container_name: vault-init
+    environment:
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: dev-root-token
+    volumes:
+      - ./scripts/vault:/scripts
+    command: /bin/sh /scripts/vault-init.sh
+    networks:
+      - vault-network
+    depends_on:
+      vault:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+networks:
+  vault-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  vault_data:
+    driver: local
+

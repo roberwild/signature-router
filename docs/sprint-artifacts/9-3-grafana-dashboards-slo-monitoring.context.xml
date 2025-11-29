@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>9.3</story-id>
+    <story-key>9-3-grafana-dashboards-slo-monitoring</story-key>
+    <story-title>Grafana Dashboards &amp; SLO Monitoring</story-title>
+    <epic>Epic 9 - Observability &amp; SLO Tracking</epic>
+    <story-points>3</story-points>
+    <estimated-hours>13</estimated-hours>
+    <priority>high</priority>
+    <dependencies>
+      <dependency type="story" status="review">Story 9.2 - Prometheus Metrics Export (REQUIRED - provides metrics)</dependency>
+      <dependency type="epic" status="done">Epic 1 - Foundation &amp; Infrastructure (Prometheus/Grafana setup)</dependency>
+    </dependencies>
+  </metadata>
+
+  <user-story>
+    <role>DevOps/SRE Team &amp; Executive Management</role>
+    <goal>5 comprehensive Grafana dashboards con SLO panels + burn rate alerts</goal>
+    <benefit>Visualizar métricas en tiempo real, monitorear SLOs (≥99.9% availability, P99 &lt;300ms), detectar degradación proactivamente, y generar reports para stakeholders</benefit>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="AC1">
+      <description>5 Grafana Dashboards creados y funcionales (Executive Overview, Provider Health, Performance, Infrastructure, Business Metrics)</description>
+      <verification>Access Grafana UI http://localhost:3000 → Verify 5 dashboards in "Banking" folder</verification>
+    </criterion>
+    <criterion id="AC2">
+      <description>Executive Overview Dashboard con 6 panels (SLO Availability gauge, SLO Performance P99 gauge, Request Rate graph, Error Rate graph, Top 5 Errors table, Cost per Channel pie chart)</description>
+      <verification>All panels render without errors, data updates every 5s</verification>
+    </criterion>
+    <criterion id="AC3">
+      <description>Provider Health Dashboard con 5 panels (Provider Status, Circuit Breaker State, Provider Latency P95, Provider Error Rate, Fallback Rate)</description>
+      <verification>Multi-provider metrics displayed correctly</verification>
+    </criterion>
+    <criterion id="AC4">
+      <description>Performance Dashboard con 5 panels (P50/P95/P99 Latency, Throughput, DB Query Time P95, Provider Call Time P95, Kafka Publish Time P95)</description>
+      <verification>All percentile queries working, histogram data rendered</verification>
+    </criterion>
+    <criterion id="AC5">
+      <description>Infrastructure Dashboard con 5 panels (JVM Heap Usage, JVM GC Pauses, Database Connections, Kafka Producer Lag, CPU/Memory)</description>
+      <verification>JVM + HikariCP + Kafka metrics visible</verification>
+    </criterion>
+    <criterion id="AC6">
+      <description>Business Metrics Dashboard con 5 panels (Signatures by Channel pie, Success Rate gauge, Challenge Completion Time heatmap, Routing Rules Usage table, Cost Optimization graph)</description>
+      <verification>Business metrics from Story 9.2 displayed correctly</verification>
+    </criterion>
+    <criterion id="AC7">
+      <description>SLO Burn Rate Alerts configurados (SLOAvailabilityBurnRateCritical: error rate &gt; 0.1% for 5m, SLOPerformanceP99BurnRateCritical: P99 &gt; 300ms for 5m)</description>
+      <verification>Alerts visible in Prometheus UI http://localhost:9090/alerts</verification>
+    </criterion>
+    <criterion id="AC8">
+      <description>Dashboard Provisioning automatizado (dashboards se cargan automáticamente sin intervención manual)</description>
+      <verification>Clean Docker volume → Restart Grafana → Dashboards auto-provisioned</verification>
+    </criterion>
+    <criterion id="AC9">
+      <description>Datasource Prometheus auto-configurado (datasource "Prometheus" configurado como default apuntando a http://prometheus:9090)</description>
+      <verification>curl http://localhost:3000/api/datasources | jq → Verify Prometheus datasource exists</verification>
+    </criterion>
+    <criterion id="AC10">
+      <description>Common Tags aplicados en todos los panels (variables $environment y $region en top bar)</description>
+      <verification>Change variable → All panels update with filtered data</verification>
+    </criterion>
+    <criterion id="AC11">
+      <description>Alertas integradas con Slack (OPCIONAL - Bonus)</description>
+      <verification>Trigger alert → Verify Slack message received in #sre-alerts</verification>
+    </criterion>
+  </acceptance-criteria>
+
+  <story-tasks>
+    <task id="1" priority="critical">Setup Grafana Infrastructure (1h) - Add Grafana service to docker-compose.yml, create directory structure</task>
+    <task id="2" priority="critical">Create Dashboard Provisioning Config (30min) - dashboards.yaml + prometheus.yaml</task>
+    <task id="3" priority="high">Create Executive Overview Dashboard (2h) - 6 panels with PromQL queries</task>
+    <task id="4" priority="high">Create Provider Health Dashboard (1.5h) - 5 panels for provider monitoring</task>
+    <task id="5" priority="high">Create Performance Dashboard (1.5h) - 5 panels for latency/throughput</task>
+    <task id="6" priority="high">Create Infrastructure Dashboard (1.5h) - 5 panels for JVM/DB/Kafka</task>
+    <task id="7" priority="high">Create Business Metrics Dashboard (1.5h) - 5 panels for business KPIs</task>
+    <task id="8" priority="high">Configure SLO Burn Rate Alerts (1h) - 2 critical alerts in Prometheus</task>
+    <task id="9" priority="medium">Configure Alertmanager (OPCIONAL - 1h) - Slack integration</task>
+    <task id="10" priority="high">Integration Testing (1h) - Verify all dashboards + alerts working</task>
+    <task id="11" priority="medium">Documentation (1h) - SLO_MONITORING.md + README.md + screenshots</task>
+    <task id="12" priority="low">Code Review Prep (30min) - Validate all ACs, prepare demo</task>
+  </story-tasks>
+
+  <artifacts>
+    <documentation-artifacts>
+      <artifact id="doc-1" path="docs/sprint-artifacts/tech-spec-epic-9.md" section="Story 9.3">
+        <description>Technical specification for Grafana Dashboards - includes 5 dashboard designs, PromQL queries, provisioning strategy</description>
+        <relevance>CRITICAL - Contains dashboard panel specifications, PromQL query examples, SLO alert rules</relevance>
+      </artifact>
+      <artifact id="doc-2" path="docs/sprint-artifacts/EPIC-9-INICIO.md" section="Story 9.3">
+        <description>Epic 9 initialization document - Story 9.3 overview and SLO monitoring strategy</description>
+        <relevance>HIGH - Provides business context for dashboards and SLO targets (≥99.9%, P99 &lt;300ms)</relevance>
+      </artifact>
+      <artifact id="doc-3" path="docs/sprint-artifacts/9-2-prometheus-metrics-export.md">
+        <description>Story 9.2 documentation - Prometheus metrics that will be visualized in dashboards</description>
+        <relevance>CRITICAL - Lists all available metrics (signature_requests_created_total, challenges_sent_total, etc.) that dashboards will query</relevance>
+      </artifact>
+      <artifact id="doc-4" path="README.md" section="Observability - Prometheus Metrics">
+        <description>README section with Prometheus metrics overview and example PromQL queries</description>
+        <relevance>HIGH - Contains PromQL query examples that can be reused in dashboard panels</relevance>
+      </artifact>
+    </documentation-artifacts>
+
+    <code-artifacts>
+      <artifact id="code-1" path="docker-compose.yml" type="config">
+        <description>Docker Compose file - currently has Prometheus service, needs Grafana service added</description>
+        <relevance>CRITICAL - Must add Grafana service with volume mounts for provisioning</relevance>
+        <modification-type>MODIFY - Add Grafana service (image: grafana/grafana:10.2.0, port 3000, volumes for config/dashboards/datasources)</modification-type>
+      </artifact>
+      <artifact id="code-2" path="observability/prometheus/prometheus.yml" type="config">
+        <description>Prometheus configuration - currently scrapes /actuator/prometheus, needs alert rules file reference</description>
+        <relevance>HIGH - Must add rule_files section pointing to slo-alerts.yml</relevance>
+        <modification-type>MODIFY - Add rule_files: ['alerts/*.yml']</modification-type>
+      </artifact>
+      <artifact id="code-3" path="src/main/resources/application.yml" section="management.metrics">
+        <description>Spring Boot metrics configuration from Story 9.2 - defines available metrics</description>
+        <relevance>MEDIUM - Reference for understanding which metrics are exposed (http_server_requests, signature_requests_*, challenges_*, etc.)</relevance>
+        <modification-type>READ-ONLY - No changes needed</modification-type>
+      </artifact>
+    </code-artifacts>
+
+    <template-artifacts>
+      <artifact id="template-1" type="grafana-dashboard-json">
+        <description>Grafana Dashboard JSON Schema - Base structure for all dashboards</description>
+        <content><![CDATA[{
+  "dashboard": {
+    "title": "Dashboard Title",
+    "uid": "unique-id",
+    "tags": ["signature-router", "slo"],
+    "timezone": "browser",
+    "refresh": "5s",
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "query": "label_values(http_server_requests_seconds_count, environment)",
+          "current": { "value": "local" }
+        },
+        {
+          "name": "region",
+          "type": "query",
+          "query": "label_values(http_server_requests_seconds_count{environment=\"$environment\"}, region)",
+          "current": { "value": "local" }
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "type": "gauge|graph|table|stat|piechart|heatmap",
+        "title": "Panel Title",
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          {
+            "expr": "PromQL query here",
+            "refId": "A",
+            "legendFormat": "{{label}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit|short|ms|bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "value": 0, "color": "red" },
+                { "value": 0.995, "color": "yellow" },
+                { "value": 0.999, "color": "green" }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}]]></content>
+      </artifact>
+      <artifact id="template-2" type="provisioning-config">
+        <description>Grafana Provisioning Config YAML - Auto-load dashboards</description>
+        <content><![CDATA[# File: observability/grafana/provisioning/dashboards/dashboards.yaml
+apiVersion: 1
+providers:
+  - name: 'Signature Router'
+    orgId: 1
+    folder: 'Banking'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards]]></content>
+      </artifact>
+      <artifact id="template-3" type="datasource-config">
+        <description>Grafana Datasource Config YAML - Auto-configure Prometheus</description>
+        <content><![CDATA[# File: observability/grafana/provisioning/datasources/prometheus.yaml
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: "5s"
+      queryTimeout: "60s"
+      httpMethod: POST]]></content>
+      </artifact>
+      <artifact id="template-4" type="prometheus-alerts">
+        <description>Prometheus Alert Rules YAML - SLO burn rate alerts</description>
+        <content><![CDATA[# File: observability/prometheus/alerts/slo-alerts.yml
+groups:
+  - name: slo_alerts
+    interval: 30s
+    rules:
+      - alert: SLOAvailabilityBurnRateCritical
+        expr: |
+          (
+            1 - (
+              sum(rate(http_server_requests_seconds_count{status!~"5.."}[1h]))
+              /
+              sum(rate(http_server_requests_seconds_count[1h]))
+            )
+          ) > 0.001  # 0.1% error rate threshold
+        for: 5m
+        labels:
+          severity: critical
+          slo: availability
+        annotations:
+          summary: "SLO Availability burn rate too high"
+          description: "Error rate {{ $value | humanizePercentage }} exceeds 0.1% threshold for 5 minutes"
+      
+      - alert: SLOPerformanceP99BurnRateCritical
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le)) > 0.3
+        for: 5m
+        labels:
+          severity: critical
+          slo: performance
+        annotations:
+          summary: "SLO Performance P99 > 300ms"
+          description: "P99 latency {{ $value | humanizeDuration }} exceeds 300ms SLO for 5 minutes"]]></content>
+      </artifact>
+    </template-artifacts>
+  </artifacts>
+
+  <constraints>
+    <architectural-constraints>
+      <constraint id="arch-1">Dashboards must be provisioned via code (Infrastructure as Code) - NO manual UI configuration allowed in production</constraint>
+      <constraint id="arch-2">All dashboards must use Grafana JSON schema version compatible with Grafana 10.2.0</constraint>
+      <constraint id="arch-3">Dashboard variables ($environment, $region) must be consistent across all dashboards for multi-environment support</constraint>
+    </architectural-constraints>
+
+    <technology-constraints>
+      <constraint id="tech-1">Grafana version: 10.2.0 (Docker image: grafana/grafana:10.2.0)</constraint>
+      <constraint id="tech-2">Prometheus datasource must use service name 'prometheus:9090' (Docker Compose internal DNS)</constraint>
+      <constraint id="tech-3">PromQL queries must be compatible with Prometheus 2.x syntax</constraint>
+      <constraint id="tech-4">All metric names must match those exported by Story 9.2 (snake_case: signature_requests_created_total, NOT camelCase)</constraint>
+    </technology-constraints>
+
+    <nfr-constraints>
+      <constraint id="nfr-1">NFR-O6: Grafana dashboards para SLO tracking - 5 dashboards mínimo (Executive, Provider, Performance, Infrastructure, Business)</constraint>
+      <constraint id="nfr-2">NFR-O12: SLO burn rate alerting - 2 critical alerts mínimo (Availability ≥99.9%, Performance P99 &lt;300ms)</constraint>
+      <constraint id="nfr-3">NFR-O13: Dashboard provisioning automático - Dashboards deben cargarse sin intervención manual al iniciar Grafana</constraint>
+      <constraint id="nfr-4">NFR-A1: 99.9% availability SLO - Must be visible in Executive Overview dashboard (gauge with thresholds)</constraint>
+      <constraint id="nfr-5">NFR-P1: P99 &lt; 300ms performance SLO - Must be visible in Executive Overview dashboard (gauge with thresholds)</constraint>
+    </nfr-constraints>
+
+    <security-constraints>
+      <constraint id="sec-1">Grafana admin password must NOT be hardcoded in docker-compose.yml - Use environment variable GF_SECURITY_ADMIN_PASSWORD</constraint>
+      <constraint id="sec-2">Dashboards must NOT expose PII (customer IDs, phone numbers) - Use pseudonymized metrics only</constraint>
+      <constraint id="sec-3">Alertmanager Slack webhook URL must be stored in .env file (NOT committed to Git)</constraint>
+    </security-constraints>
+
+    <performance-constraints>
+      <constraint id="perf-1">Dashboard refresh interval: 5 seconds minimum (avoid overloading Prometheus with too frequent queries)</constraint>
+      <constraint id="perf-2">PromQL queries must use rate() with window ≥1m (avoid high-cardinality instant queries)</constraint>
+      <constraint id="perf-3">Heatmap queries must limit buckets to ≤20 to avoid rendering performance issues</constraint>
+    </performance-constraints>
+
+    <testing-constraints>
+      <constraint id="test-1">All dashboards must be tested with real traffic (NOT static test data) - Use scripts/generate-traffic.sh</constraint>
+      <constraint id="test-2">Dashboard provisioning must be tested from clean Docker volume (delete grafana-data, restart, verify auto-load)</constraint>
+      <constraint id="test-3">SLO alerts must be tested by triggering actual threshold violations (simulate high error rate or latency spike)</constraint>
+    </testing-constraints>
+
+    <compliance-constraints>
+      <constraint id="comp-1">SLO compliance must be visible to executives (Executive Overview dashboard accessible to non-technical stakeholders)</constraint>
+      <constraint id="comp-2">All alert rules must have clear annotations (summary + description) for incident postmortems</constraint>
+    </compliance-constraints>
+
+    <operational-constraints>
+      <constraint id="ops-1">Grafana data persistence: Use Docker named volume 'grafana-data' (NOT bind mount) to avoid permission issues</constraint>
+      <constraint id="ops-2">Screenshots of all dashboards must be taken and stored in docs/observability/screenshots/ for documentation</constraint>
+      <constraint id="ops-3">Dashboard JSON files must be formatted with 2-space indentation for readability (use jq or Prettier)</constraint>
+    </operational-constraints>
+  </constraints>
+
+  <interfaces>
+    <interface id="int-1" type="grafana-prometheus">
+      <source>Grafana Dashboards</source>
+      <target>Prometheus Server</target>
+      <protocol>HTTP</protocol>
+      <endpoint>http://prometheus:9090/api/v1/query</endpoint>
+      <contract>PromQL queries return JSON response with metrics data</contract>
+    </interface>
+    <interface id="int-2" type="prometheus-spring-boot">
+      <source>Prometheus Scraper</source>
+      <target>Spring Boot /actuator/prometheus</target>
+      <protocol>HTTP</protocol>
+      <endpoint>http://signature-router:8080/actuator/prometheus</endpoint>
+      <contract>Endpoint returns metrics in Prometheus text format (from Story 9.2)</contract>
+    </interface>
+    <interface id="int-3" type="prometheus-alertmanager">
+      <source>Prometheus Alert Rules</source>
+      <target>Alertmanager</target>
+      <protocol>HTTP</protocol>
+      <endpoint>http://alertmanager:9093/api/v1/alerts</endpoint>
+      <contract>Alert JSON with labels, annotations, state (firing/pending/resolved)</contract>
+    </interface>
+    <interface id="int-4" type="alertmanager-slack">
+      <source>Alertmanager</source>
+      <target>Slack Incoming Webhook</target>
+      <protocol>HTTPS</protocol>
+      <endpoint>https://hooks.slack.com/services/YOUR/WEBHOOK/URL</endpoint>
+      <contract>Slack message JSON with channel, text, attachments</contract>
+    </interface>
+  </interfaces>
+
+  <test-ideas>
+    <test id="test-1" type="integration">
+      <name>Dashboard Auto-Provisioning Test</name>
+      <description>Verify dashboards load automatically when Grafana starts from clean state</description>
+      <steps>1. Stop Grafana, 2. Delete grafana-data volume, 3. Restart Grafana, 4. Wait 15s, 5. Verify 5 dashboards exist via API</steps>
+    </test>
+    <test id="test-2" type="integration">
+      <name>Datasource Auto-Configuration Test</name>
+      <description>Verify Prometheus datasource is auto-configured as default</description>
+      <steps>1. Start Grafana, 2. Query /api/datasources, 3. Verify Prometheus datasource exists with isDefault=true</steps>
+    </test>
+    <test id="test-3" type="functional">
+      <name>SLO Availability Gauge Test</name>
+      <description>Verify Executive Overview SLO Availability gauge shows correct value and color</description>
+      <steps>1. Generate traffic with 0% errors, 2. Verify gauge shows ≥99.9% (green), 3. Generate 5xx errors, 4. Verify gauge turns yellow/red</steps>
+    </test>
+    <test id="test-4" type="functional">
+      <name>SLO Performance P99 Gauge Test</name>
+      <description>Verify Executive Overview SLO Performance P99 gauge shows correct value and color</description>
+      <steps>1. Generate fast traffic (P99 &lt;300ms), 2. Verify gauge shows &lt;300ms (green), 3. Simulate slow responses, 4. Verify gauge turns yellow/red</steps>
+    </test>
+    <test id="test-5" type="functional">
+      <name>Provider Health Circuit Breaker Test</name>
+      <description>Verify Provider Health dashboard shows circuit breaker state changes</description>
+      <steps>1. All providers healthy → Verify all CLOSED, 2. Simulate provider failures → Verify circuit OPEN, 3. Wait for timeout → Verify HALF_OPEN</steps>
+    </test>
+    <test id="test-6" type="functional">
+      <name>Performance Dashboard P99 Latency Test</name>
+      <description>Verify Performance dashboard shows accurate P50/P95/P99 latency percentiles</description>
+      <steps>1. Generate traffic with varying latencies, 2. Verify 3 series rendered correctly, 3. Verify P99 &gt; P95 &gt; P50 mathematically</steps>
+    </test>
+    <test id="test-7" type="functional">
+      <name>Infrastructure JVM Heap Usage Test</name>
+      <description>Verify Infrastructure dashboard shows JVM heap usage growing/shrinking</description>
+      <steps>1. Start app (low heap), 2. Generate heavy traffic (heap grows), 3. Wait for GC (heap drops), 4. Verify graph reflects changes</steps>
+    </test>
+    <test id="test-8" type="functional">
+      <name>Business Metrics Channel Distribution Test</name>
+      <description>Verify Business Metrics dashboard pie chart shows correct channel distribution</description>
+      <steps>1. Create 60 SMS + 30 PUSH + 10 VOICE requests, 2. Verify pie chart shows 60%/30%/10% segments</steps>
+    </test>
+    <test id="test-9" type="integration">
+      <name>SLO Availability Alert Firing Test</name>
+      <description>Verify SLOAvailabilityBurnRateCritical alert fires when error rate exceeds threshold</description>
+      <steps>1. Generate 50 5xx errors, 2. Wait 5 minutes, 3. Query Prometheus /api/v1/alerts, 4. Verify alert in 'firing' state</steps>
+    </test>
+    <test id="test-10" type="integration">
+      <name>SLO Performance Alert Firing Test</name>
+      <description>Verify SLOPerformanceP99BurnRateCritical alert fires when P99 exceeds 300ms</description>
+      <steps>1. Simulate slow responses (sleep 500ms), 2. Wait 5 minutes, 3. Verify alert firing</steps>
+    </test>
+    <test id="test-11" type="functional">
+      <name>Dashboard Variables Filtering Test</name>
+      <description>Verify $environment and $region variables filter all panels correctly</description>
+      <steps>1. Select environment='prod', 2. Verify all panels filter to prod metrics, 3. Change to 'uat', 4. Verify panels update</steps>
+    </test>
+    <test id="test-12" type="e2e">
+      <name>Alertmanager Slack Integration Test (OPCIONAL)</name>
+      <description>Verify alert notifications are sent to Slack channel</description>
+      <steps>1. Configure Slack webhook, 2. Trigger SLO alert, 3. Verify message received in #sre-alerts channel</steps>
+    </test>
+  </test-ideas>
+
+  <implementation-notes>
+    <note priority="CRITICAL">
+      Dashboard JSON files are LARGE (400-500 lines each). Use Grafana UI to design dashboards visually, then export JSON and save to files. DO NOT write JSON from scratch.
+    </note>
+    <note priority="CRITICAL">
+      PromQL queries must exactly match metric names from Story 9.2: signature_requests_created_total (NOT signatureRequestsCreatedTotal). Use snake_case consistently.
+    </note>
+    <note priority="HIGH">
+      Test dashboard provisioning from clean state BEFORE marking story done. Common issue: dashboards load in UI but not via provisioning.
+    </note>
+    <note priority="HIGH">
+      Grafana dashboard UIDs must be unique and stable. DO NOT use auto-generated UIDs. Use descriptive UIDs like "executive-overview", "provider-health".
+    </note>
+    <note priority="MEDIUM">
+      Panel gridPos coordinates: x (0-24), y (incremental), w (width in grid units), h (height in grid units). Use 12-column grid layout.
+    </note>
+    <note priority="MEDIUM">
+      For heatmap panels, use rate() queries with bucket aggregation: sum(rate(metric_bucket[5m])) by (le)
+    </note>
+    <note priority="MEDIUM">
+      Alertmanager Slack integration is OPTIONAL for MVP. Can use email notifications as fallback if Slack webhook unavailable.
+    </note>
+    <note priority="LOW">
+      Take screenshots in "light theme" for better visibility in documentation. Use Grafana kiosk mode for clean screenshots (hide UI chrome).
+    </note>
+  </implementation-notes>
+
+  <definition-of-done>
+    <item category="code-quality">5 dashboard JSON files created and valid Grafana schema</item>
+    <item category="code-quality">Dashboard provisioning config created (dashboards.yaml, prometheus.yaml)</item>
+    <item category="code-quality">SLO alert rules created (slo-alerts.yml)</item>
+    <item category="code-quality">No JSON syntax errors (validate with jq)</item>
+    <item category="code-quality">All PromQL queries tested in Prometheus UI</item>
+    <item category="testing">Manual test: All 5 dashboards render without errors</item>
+    <item category="testing">Manual test: All panels show data (after traffic generation)</item>
+    <item category="testing">Manual test: Dashboard provisioning works from clean slate</item>
+    <item category="testing">Manual test: SLO alerts fire when thresholds exceeded</item>
+    <item category="testing">(OPCIONAL) Automated Grafana API tests pass</item>
+    <item category="documentation">SLO_MONITORING.md created with dashboard explanations</item>
+    <item category="documentation">README.md updated with Grafana section</item>
+    <item category="documentation">CHANGELOG.md updated with Story 9.3 entry</item>
+    <item category="documentation">Screenshots taken for all 5 dashboards</item>
+    <item category="documentation">PromQL queries documented with comments</item>
+    <item category="multi-environment">Dashboard variables support $environment and $region filtering</item>
+    <item category="multi-environment">Datasource URL uses Docker Compose service name (prometheus:9090)</item>
+    <item category="multi-environment">No hardcoded values (all configurable via variables)</item>
+    <item category="integration">Grafana integrates with Prometheus datasource</item>
+    <item category="integration">Alert rules integrate with Alertmanager (if configured)</item>
+    <item category="integration">Dashboards use metrics from Story 9.2</item>
+    <item category="integration">No breaking changes to existing Prometheus config</item>
+  </definition-of-done>
+</story-context>

@@ -48,13 +48,13 @@ scrape_configs:
   #       labels:
   #         service: 'kafka'
 
-# Alerting configuration (optional)
-# alerting:
-#   alertmanagers:
-#     - static_configs:
-#         - targets: ['alertmanager:9093']
+# Alerting configuration (Story 9.5)
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
 
-# Rule files (optional)
-# rule_files:
-#   - 'alerts/*.yml'
+# Rule files for SLO alerting (Story 9.3)
+rule_files:
+  - 'alerts/*.yml'
 

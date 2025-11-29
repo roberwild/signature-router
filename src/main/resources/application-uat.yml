@@ -1,6 +1,14 @@
 # UAT environment profile
 
 spring:
+  # Spring Security OAuth2 Resource Server - Keycloak UAT (Story 8.1)
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak-uat.bank.com/realms/signature-router
+          jwk-set-uri: https://keycloak-uat.bank.com/realms/signature-router/protocol/openid-connect/certs
+  
   liquibase:
     contexts: uat
   

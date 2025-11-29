@@ -1,6 +1,10 @@
 # Test profile
 
 spring:
+  # Allow bean definition overriding for test mocks (Story 8.1)
+  main:
+    allow-bean-definition-overriding: true
+  
   jpa:
     hibernate:
       ddl-auto: validate  # Tests use Flyway migrations with Testcontainers
@@ -9,7 +13,7 @@ spring:
       hibernate:
         format_sql: false
 
-  # Spring Security OAuth2 - Test mode (Story 1.7)
+  # Spring Security OAuth2 - Test mode (Story 8.1)
   security:
     oauth2:
       resourceserver:
@@ -17,6 +21,7 @@ spring:
           # Test: Use mock JWT validation (no real OAuth2 server required)
           # MockMvc with @WithMockUser or jwt() will create test tokens
           issuer-uri: http://mock-issuer.test
+          jwk-set-uri: http://mock-issuer.test/jwks
 
   # Disable Vault for tests (Story 1.4)
   cloud:

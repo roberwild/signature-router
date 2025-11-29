@@ -20,11 +20,12 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Provider Health Controller.
  * Story 3.7: Provider Health Check Endpoint
+ * Story 8.2: RBAC - Role-Based Access Control
  * 
  * Admin API for checking health status of all signature providers.
  * 
  * Endpoint: GET /api/v1/admin/providers/health
- * Security: ROLE_ADMIN required
+ * Security: ADMIN, SUPPORT, or AUDITOR role required
  * 
  * Use Cases:
  * - Operations monitoring (Grafana, Datadog, custom dashboards)
@@ -36,7 +37,7 @@ import org.springframework.web.bind.annotation.*;
  * - Custom JSON format with latency, error details, timestamps
  * - Force refresh option (bypass cache)
  * - Separated from /actuator (different firewall rules)
- * - OAuth2 JWT authentication (ROLE_ADMIN)
+ * - OAuth2 JWT authentication (ADMIN, SUPPORT, AUDITOR)
  * 
  * @since Story 3.7
  */
@@ -44,7 +45,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/admin/providers")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Admin - Provider Health", description = "Provider health monitoring endpoints (ROLE_ADMIN)")
+@Tag(name = "Admin - Provider Health", description = "Provider health monitoring (ADMIN, SUPPORT, AUDITOR)")
 @SecurityRequirement(name = "bearer-jwt")
 public class ProviderHealthController {
     
@@ -74,7 +75,7 @@ public class ProviderHealthController {
      * @return AggregatedHealthResponse with overall status and provider details
      */
     @GetMapping("/health")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'AUDITOR')")
     @Operation(
         summary = "Get provider health status",
         description = """

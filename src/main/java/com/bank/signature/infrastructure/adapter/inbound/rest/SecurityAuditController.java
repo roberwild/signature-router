@@ -26,10 +26,13 @@ import java.util.stream.Collectors;
 /**
  * REST controller for security audit of routing rules.
  * Story 10.6: SpEL Security
+ * Story 8.2: RBAC - Role-Based Access Control
  * 
  * <p>Provides endpoint for auditing existing routing rules to identify
  * potentially dangerous SpEL expressions that may have been created before
  * enhanced security validation was implemented.</p>
+ * 
+ * <p><b>Access Control:</b> ADMIN or AUDITOR (read-only for AUDITOR)</p>
  * 
  * @since Story 10.6
  */
@@ -37,7 +40,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/v1/admin/security")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Security Audit", description = "Security audit endpoints for routing rules")
+@Tag(name = "Security Audit", description = "Security audit endpoints (ADMIN or AUDITOR)")
 @SecurityRequirement(name = "bearerAuth")
 public class SecurityAuditController {
     
@@ -54,7 +57,7 @@ public class SecurityAuditController {
      * @return Security audit report with list of potentially dangerous rules
      */
     @GetMapping("/audit-routing-rules")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AUDITOR')")
     @Operation(
         summary = "Audit routing rules for security issues",
         description = "Scans all routing rules and validates their SpEL expressions. " +

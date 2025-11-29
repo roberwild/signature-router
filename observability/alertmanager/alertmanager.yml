@@ -1,0 +1,137 @@
+# Alertmanager Configuration for Signature Router
+# Documentation: https://prometheus.io/docs/alerting/latest/configuration/
+
+global:
+  # Global resolve timeout - how long to wait before marking an alert as resolved
+  resolve_timeout: 5m
+  
+  # Slack configuration (using environment variable for webhook URL)
+  # Set SLACK_WEBHOOK_URL environment variable or replace with actual URL
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+# Templates for custom notification formatting
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Routing tree - defines how alerts are routed to receivers
+route:
+  # Default receiver for all alerts (Slack #sre-alerts)
+  receiver: 'slack-sre-alerts'
+  
+  # Group alerts by alertname and severity to avoid spam
+  group_by: ['alertname', 'severity']
+  
+  # Wait 10 seconds before sending first notification (to batch alerts)
+  group_wait: 10s
+  
+  # Send notification every 5 minutes for new alerts in the same group
+  group_interval: 5m
+  
+  # Resend unresolved alerts every 3 hours
+  repeat_interval: 3h
+  
+  # Child routes for specific alert routing
+  routes:
+    # Route 1: Critical alerts → PagerDuty (if configured)
+    # Uncomment when PagerDuty integration is ready
+    # - match:
+    #     severity: critical
+    #   receiver: 'pagerduty-critical'
+    #   continue: true  # Continue to next route (also send to Slack)
+    
+    # Route 2: All critical alerts → Slack (always)
+    - match:
+        severity: critical
+      receiver: 'slack-sre-alerts'
+      continue: false  # Stop processing after this route
+    
+    # Route 3: Warning alerts → Slack only
+    - match:
+        severity: warning
+      receiver: 'slack-sre-alerts'
+      continue: false
+    
+    # Route 4: Infrastructure alerts → Email (optional fallback)
+    # Uncomment when email is configured
+    # - match_re:
+    #     alertname: '(DatabaseConnectionPoolExhausted|JVMMemoryPressure|KafkaProducerLagHigh)'
+    #   receiver: 'email-fallback'
+    #   continue: true
+
+# Inhibition rules - suppress certain alerts when others are firing
+inhibit_rules:
+  # If critical alert is firing, suppress corresponding warning alert
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname']
+  
+  # If SLO availability critical is firing, suppress performance warning
+  - source_match:
+      alertname: 'SignatureRouterAvailabilityBurnRateCritical'
+    target_match:
+      alertname: 'SignatureRouterPerformanceP99BurnRateWarning'
+
+# Receivers - define notification channels
+receivers:
+  # Slack receiver for #sre-alerts channel
+  - name: 'slack-sre-alerts'
+    slack_configs:
+      - channel: '#sre-alerts'
+        send_resolved: true
+        username: 'Signature Router Alertmanager'
+        icon_emoji: ':prometheus:'
+        
+        # Title template
+        title: |-
+          {{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} {{ .CommonLabels.severity | toUpper }}: {{ .CommonLabels.alertname }}
+        
+        # Message text template
+        text: |-
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Severity:* {{ .Labels.severity }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          {{ if .Annotations.runbook_url }}*Runbook:* {{ .Annotations.runbook_url }}{{ end }}
+          *Status:* {{ .Status }}
+          {{ if eq .Status "firing" }}*Firing Since:* {{ .StartsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+          {{ if eq .Status "resolved" }}*Resolved At:* {{ .EndsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+          {{ end }}
+        
+        # Color based on severity
+        color: |-
+          {{ if eq .CommonLabels.severity "critical" }}danger{{ else if eq .CommonLabels.severity "warning" }}warning{{ else }}good{{ end }}
+  
+  # PagerDuty receiver for critical alerts (OPTIONAL - uncomment when ready)
+  # - name: 'pagerduty-critical'
+  #   pagerduty_configs:
+  #     - service_key: '${PAGERDUTY_SERVICE_KEY}'
+  #       send_resolved: true
+  #       description: '{{ .CommonAnnotations.summary }}'
+  #       details:
+  #         firing: '{{ .Alerts.Firing | len }}'
+  #         resolved: '{{ .Alerts.Resolved | len }}'
+  #         alertname: '{{ .CommonLabels.alertname }}'
+  #         severity: '{{ .CommonLabels.severity }}'
+  
+  # Email receiver for fallback notifications (OPTIONAL - uncomment when ready)
+  # - name: 'email-fallback'
+  #   email_configs:
+  #     - to: 'sre-team@example.com'
+  #       from: 'alertmanager@signature-router.com'
+  #       smarthost: 'smtp.gmail.com:587'
+  #       auth_username: '${SMTP_USERNAME}'
+  #       auth_password: '${SMTP_PASSWORD}'
+  #       headers:
+  #         Subject: '{{ .CommonAnnotations.summary }}'
+  #       html: |-
+  #         <h2>{{ .CommonAnnotations.summary }}</h2>
+  #         <p>{{ .CommonAnnotations.description }}</p>
+  #         <ul>
+  #         {{ range .Alerts }}
+  #           <li>{{ .Labels.alertname }} - {{ .Status }}</li>
+  #         {{ end }}
+  #         </ul>
+

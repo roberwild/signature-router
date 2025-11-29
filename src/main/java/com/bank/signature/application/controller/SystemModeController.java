@@ -21,19 +21,22 @@ import org.springframework.web.bind.annotation.*;
 /**
  * REST controller for system mode management.
  * Story 4.3 AC8: Admin API Override
+ * Story 8.2: RBAC - Role-Based Access Control
  * 
  * Allows administrators to:
- * - Query current system mode
- * - Manually set system to DEGRADED or MAINTENANCE mode
- * - Return system to NORMAL operation
+ * - Query current system mode (ADMIN, SUPPORT, AUDITOR can read)
+ * - Manually set system to DEGRADED or MAINTENANCE mode (ADMIN only)
+ * - Return system to NORMAL operation (ADMIN only)
  * 
- * Security: ALL endpoints require ROLE_ADMIN
+ * Security:
+ * - GET: ADMIN, SUPPORT, AUDITOR
+ * - POST: ADMIN only
  */
 @RestController
 @RequestMapping("/admin/system/mode")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Admin - System Mode", description = "System operational mode management (admin only)")
+@Tag(name = "Admin - System Mode", description = "System operational mode management")
 @SecurityRequirement(name = "Bearer Authentication")
 public class SystemModeController {
     
@@ -52,10 +55,11 @@ public class SystemModeController {
      * @return ResponseEntity with SystemModeResponse
      */
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'AUDITOR')")
     @Operation(
         summary = "Get current system mode",
         description = "Retrieves the current operational mode of the system. " +
-                      "Requires ROLE_ADMIN."
+                      "Requires ADMIN, SUPPORT, or AUDITOR role."
     )
     @ApiResponses(value = {
         @ApiResponse(
@@ -68,11 +72,10 @@ public class SystemModeController {
         ),
         @ApiResponse(
             responseCode = "403",
-            description = "Forbidden - Requires ROLE_ADMIN",
+            description = "Forbidden - Requires ADMIN, SUPPORT, or AUDITOR role",
             content = @Content(mediaType = "application/json")
         )
     })
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SystemModeResponse> getCurrentMode() {
         log.debug("Admin requested current system mode");
         
@@ -102,6 +105,7 @@ public class SystemModeController {
      * @return ResponseEntity with updated SystemModeResponse
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(
         summary = "Set system mode manually",
         description = "Manually sets the system operational mode. " +
@@ -127,7 +131,6 @@ public class SystemModeController {
             content = @Content(mediaType = "application/json")
         )
     })
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SystemModeResponse> setSystemMode(
         @Valid @RequestBody SetSystemModeRequest request
     ) {

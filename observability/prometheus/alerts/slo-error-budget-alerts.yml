@@ -1,0 +1,136 @@
+# SLO Error Budget Alert Rules for Signature Router
+# Story 9.6: SLO Compliance Reporting
+# Author: BMAD DevOps
+# Version: 1.0
+
+groups:
+  - name: signature-router-slo-error-budget
+    interval: 60s
+    rules:
+      # ========================================
+      # ALERT 1: Error Budget Low (Warning)
+      # ========================================
+      - alert: SLOErrorBudgetLow
+        expr: |
+          (
+            sum(increase(http_server_requests_seconds_count{status=~"5.."}[30d]))
+            /
+            sum(increase(http_server_requests_seconds_count[30d]))
+          ) > 0.0005
+        for: 10m
+        labels:
+          severity: warning
+          component: slo-compliance
+          team: sre
+        annotations:
+          summary: "SLO Error Budget Below 50%"
+          description: |
+            Error budget remaining is below 50% for the month.
+            Current error rate: {{ $value | humanizePercentage }}
+            Error budget consumed: >50%
+            
+            **Recommendations:**
+            - Reduce deployment frequency
+            - Increase testing rigor before releases
+            - Monitor error rates closely
+            - Consider delaying non-critical features
+          runbook_url: "https://wiki.example.com/runbooks/slo-error-budget-low"
+          dashboard_url: "http://localhost:3000/d/slo-compliance"
+
+      # ========================================
+      # ALERT 2: Error Budget Critical (Critical)
+      # ========================================
+      - alert: SLOErrorBudgetCritical
+        expr: |
+          (
+            sum(increase(http_server_requests_seconds_count{status=~"5.."}[30d]))
+            /
+            sum(increase(http_server_requests_seconds_count[30d]))
+          ) > 0.0008
+        for: 10m
+        labels:
+          severity: critical
+          component: slo-compliance
+          team: sre
+        annotations:
+          summary: "SLO Error Budget CRITICAL - Below 20%"
+          description: |
+            Error budget remaining is below 20% for the month.
+            Current error rate: {{ $value | humanizePercentage }}
+            Error budget consumed: >80%
+            
+            **IMMEDIATE ACTION REQUIRED:**
+            - ⛔ Freeze all non-critical deployments
+            - 🔍 Review and fix recent incidents (postmortems)
+            - 🚨 Escalate to Engineering Manager
+            - 📊 Focus ONLY on stability improvements
+            
+            **Error Budget Status:**
+            - Allowed: 0.1% (43 min/month downtime)
+            - Consumed: >80% of budget
+            - Remaining: <20% of budget
+          runbook_url: "https://wiki.example.com/runbooks/slo-error-budget-critical"
+          dashboard_url: "http://localhost:3000/d/slo-compliance"
+
+      # ========================================
+      # ALERT 3: Error Budget Exhausted (Critical)
+      # ========================================
+      - alert: SLOErrorBudgetExhausted
+        expr: |
+          (
+            sum(increase(http_server_requests_seconds_count{status=~"5.."}[30d]))
+            /
+            sum(increase(http_server_requests_seconds_count[30d]))
+          ) > 0.001
+        for: 5m
+        labels:
+          severity: critical
+          component: slo-compliance
+          team: sre
+        annotations:
+          summary: "SLO VIOLATED - Error Budget Exhausted"
+          description: |
+            **CRITICAL:** SLO availability target (99.9%) violated.
+            Current error rate: {{ $value | humanizePercentage }}
+            Error budget: EXHAUSTED (>100% consumed)
+            
+            **EMERGENCY ACTIONS:**
+            - ⛔ FREEZE ALL DEPLOYMENTS (critical fixes only)
+            - 🔥 Incident response: Identify and fix root cause
+            - 📞 Escalate to CTO / Engineering Leadership
+            - 📋 Schedule postmortem within 24 hours
+            - 📊 Implement preventive measures immediately
+            
+            **Business Impact:**
+            - SLA penalties may apply ($50K-$200K/incident)
+            - Customer satisfaction impacted
+            - Regulatory compliance risk
+          runbook_url: "https://wiki.example.com/runbooks/slo-violated"
+          dashboard_url: "http://localhost:3000/d/slo-compliance"
+
+      # ========================================
+      # ALERT 4: Performance SLO Violated (Warning)
+      # ========================================
+      - alert: SLOPerformanceBudgetExhausted
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[30d])) by (le)) > 0.3
+        for: 30m
+        labels:
+          severity: warning
+          component: slo-compliance
+          team: sre
+        annotations:
+          summary: "Performance SLO Violated - P99 > 300ms for 30 days"
+          description: |
+            Performance SLO target (P99 < 300ms) violated over the last 30 days.
+            Current P99 latency: {{ $value | humanizeDuration }}
+            Target: < 300ms
+            
+            **Recommended Actions:**
+            - Investigate slow endpoints
+            - Review database query performance
+            - Check provider integration latencies
+            - Optimize critical paths
+          runbook_url: "https://wiki.example.com/runbooks/slo-performance-p99"
+          dashboard_url: "http://localhost:3000/d/performance"
+

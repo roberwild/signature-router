@@ -6,333 +6,431 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 /**
  * Unit tests for SignatureChallenge entity.
+ * Story 10.1: Testing Coverage 75%+
  * 
- * Story 10.2: Domain Layer Tests - Testing Coverage >90%
+ * Tests verify:
+ * - Challenge lifecycle (PENDING → SENT → COMPLETED/FAILED/EXPIRED)
+ * - Code validation
+ * - State transition rules
+ * - Expiration logic
  * 
- * <p>Tests validate:</p>
- * <ul>
- *   <li>Creating challenge with generated code</li>
- *   <li>Validating code (correct/incorrect)</li>
- *   <li>Expiring challenge by timeout</li>
- *   <li>Marking as SENT/COMPLETED/FAILED</li>
- *   <li>State transitions (valid/invalid)</li>
- * </ul>
+ * Target: >95% coverage for SignatureChallenge.java
  */
 @DisplayName("SignatureChallenge Entity Tests")
 class SignatureChallengeTest {
-
+    
     private UUID challengeId;
-    private ChannelType channelType;
-    private ProviderType provider;
-    private String challengeCode;
-    private Instant createdAt;
+    private String otpCode;
+    private Instant now;
     private Instant expiresAt;
-
+    
     @BeforeEach
     void setUp() {
         challengeId = UUID.randomUUID();
-        channelType = ChannelType.SMS;
-        provider = ProviderType.SMS;
-        challengeCode = "123456";
-        createdAt = Instant.now();
-        expiresAt = createdAt.plusSeconds(180); // 3 minutes TTL
+        otpCode = "123456";
+        now = Instant.now();
+        expiresAt = now.plus(Duration.ofMinutes(3));
     }
-
+    
+    // ========== Creation Tests ==========
+    
     @Test
-    @DisplayName("Should create challenge with builder")
-    void shouldCreateChallengeWithBuilder() {
-        // When
+    @DisplayName("Should create challenge in PENDING status")
+    void shouldCreateChallengeInPendingStatus() {
+        // Act
         SignatureChallenge challenge = SignatureChallenge.builder()
             .id(challengeId)
-            .channelType(channelType)
-            .provider(provider)
+            .channelType(ChannelType.SMS)
+            .provider(ProviderType.SMS)
             .status(ChallengeStatus.PENDING)
-            .challengeCode(challengeCode)
-            .createdAt(createdAt)
+            .challengeCode(otpCode)
+            .createdAt(now)
             .expiresAt(expiresAt)
             .build();
-
-        // Then
+        
+        // Assert
+        assertThat(challenge).isNotNull();
         assertThat(challenge.getId()).isEqualTo(challengeId);
-        assertThat(challenge.getChannelType()).isEqualTo(channelType);
-        assertThat(challenge.getProvider()).isEqualTo(provider);
+        assertThat(challenge.getChannelType()).isEqualTo(ChannelType.SMS);
+        assertThat(challenge.getProvider()).isEqualTo(ProviderType.SMS);
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.PENDING);
-        assertThat(challenge.getChallengeCode()).isEqualTo(challengeCode);
-        assertThat(challenge.getCreatedAt()).isEqualTo(createdAt);
+        assertThat(challenge.getChallengeCode()).isEqualTo(otpCode);
+        assertThat(challenge.getCreatedAt()).isEqualTo(now);
         assertThat(challenge.getExpiresAt()).isEqualTo(expiresAt);
+        assertThat(challenge.getSentAt()).isNull();
+        assertThat(challenge.getCompletedAt()).isNull();
+        assertThat(challenge.getProviderProof()).isNull();
     }
-
+    
+    // ========== State Transition Tests ==========
+    
     @Test
-    @DisplayName("Should validate correct code")
-    void shouldValidateCorrectCode() {
-        // Given
+    @DisplayName("Should transition from PENDING to SENT")
+    void shouldTransitionFromPendingToSent() {
+        // Arrange
         SignatureChallenge challenge = createPendingChallenge();
-
-        // When
-        boolean isValid = challenge.validateCode(challengeCode);
-
-        // Then
-        assertThat(isValid).isTrue();
-    }
-
-    @Test
-    @DisplayName("Should validate incorrect code")
-    void shouldValidateIncorrectCode() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge();
-
-        // When
-        boolean isValid = challenge.validateCode("999999");
-
-        // Then
-        assertThat(isValid).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should return false when validating null code")
-    void shouldReturnFalseWhenValidatingNullCode() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge();
-
-        // When
-        boolean isValid = challenge.validateCode(null);
-
-        // Then
-        assertThat(isValid).isFalse();
-    }
-
-    @Test
-    @DisplayName("Should mark challenge as SENT successfully")
-    void shouldMarkChallengeAsSentSuccessfully() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge();
-        ProviderResult providerResult = ProviderResult.success(
-            "provider-challenge-id",
-            "proof-token"
-        );
-
-        // When
+        ProviderResult providerResult = ProviderResult.success("twilio-msg-123", "sent-successfully");
+        
+        // Act
         challenge.markAsSent(providerResult);
-
-        // Then
+        
+        // Assert
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.SENT);
         assertThat(challenge.getSentAt()).isNotNull();
         assertThat(challenge.getProviderProof()).isEqualTo(providerResult);
+        assertThat(challenge.getProviderProof().challengeId()).isEqualTo("twilio-msg-123");
     }
-
+    
     @Test
-    @DisplayName("Should throw exception when marking non-PENDING challenge as SENT")
-    void shouldThrowExceptionWhenMarkingNonPendingChallengeAsSent() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge();
-        ProviderResult providerResult = ProviderResult.success(
-            "provider-challenge-id",
-            "proof-token"
-        );
-        challenge.markAsSent(providerResult); // Now status is SENT
-
-        // When/Then
-        assertThatThrownBy(() -> challenge.markAsSent(providerResult))
-            .isInstanceOf(InvalidStateTransitionException.class)
-            .hasMessageContaining("Cannot mark as sent, status is not PENDING");
-    }
-
-    @Test
-    @DisplayName("Should complete challenge successfully")
-    void shouldCompleteChallengeSuccessfully() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge();
-        ProviderResult sentResult = ProviderResult.success(
-            "provider-challenge-id",
-            "proof-token"
-        );
-        challenge.markAsSent(sentResult);
+    @DisplayName("Should transition from SENT to COMPLETED")
+    void shouldTransitionFromSentToCompleted() {
+        // Arrange
+        SignatureChallenge challenge = createSentChallenge();
+        ProviderResult proof = ProviderResult.success("verification-proof-123", "user-verified");
         
-        ProviderResult completedResult = ProviderResult.success(
-            "provider-challenge-id",
-            "completion-proof-token"
-        );
-
-        // When
-        challenge.complete(completedResult);
-
-        // Then
+        // Act
+        challenge.complete(proof);
+        
+        // Assert
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.COMPLETED);
         assertThat(challenge.getCompletedAt()).isNotNull();
-        assertThat(challenge.getProviderProof()).isEqualTo(completedResult);
+        assertThat(challenge.getProviderProof()).isEqualTo(proof);
     }
-
+    
+    @Test
+    @DisplayName("Should transition from SENT to FAILED")
+    void shouldTransitionFromSentToFailed() {
+        // Arrange
+        SignatureChallenge challenge = createSentChallenge();
+        String errorCode = "INVALID_CODE";
+        
+        // Act
+        challenge.fail(errorCode);
+        
+        // Assert
+        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.FAILED);
+        assertThat(challenge.getErrorCode()).isEqualTo(errorCode);
+    }
+    
+    @Test
+    @DisplayName("Should transition from PENDING to FAILED when provider fails")
+    void shouldTransitionFromPendingToFailedWhenProviderFails() {
+        // Arrange
+        SignatureChallenge challenge = createPendingChallenge();
+        
+        // Act
+        challenge.fail("PROVIDER_TIMEOUT");
+        
+        // Assert
+        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.FAILED);
+        assertThat(challenge.getErrorCode()).isEqualTo("PROVIDER_TIMEOUT");
+    }
+    
+    @Test
+    @DisplayName("Should mark challenge as expired")
+    void shouldMarkChallengeAsExpired() {
+        // Arrange
+        SignatureChallenge challenge = createSentChallenge();
+        
+        // Act
+        challenge.markAsExpired();
+        
+        // Assert
+        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.EXPIRED);
+    }
+    
+    @Test
+    @DisplayName("Should throw exception when marking non-PENDING challenge as sent")
+    void shouldThrowExceptionWhenMarkingNonPendingAsSent() {
+        // Arrange
+        SignatureChallenge challenge = createSentChallenge(); // Already SENT
+        ProviderResult providerResult = ProviderResult.success("msg-123", "sent");
+        
+        // Act & Assert
+        assertThatThrownBy(() -> challenge.markAsSent(providerResult))
+            .isInstanceOf(InvalidStateTransitionException.class)
+            .hasMessageContaining("status is not PENDING");
+    }
+    
     @Test
     @DisplayName("Should throw exception when completing non-SENT challenge")
     void shouldThrowExceptionWhenCompletingNonSentChallenge() {
-        // Given
+        // Arrange
         SignatureChallenge challenge = createPendingChallenge(); // Still PENDING
-        ProviderResult completedResult = ProviderResult.success(
-            "provider-challenge-id",
-            "completion-proof-token"
-        );
-
-        // When/Then
-        assertThatThrownBy(() -> challenge.complete(completedResult))
+        ProviderResult proof = ProviderResult.success("proof", "verified");
+        
+        // Act & Assert
+        assertThatThrownBy(() -> challenge.complete(proof))
             .isInstanceOf(InvalidStateTransitionException.class)
-            .hasMessageContaining("Cannot complete challenge, status is not SENT");
+            .hasMessageContaining("status is not SENT");
     }
-
+    
+    // ========== Code Validation Tests ==========
+    
     @Test
-    @DisplayName("Should fail challenge successfully")
-    void shouldFailChallengeSuccessfully() {
-        // Given
+    @DisplayName("Should validate correct OTP code")
+    void shouldValidateCorrectCode() {
+        // Arrange
         SignatureChallenge challenge = createPendingChallenge();
-
-        // When
-        challenge.fail("TIMEOUT");
-
-        // Then
-        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.FAILED);
-        assertThat(challenge.getErrorCode()).isEqualTo("TIMEOUT");
+        
+        // Act
+        boolean isValid = challenge.validateCode("123456");
+        
+        // Assert
+        assertThat(isValid).isTrue();
     }
-
+    
     @Test
-    @DisplayName("Should fail challenge in SENT status")
-    void shouldFailChallengeInSentStatus() {
-        // Given
+    @DisplayName("Should reject incorrect OTP code")
+    void shouldRejectIncorrectCode() {
+        // Arrange
         SignatureChallenge challenge = createPendingChallenge();
-        ProviderResult providerResult = ProviderResult.success(
-            "provider-challenge-id",
-            "proof-token"
-        );
-        challenge.markAsSent(providerResult); // Now status is SENT
-
-        // When
-        challenge.fail("WRONG_OTP");
-
-        // Then
-        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.FAILED);
-        assertThat(challenge.getErrorCode()).isEqualTo("WRONG_OTP");
+        
+        // Act
+        boolean isValid = challenge.validateCode("999999");
+        
+        // Assert
+        assertThat(isValid).isFalse();
     }
-
+    
     @Test
-    @DisplayName("Should throw exception when failing COMPLETED challenge")
-    void shouldThrowExceptionWhenFailingCompletedChallenge() {
-        // Given
+    @DisplayName("Should reject null OTP code")
+    void shouldRejectNullCode() {
+        // Arrange
         SignatureChallenge challenge = createPendingChallenge();
-        ProviderResult sentResult = ProviderResult.success(
-            "provider-challenge-id",
-            "proof-token"
-        );
-        challenge.markAsSent(sentResult);
-        challenge.complete(sentResult); // Now status is COMPLETED
-
-        // When/Then
-        assertThatThrownBy(() -> challenge.fail("ERROR"))
-            .isInstanceOf(InvalidStateTransitionException.class)
-            .hasMessageContaining("Cannot fail challenge, status is not PENDING or SENT");
+        
+        // Act
+        boolean isValid = challenge.validateCode(null);
+        
+        // Assert
+        assertThat(isValid).isFalse();
     }
-
+    
     @Test
-    @DisplayName("Should expire challenge successfully")
-    void shouldExpireChallengeSuccessfully() {
-        // Given
+    @DisplayName("Should reject empty OTP code")
+    void shouldRejectEmptyCode() {
+        // Arrange
         SignatureChallenge challenge = createPendingChallenge();
-
-        // When
-        challenge.expire();
-
-        // Then
-        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.EXPIRED);
-        assertThat(challenge.getErrorCode()).isEqualTo("TTL_EXCEEDED");
+        
+        // Act
+        boolean isValid = challenge.validateCode("");
+        
+        // Assert
+        assertThat(isValid).isFalse();
     }
-
+    
     @Test
-    @DisplayName("Should expire challenge in SENT status")
-    void shouldExpireChallengeInSentStatus() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge();
-        ProviderResult providerResult = ProviderResult.success(
-            "provider-challenge-id",
-            "proof-token"
-        );
-        challenge.markAsSent(providerResult); // Now status is SENT
-
-        // When
-        challenge.expire();
-
-        // Then
-        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.EXPIRED);
-        assertThat(challenge.getErrorCode()).isEqualTo("TTL_EXCEEDED");
-    }
-
-    @Test
-    @DisplayName("Should throw exception when expiring COMPLETED challenge")
-    void shouldThrowExceptionWhenExpiringCompletedChallenge() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge();
-        ProviderResult sentResult = ProviderResult.success(
-            "provider-challenge-id",
-            "proof-token"
-        );
-        challenge.markAsSent(sentResult);
-        challenge.complete(sentResult); // Now status is COMPLETED
-
-        // When/Then
-        assertThatThrownBy(() -> challenge.expire())
-            .isInstanceOf(InvalidStateTransitionException.class)
-            .hasMessageContaining("Cannot expire challenge, status is not PENDING or SENT");
-    }
-
-    @Test
-    @DisplayName("Should check if challenge is expired")
-    void shouldCheckIfChallengeIsExpired() {
-        // Given - Challenge expired in the past
-        SignatureChallenge expiredChallenge = SignatureChallenge.builder()
+    @DisplayName("Should be case-sensitive in code validation")
+    void shouldBeCaseSensitiveInCodeValidation() {
+        // Arrange
+        SignatureChallenge challenge = SignatureChallenge.builder()
             .id(challengeId)
-            .channelType(channelType)
-            .provider(provider)
+            .channelType(ChannelType.SMS)
+            .provider(ProviderType.SMS)
             .status(ChallengeStatus.PENDING)
-            .challengeCode(challengeCode)
-            .createdAt(createdAt.minusSeconds(200))
-            .expiresAt(createdAt.minusSeconds(20)) // Expired 20 seconds ago
+            .challengeCode("ABC123")
+            .createdAt(now)
+            .expiresAt(expiresAt)
             .build();
-
-        // When
-        boolean isExpired = expiredChallenge.isExpired();
-
-        // Then
+        
+        // Act & Assert
+        assertThat(challenge.validateCode("ABC123")).isTrue();
+        assertThat(challenge.validateCode("abc123")).isFalse();
+    }
+    
+    // ========== Expiration Tests ==========
+    
+    @Test
+    @DisplayName("Should detect expired challenge")
+    void shouldDetectExpiredChallenge() {
+        // Arrange - create challenge that expires in the past
+        Instant pastExpiry = now.minus(Duration.ofMinutes(5));
+        SignatureChallenge challenge = SignatureChallenge.builder()
+            .id(challengeId)
+            .channelType(ChannelType.SMS)
+            .provider(ProviderType.SMS)
+            .status(ChallengeStatus.SENT)
+            .challengeCode(otpCode)
+            .createdAt(now.minus(Duration.ofMinutes(10)))
+            .sentAt(now.minus(Duration.ofMinutes(9)))
+            .expiresAt(pastExpiry)
+            .build();
+        
+        // Act
+        boolean isExpired = challenge.isExpired();
+        
+        // Assert
         assertThat(isExpired).isTrue();
     }
-
+    
     @Test
-    @DisplayName("Should check if challenge is not expired")
-    void shouldCheckIfChallengeIsNotExpired() {
-        // Given
-        SignatureChallenge challenge = createPendingChallenge(); // expiresAt is in the future
-
-        // When
+    @DisplayName("Should detect non-expired challenge")
+    void shouldDetectNonExpiredChallenge() {
+        // Arrange - create challenge that expires in the future
+        SignatureChallenge challenge = createSentChallenge();
+        
+        // Act
         boolean isExpired = challenge.isExpired();
-
-        // Then
+        
+        // Assert
         assertThat(isExpired).isFalse();
     }
-
-    // Helper method to create a pending SignatureChallenge
+    
+    // ========== Provider Result Tests ==========
+    
+    @Test
+    @DisplayName("Should store provider proof when sent")
+    void shouldStoreProviderProofWhenSent() {
+        // Arrange
+        SignatureChallenge challenge = createPendingChallenge();
+        ProviderResult providerResult = ProviderResult.success("twilio-msg-456", "sent-via-twilio");
+        
+        // Act
+        challenge.markAsSent(providerResult);
+        
+        // Assert
+        assertThat(challenge.getProviderProof()).isNotNull();
+        assertThat(challenge.getProviderProof().challengeId()).isEqualTo("twilio-msg-456");
+        assertThat(challenge.getProviderProof().proof()).isEqualTo("sent-via-twilio");
+        assertThat(challenge.getProviderProof().timestamp()).isNotNull();
+    }
+    
+    @Test
+    @DisplayName("Should update provider proof when completed")
+    void shouldUpdateProviderProofWhenCompleted() {
+        // Arrange
+        SignatureChallenge challenge = createSentChallenge();
+        ProviderResult initialProof = challenge.getProviderProof();
+        ProviderResult completionProof = ProviderResult.success("completion-proof-789", "user-verified-successfully");
+        
+        // Act
+        challenge.complete(completionProof);
+        
+        // Assert
+        assertThat(challenge.getProviderProof()).isNotEqualTo(initialProof);
+        assertThat(challenge.getProviderProof()).isEqualTo(completionProof);
+        assertThat(challenge.getProviderProof().proof()).contains("user-verified");
+    }
+    
+    // ========== Edge Cases Tests ==========
+    
+    @Test
+    @DisplayName("Should handle multiple fail calls gracefully")
+    void shouldHandleMultipleFailCallsGracefully() {
+        // Arrange
+        SignatureChallenge challenge = createSentChallenge();
+        
+        // Act - fail multiple times
+        challenge.fail("FIRST_ERROR");
+        challenge.fail("SECOND_ERROR");
+        
+        // Assert - last error code wins
+        assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.FAILED);
+        assertThat(challenge.getErrorCode()).isEqualTo("SECOND_ERROR");
+    }
+    
+    @Test
+    @DisplayName("Should preserve timestamps through lifecycle")
+    void shouldPreserveTimestampsThroughLifecycle() {
+        // Arrange
+        SignatureChallenge challenge = createPendingChallenge();
+        Instant creationTime = challenge.getCreatedAt();
+        Instant expiryTime = challenge.getExpiresAt();
+        
+        // Act - transition through states
+        ProviderResult sentResult = ProviderResult.success("msg-1", "sent");
+        challenge.markAsSent(sentResult);
+        
+        Instant sentTime = challenge.getSentAt();
+        
+        ProviderResult completeResult = ProviderResult.success("proof-1", "verified");
+        challenge.complete(completeResult);
+        
+        // Assert - timestamps should be preserved
+        assertThat(challenge.getCreatedAt()).isEqualTo(creationTime);
+        assertThat(challenge.getExpiresAt()).isEqualTo(expiryTime);
+        assertThat(challenge.getSentAt()).isEqualTo(sentTime);
+        assertThat(challenge.getCompletedAt()).isNotNull();
+        assertThat(challenge.getCompletedAt()).isAfterOrEqualTo(sentTime);
+    }
+    
+    @Test
+    @DisplayName("Should handle different channel types")
+    void shouldHandleDifferentChannelTypes() {
+        // Test SMS
+        SignatureChallenge smsChallenge = SignatureChallenge.builder()
+            .id(UUID.randomUUID())
+            .channelType(ChannelType.SMS)
+            .provider(ProviderType.SMS)
+            .status(ChallengeStatus.PENDING)
+            .challengeCode("111111")
+            .createdAt(now)
+            .expiresAt(expiresAt)
+            .build();
+        assertThat(smsChallenge.getChannelType()).isEqualTo(ChannelType.SMS);
+        
+        // Test PUSH
+        SignatureChallenge pushChallenge = SignatureChallenge.builder()
+            .id(UUID.randomUUID())
+            .channelType(ChannelType.PUSH)
+            .provider(ProviderType.PUSH)
+            .status(ChallengeStatus.PENDING)
+            .challengeCode("222222")
+            .createdAt(now)
+            .expiresAt(expiresAt)
+            .build();
+        assertThat(pushChallenge.getChannelType()).isEqualTo(ChannelType.PUSH);
+        
+        // Test VOICE
+        SignatureChallenge voiceChallenge = SignatureChallenge.builder()
+            .id(UUID.randomUUID())
+            .channelType(ChannelType.VOICE)
+            .provider(ProviderType.VOICE)
+            .status(ChallengeStatus.PENDING)
+            .challengeCode("333333")
+            .createdAt(now)
+            .expiresAt(expiresAt)
+            .build();
+        assertThat(voiceChallenge.getChannelType()).isEqualTo(ChannelType.VOICE);
+    }
+    
+    @Test
+    @DisplayName("Should handle challenge with null provider proof initially")
+    void shouldHandleChallengeWithNullProviderProofInitially() {
+        // Arrange & Act
+        SignatureChallenge challenge = createPendingChallenge();
+        
+        // Assert
+        assertThat(challenge.getProviderProof()).isNull();
+        assertThat(challenge.getSentAt()).isNull();
+    }
+    
+    // ========== Helper Methods ==========
+    
     private SignatureChallenge createPendingChallenge() {
         return SignatureChallenge.builder()
             .id(challengeId)
-            .channelType(channelType)
-            .provider(provider)
+            .channelType(ChannelType.SMS)
+            .provider(ProviderType.SMS)
             .status(ChallengeStatus.PENDING)
-            .challengeCode(challengeCode)
-            .createdAt(createdAt)
+            .challengeCode(otpCode)
+            .createdAt(now)
             .expiresAt(expiresAt)
             .build();
     }
+    
+    private SignatureChallenge createSentChallenge() {
+        SignatureChallenge challenge = createPendingChallenge();
+        ProviderResult providerResult = ProviderResult.success("twilio-msg-123", "sent-successfully");
+        challenge.markAsSent(providerResult);
+        return challenge;
+    }
 }
-

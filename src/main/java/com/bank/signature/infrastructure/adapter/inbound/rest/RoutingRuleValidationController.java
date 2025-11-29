@@ -24,9 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * REST controller for SpEL expression validation.
  * Story 10.6: SpEL Security
+ * Story 8.2: RBAC - Role-Based Access Control
  * 
  * <p>Provides endpoint for validating SpEL expressions before creating routing rules.
- * This allows admins to test expressions in the UI before submitting them.</p>
+ * This allows admins and support users to test expressions in the UI before submitting them.</p>
+ * 
+ * <p><b>Access Control:</b> ADMIN or SUPPORT (validation is read-only, non-destructive)</p>
  * 
  * @since Story 10.6
  */
@@ -34,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/admin/routing-rules")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Routing Rule Validation", description = "SpEL expression validation endpoints")
+@Tag(name = "Routing Rule Validation", description = "SpEL expression validation (ADMIN, SUPPORT)")
 @SecurityRequirement(name = "bearerAuth")
 public class RoutingRuleValidationController {
     
@@ -50,7 +53,7 @@ public class RoutingRuleValidationController {
      * @return Validation result with isValid flag and error message if invalid
      */
     @PostMapping("/validate-spel")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT')")
     @Operation(
         summary = "Validate SpEL expression",
         description = "Validates a SpEL expression for syntax and security. " +

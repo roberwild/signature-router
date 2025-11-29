@@ -169,6 +169,18 @@
             <version>7.4</version>
         </dependency>
 
+        <!-- Micrometer Tracing - Distributed Tracing (Story 9.4, Spring Boot 3.x) -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+
+        <!-- Zipkin Reporter - Send traces to Jaeger via Zipkin endpoint (Story 9.4) -->
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+
         <!-- Testing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -324,6 +336,7 @@
             </plugin>
 
             <!-- JaCoCo Maven Plugin - Code coverage -->
+            <!-- Story 10.1: JaCoCo Enforcement - BUILD FAILS if coverage <75% -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -341,6 +354,33 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                    </execution>
+                    <!-- Story 10.1: Enforce 75%+ coverage (BCRA requirement) -->
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.75</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.70</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

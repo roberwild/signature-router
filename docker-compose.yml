@@ -186,6 +186,7 @@ services:
       - "9090:9090"
     volumes:
       - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./observability/prometheus/alerts:/etc/prometheus/alerts
       - prometheus-data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
@@ -221,6 +222,30 @@ services:
       - ./observability/grafana/dashboards:/var/lib/grafana/dashboards
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Alertmanager (Alert Routing & Notification)
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: signature-router-alertmanager
+    depends_on:
+      - prometheus
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./observability/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+      - '--cluster.advertise-address=0.0.0.0:9093'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -275,11 +300,34 @@ services:
     networks:
       - signature-router-network
 
+  # Jaeger (Distributed Tracing - Story 9.4)
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    container_name: signature-router-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "9411:9411"    # Zipkin compatible endpoint (for Spring Cloud Sleuth)
+      - "14250:14250"  # gRPC (optional, for native Jaeger clients)
+      - "6831:6831/udp"  # Jaeger agent (optional)
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411  # Enable Zipkin endpoint
+      - MEMORY_MAX_TRACES=10000  # In-memory storage limit (10k traces)
+      - QUERY_BASE_PATH=/jaeger  # Base path for UI (optional)
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - signature-router-network
+
 volumes:
   postgres-data:
   postgres-keycloak-data:
   prometheus-data:
   grafana-data:
+  alertmanager-data:
 
 networks:
   signature-router-network:

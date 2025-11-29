@@ -1,0 +1,258 @@
+# Infrastructure Alert Rules for Signature Router
+# Story 9.5: Alerting Rules - Critical & Warnings
+# Author: BMAD DevOps
+# Version: 1.0
+
+groups:
+  - name: signature-router-infrastructure-alerts
+    interval: 30s
+    rules:
+      # ========================================
+      # ALERT 1: Provider Circuit Breaker Open
+      # ========================================
+      - alert: ProviderCircuitBreakerOpen
+        expr: |
+          resilience4j_circuitbreaker_state{state="open"} == 1
+        for: 5m
+        labels:
+          severity: critical
+          component: provider-integration
+          team: devops
+        annotations:
+          summary: "Provider Circuit Breaker is OPEN"
+          description: |
+            Circuit breaker for provider {{ $labels.name }} has been OPEN for 5 minutes.
+            This indicates repeated failures when calling the external provider.
+            Current state: {{ $value }}
+            Impact: All requests to this provider are being blocked.
+          runbook_url: "https://wiki.example.com/runbooks/provider-circuit-breaker-open"
+          dashboard_url: "http://localhost:3000/d/provider-health"
+
+      # ========================================
+      # ALERT 2: High Fallback Rate (Warning)
+      # ========================================
+      - alert: HighFallbackRate
+        expr: |
+          (
+            sum(rate(routing_fallback_triggered_total[10m]))
+            /
+            sum(rate(routing_decisions_total[10m]))
+          ) > 0.10
+        for: 10m
+        labels:
+          severity: warning
+          component: routing-engine
+          team: devops
+        annotations:
+          summary: "High Fallback Rate Detected"
+          description: |
+            Routing fallback rate is above 10% for the last 10 minutes.
+            Current rate: {{ $value | humanizePercentage }}
+            This indicates primary channels are frequently unavailable.
+            Impact: User experience degraded (fallback channels may be slower).
+          runbook_url: "https://wiki.example.com/runbooks/high-fallback-rate"
+          dashboard_url: "http://localhost:3000/d/provider-health"
+
+      # ========================================
+      # ALERT 3: Database Connection Pool Exhausted
+      # ========================================
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          hikaricp_connections_pending{pool="HikariPool-1"} > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: database
+          team: devops
+        annotations:
+          summary: "Database Connection Pool Exhausted"
+          description: |
+            HikariCP connection pool has {{ $value }} pending connections for 2 minutes.
+            This indicates the database is under heavy load or connections are leaking.
+            Pool: {{ $labels.pool }}
+            Impact: Application requests are being blocked waiting for DB connections.
+          runbook_url: "https://wiki.example.com/runbooks/database-connection-pool-exhausted"
+          dashboard_url: "http://localhost:3000/d/infrastructure"
+
+      # ========================================
+      # ALERT 4: Kafka Producer Lag High (Warning)
+      # ========================================
+      - alert: KafkaProducerLagHigh
+        expr: |
+          kafka_producer_record_send_total - kafka_producer_record_send_total offset 5m > 1000
+        for: 5m
+        labels:
+          severity: warning
+          component: kafka-producer
+          team: devops
+        annotations:
+          summary: "Kafka Producer Lag is High"
+          description: |
+            Kafka producer has accumulated over 1000 messages in lag for 5 minutes.
+            Topic: {{ $labels.topic }}
+            This indicates Kafka broker is slow or network issues.
+            Impact: Event-driven workflows delayed (e.g., audit logs, notifications).
+          runbook_url: "https://wiki.example.com/runbooks/kafka-producer-lag-high"
+          dashboard_url: "http://localhost:3000/d/infrastructure"
+
+      # ========================================
+      # ALERT 5: JVM Memory Pressure (Warning)
+      # ========================================
+      - alert: JVMMemoryPressure
+        expr: |
+          (
+            jvm_memory_used_bytes{area="heap"}
+            /
+            jvm_memory_max_bytes{area="heap"}
+          ) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: jvm
+          team: devops
+        annotations:
+          summary: "JVM Heap Memory Pressure High"
+          description: |
+            JVM heap memory usage is above 85% for 5 minutes.
+            Current usage: {{ $value | humanizePercentage }}
+            This may lead to frequent garbage collection and performance degradation.
+            Impact: Application response time may increase.
+          runbook_url: "https://wiki.example.com/runbooks/jvm-memory-pressure"
+          dashboard_url: "http://localhost:3000/d/infrastructure"
+
+      # ========================================
+      # ALERT 6: High GC Pause Time (Warning)
+      # ========================================
+      - alert: HighGCPauseTime
+        expr: |
+          rate(jvm_gc_pause_seconds_sum[5m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: jvm
+          team: devops
+        annotations:
+          summary: "High Garbage Collection Pause Time"
+          description: |
+            JVM is spending more than 50% of time in garbage collection for 5 minutes.
+            GC: {{ $labels.gc }}
+            Current rate: {{ $value | humanizeDuration }}
+            Impact: Application throughput significantly reduced.
+          runbook_url: "https://wiki.example.com/runbooks/high-gc-pause-time"
+          dashboard_url: "http://localhost:3000/d/infrastructure"
+
+      # ========================================
+      # ALERT 7: Database Query Latency High (Warning)
+      # ========================================
+      - alert: DatabaseQueryLatencyHigh
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(spring_data_repository_invocations_seconds_bucket[5m])) by (le, method)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+          team: devops
+        annotations:
+          summary: "Database Query Latency is High"
+          description: |
+            P95 database query latency is above 500ms for 5 minutes.
+            Repository method: {{ $labels.method }}
+            Current P95: {{ $value | humanizeDuration }}
+            Impact: Application response time degraded.
+          runbook_url: "https://wiki.example.com/runbooks/database-query-latency-high"
+          dashboard_url: "http://localhost:3000/d/performance"
+
+      # ========================================
+      # ALERT 8: HTTP Server Error Rate High (Warning)
+      # ========================================
+      - alert: HTTPServerErrorRateHigh
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: http-server
+          team: devops
+        annotations:
+          summary: "HTTP Server Error Rate is High"
+          description: |
+            HTTP 5xx error rate is above 5% for 5 minutes.
+            Current rate: {{ $value | humanizePercentage }}
+            This indicates backend service issues.
+            Impact: User requests are failing.
+          runbook_url: "https://wiki.example.com/runbooks/http-server-error-rate-high"
+          dashboard_url: "http://localhost:3000/d/executive-overview"
+
+      # ========================================
+      # ALERT 9: Keycloak Authentication Failures (Critical)
+      # ========================================
+      - alert: KeycloakAuthenticationFailuresHigh
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{uri="/api/v1/auth/login",status=~"4.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{uri="/api/v1/auth/login"}[5m]))
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: critical
+          component: authentication
+          team: devops
+        annotations:
+          summary: "Keycloak Authentication Failures High"
+          description: |
+            Authentication failure rate is above 20% for 5 minutes.
+            Current rate: {{ $value | humanizePercentage }}
+            This may indicate Keycloak is down or misconfigured.
+            Impact: Users cannot authenticate.
+          runbook_url: "https://wiki.example.com/runbooks/keycloak-authentication-failures"
+          dashboard_url: "http://localhost:3000/d/executive-overview"
+
+      # ========================================
+      # ALERT 10: Vault Secrets Fetch Failures (Critical)
+      # ========================================
+      - alert: VaultSecretsFetchFailures
+        expr: |
+          increase(vault_secrets_fetch_errors_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          component: secrets-management
+          team: devops
+        annotations:
+          summary: "HashiCorp Vault Secrets Fetch Failures"
+          description: |
+            More than 5 failed attempts to fetch secrets from Vault in the last 5 minutes.
+            This may indicate Vault is down or credentials are invalid.
+            Impact: Application cannot access encrypted secrets (API keys, DB passwords).
+          runbook_url: "https://wiki.example.com/runbooks/vault-secrets-fetch-failures"
+          dashboard_url: "http://localhost:3000/d/infrastructure"
+
+      # ========================================
+      # ALERT 11: Kafka Consumer Lag High (Warning)
+      # ========================================
+      - alert: KafkaConsumerLagHigh
+        expr: |
+          kafka_consumer_lag_max > 1000
+        for: 10m
+        labels:
+          severity: warning
+          component: kafka-consumer
+          team: devops
+        annotations:
+          summary: "Kafka Consumer Lag is High"
+          description: |
+            Kafka consumer lag is above 1000 messages for 10 minutes.
+            Consumer group: {{ $labels.consumer_group }}
+            Topic: {{ $labels.topic }}
+            Current lag: {{ $value }}
+            Impact: Event processing delayed (e.g., signature request events).
+          runbook_url: "https://wiki.example.com/runbooks/kafka-consumer-lag-high"
+          dashboard_url: "http://localhost:3000/d/infrastructure"
+

@@ -26,6 +26,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -37,11 +38,14 @@ import java.util.UUID;
  * Story 2.8: Query Signature Request (GET Endpoint)
  * Story 2.11: Signature Completion (User Response)
  * Story 4.3: Degraded Mode Manager (HTTP 202 responses when degraded)
+ * Story 8.2: RBAC - Role-Based Access Control
  * 
- * Exposes endpoints for:
- * - Creating signature requests (POST)
- * - Querying signature status (GET)
- * - Completing signatures (PATCH)
+ * <p><b>Access Control:</b></p>
+ * <ul>
+ *   <li>Create Request: ADMIN, SUPPORT, USER (USER can only create for own customer_id)</li>
+ *   <li>Query Status: ADMIN, SUPPORT, USER (USER can only query own requests)</li>
+ *   <li>Complete Signature: USER (own requests only)</li>
+ * </ul>
  * 
  * Degraded Mode Behavior (Story 4.3):
  * - When system in DEGRADED mode, returns HTTP 202 Accepted
@@ -80,6 +84,7 @@ public class SignatureController {
      * @return ResponseEntity with SignatureResponseDto and Location header
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'USER')")
     @Operation(
         summary = "Create signature request",
         description = "Creates a new digital signature request for transaction authentication. " +
@@ -221,6 +226,7 @@ public class SignatureController {
      * @return ResponseEntity with SignatureRequestDetailDto
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'USER')")
     @Operation(
         summary = "Get signature request details",
         description = "Retrieves complete information about a signature request including " +
@@ -280,6 +286,7 @@ public class SignatureController {
      * @return ResponseEntity with SignatureCompletionResponseDto
      */
     @PatchMapping("/{id}/complete")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'USER')")
     @Operation(
         summary = "Complete signature request",
         description = "Validates the challenge code provided by the user and completes the signature request. " +

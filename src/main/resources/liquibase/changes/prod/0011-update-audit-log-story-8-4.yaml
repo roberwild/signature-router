@@ -1,0 +1,146 @@
+databaseChangeLog:
+  - changeSet:
+      id: "0011-update-audit-log-story-8-4"
+      author: "BMAD Dev Agent <bmad@signature-router.com>"
+      context: prod
+      comment: "Story 8.4: Update audit_log table for immutable storage with RLS policies"
+      changes:
+        # Add missing columns for Story 8.4
+        - addColumn:
+            tableName: audit_log
+            columns:
+              - column:
+                  name: event_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                  defaultValue: 'UNKNOWN'
+              - column:
+                  name: actor
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  defaultValue: 'system'
+              - column:
+                  name: actor_role
+                  type: varchar(50)
+              - column:
+                  name: user_agent
+                  type: text
+              - column:
+                  name: trace_id
+                  type: varchar(36)
+        
+        # Rename user_id to match entity naming
+        - renameColumn:
+            tableName: audit_log
+            oldColumnName: user_id
+            newColumnName: actor_old
+            columnDataType: varchar(255)
+        
+        # entity_id should be nullable (security events don't have entity_id)
+        - dropNotNullConstraint:
+            tableName: audit_log
+            columnName: entity_id
+            columnDataType: uuid
+        
+        # changes should be nullable (some events don't have changes)
+        - dropNotNullConstraint:
+            tableName: audit_log
+            columnName: changes
+            columnDataType: jsonb
+        
+        # Create indexes for Story 8.4 queries
+        - createIndex:
+            indexName: idx_audit_log_event_type
+            tableName: audit_log
+            columns:
+              - column:
+                  name: event_type
+        
+        - createIndex:
+            indexName: idx_audit_log_actor
+            tableName: audit_log
+            columns:
+              - column:
+                  name: actor
+        
+        - createIndex:
+            indexName: idx_audit_log_trace_id
+            tableName: audit_log
+            columns:
+              - column:
+                  name: trace_id
+        
+        # Enable Row-Level Security (RLS) for immutability
+        - sql:
+            sql: |
+              -- Enable RLS on audit_log table
+              ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+              
+              -- Policy: Allow INSERT for all users
+              CREATE POLICY insert_audit_log ON audit_log
+                FOR INSERT
+                TO PUBLIC
+                WITH CHECK (true);
+              
+              -- Policy: Prevent UPDATE (immutability)
+              CREATE POLICY prevent_update_audit_log ON audit_log
+                FOR UPDATE
+                TO PUBLIC
+                USING (false);
+              
+              -- Policy: Prevent DELETE (immutability)
+              CREATE POLICY prevent_delete_audit_log ON audit_log
+                FOR DELETE
+                TO PUBLIC
+                USING (false);
+              
+              -- Allow SELECT for all users (auditors need read access)
+              CREATE POLICY select_audit_log ON audit_log
+                FOR SELECT
+                TO PUBLIC
+                USING (true);
+        
+        # Update table and column comments for Story 8.4
+        - sql:
+            sql: |
+              COMMENT ON TABLE audit_log IS 'Story 8.4: Immutable audit log for SOC 2, PCI-DSS, GDPR compliance (365-day retention, RLS-protected)';
+              COMMENT ON COLUMN audit_log.event_type IS 'Audit event type (SIGNATURE_CREATED, ACCESS_DENIED, ROUTING_RULE_MODIFIED, etc.)';
+              COMMENT ON COLUMN audit_log.actor IS 'Username or service account performing the action';
+              COMMENT ON COLUMN audit_log.actor_role IS 'Role of the actor (ADMIN, USER, SUPPORT, AUDITOR)';
+              COMMENT ON COLUMN audit_log.user_agent IS 'User-Agent header for browser/client identification';
+              COMMENT ON COLUMN audit_log.trace_id IS 'Distributed tracing ID for correlation with application logs';
+      
+      rollback:
+        - sql:
+            sql: |
+              DROP POLICY IF EXISTS select_audit_log ON audit_log;
+              DROP POLICY IF EXISTS prevent_delete_audit_log ON audit_log;
+              DROP POLICY IF EXISTS prevent_update_audit_log ON audit_log;
+              DROP POLICY IF EXISTS insert_audit_log ON audit_log;
+              ALTER TABLE audit_log DISABLE ROW LEVEL SECURITY;
+        - dropIndex:
+            indexName: idx_audit_log_trace_id
+            tableName: audit_log
+        - dropIndex:
+            indexName: idx_audit_log_actor
+            tableName: audit_log
+        - dropIndex:
+            indexName: idx_audit_log_event_type
+            tableName: audit_log
+        - dropColumn:
+            tableName: audit_log
+            columnName: trace_id
+        - dropColumn:
+            tableName: audit_log
+            columnName: user_agent
+        - dropColumn:
+            tableName: audit_log
+            columnName: actor_role
+        - dropColumn:
+            tableName: audit_log
+            columnName: actor
+        - dropColumn:
+            tableName: audit_log
+            columnName: event_type

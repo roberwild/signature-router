@@ -1,0 +1,69 @@
+groups:
+  - name: slo_alerts
+    interval: 30s
+    rules:
+      # SLO: Availability ≥99.9% (error rate ≤0.1%)
+      - alert: SLOAvailabilityBurnRateCritical
+        expr: |
+          (
+            1 - (
+              sum(rate(http_server_requests_seconds_count{status!~"5.."}[1h]))
+              /
+              sum(rate(http_server_requests_seconds_count[1h]))
+            )
+          ) > 0.001
+        for: 5m
+        labels:
+          severity: critical
+          slo: availability
+          team: sre
+        annotations:
+          summary: "SLO Availability burn rate too high"
+          description: "Error rate {{ $value | humanizePercentage }} exceeds 0.1% threshold for 5 minutes. Current availability: {{ printf \"%.3f%%\" (sub 1 $value | mul 100) }}"
+          runbook: "https://wiki.example.com/runbooks/slo-availability-burn-rate"
+      
+      # SLO: Performance P99 < 300ms
+      - alert: SLOPerformanceP99BurnRateCritical
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le)) > 0.3
+        for: 5m
+        labels:
+          severity: critical
+          slo: performance
+          team: sre
+        annotations:
+          summary: "SLO Performance P99 > 300ms"
+          description: "P99 latency {{ $value | humanizeDuration }} exceeds 300ms SLO for 5 minutes"
+          runbook: "https://wiki.example.com/runbooks/slo-performance-p99"
+      
+      # Warning: Approaching SLO threshold (95% of budget consumed)
+      - alert: SLOAvailabilityBurnRateWarning
+        expr: |
+          (
+            1 - (
+              sum(rate(http_server_requests_seconds_count{status!~"5.."}[1h]))
+              /
+              sum(rate(http_server_requests_seconds_count[1h]))
+            )
+          ) > 0.0005
+        for: 10m
+        labels:
+          severity: warning
+          slo: availability
+          team: sre
+        annotations:
+          summary: "SLO Availability approaching threshold"
+          description: "Error rate {{ $value | humanizePercentage }} is approaching 0.1% SLO threshold. Current availability: {{ printf \"%.3f%%\" (sub 1 $value | mul 100) }}"
+      
+      - alert: SLOPerformanceP99BurnRateWarning
+        expr: |
+          histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket[5m])) by (le)) > 0.25
+        for: 10m
+        labels:
+          severity: warning
+          slo: performance
+          team: sre
+        annotations:
+          summary: "SLO Performance P99 approaching 300ms"
+          description: "P99 latency {{ $value | humanizeDuration }} is approaching 300ms SLO threshold (currently at 250ms warning level)"
+
