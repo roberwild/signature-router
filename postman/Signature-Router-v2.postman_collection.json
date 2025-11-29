@@ -326,6 +326,35 @@
 				},
 				{
 					"name": "Get Signature Request by ID",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    ",
+									"    if (response.activeChallenge) {",
+									"        const challenge = response.activeChallenge;",
+									"        pm.environment.set('challenge_id', challenge.id);",
+									"        ",
+									"        console.log('Challenge ID guardado:', challenge.id);",
+									"        console.log('   Channel:', challenge.channelType);",
+									"        console.log('   Status:', challenge.status);",
+									"        console.log('');",
+									"        console.log('Para completar la firma, ejecuta en PowerShell:');",
+									"        console.log('.\\\\scripts\\\\get-challenge-code.ps1');",
+									"        console.log('');",
+									"        console.log('Luego actualiza la variable challenge_code en el entorno de Postman');",
+									"    } else {",
+									"        console.log('No hay challenge activo en esta solicitud');",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "GET",
 						"header": [
@@ -339,7 +368,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "signatures", "{{signature_request_id}}"]
 						},
-						"description": "Obtiene el detalle de una solicitud por ID"
+						"description": "Obtiene el detalle de una solicitud por ID y extrae el challenge_id"
 					}
 				}
 			]

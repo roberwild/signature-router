@@ -41,10 +41,8 @@ public class IdempotencyCleanupJob {
      * 
      * <p>Runs every hour at minute 0 (e.g., 1:00, 2:00, 3:00).
      * Uses cron expression: "0 0 * * * *" (second=0, minute=0, every hour)</p>
-     * 
-     * <p>Initial delay: 5 minutes (allows system to stabilize after startup).</p>
      */
-    @Scheduled(cron = "0 0 * * * *", initialDelay = 300000) // Every hour, start after 5 minutes
+    @Scheduled(cron = "0 0 * * * *") // Every hour
     @Transactional
     public void cleanupExpiredRecords() {
         log.debug("Starting idempotency cleanup job...");

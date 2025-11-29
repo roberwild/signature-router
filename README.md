@@ -268,6 +268,26 @@ Once the application is running:
 # View coverage report at: target/site/jacoco/index.html
 ```
 
+### End-to-End Testing
+
+#### Automated PowerShell Script (Recommended)
+
+```powershell
+# Test complete signature flow automatically
+.\scripts\test-complete-flow.ps1
+```
+
+#### Get Challenge Code
+
+```powershell
+# Get latest challenge code
+.\scripts\get-challenge-code.ps1
+```
+
+#### Postman Collection
+
+See [TESTING-GUIDE.md](docs/TESTING-GUIDE.md) for complete instructions.
+
 ## 🗄️ Database Setup
 
 ### PostgreSQL 15 with LiquidBase
