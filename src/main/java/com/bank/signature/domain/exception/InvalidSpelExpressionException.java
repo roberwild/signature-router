@@ -9,7 +9,7 @@ public class InvalidSpelExpressionException extends DomainException {
     private final int errorPosition;
     
     public InvalidSpelExpressionException(String message, int errorPosition) {
-        super("INVALID_SPEL_EXPRESSION", message);
+        super(message, "INVALID_SPEL_EXPRESSION");
         this.errorPosition = errorPosition;
     }
     

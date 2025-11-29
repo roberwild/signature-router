@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="signature-router-10-4-context" version="1.0">
+  <metadata>
+    <epicId>10</epicId>
+    <storyId>10.4</storyId>
+    <storyKey>10-4-testcontainers-integration</storyKey>
+    <title>Integration Tests con Testcontainers - Testing Coverage >70%</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/10-4-testcontainers-integration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Developer</asA>
+    <iWant>Integration tests con PostgreSQL y Kafka reales (containers)</iWant>
+    <soThat>Adapters funcionen correctamente en entorno real</soThat>
+    
+    <context>
+      Esta story implementa tests de integración usando Testcontainers para validar que los adapters 
+      de infraestructura funcionan correctamente con bases de datos y sistemas reales (PostgreSQL, Kafka) 
+      sin depender de servicios externos configurados manualmente.
+      
+      Source: Evaluación de Calidad identificó que faltan tests de integración para adapters, lo cual 
+      es crítico porque los adapters son el punto de contacto con sistemas externos.
+      
+      Business Value: Valida funcionamiento real de adapters, detecta problemas de serialización, 
+      valida queries personalizados, facilita debugging, cumple con estándares bancarios de testing.
+    </context>
+
+    <tasks>
+      <task id="1" ac="AC1">
+        <title>Create SignatureRepositoryAdapterTest</title>
+        <subtasks>
+          <subtask id="1.1">Crear SignatureRepositoryAdapterTest.java en src/test/java/com/bank/signature/infrastructure/adapter/outbound/persistence/adapter/</subtask>
+          <subtask id="1.2">Configurar PostgreSQLContainer estático (postgres:15-alpine)</subtask>
+          <subtask id="1.3">Configurar @DynamicPropertySource para Spring datasource</subtask>
+          <subtask id="1.4">Test: save → findById (round-trip completo)</subtask>
+          <subtask id="1.5">Test: JSONB serialization (TransactionContext)</subtask>
+          <subtask id="1.6">Test: findByCustomerIdAndStatus query</subtask>
+          <subtask id="1.7">Test: UUIDv7 generación y ordenamiento</subtask>
+          <subtask id="1.8">Test: Relaciones con challenges (one-to-many)</subtask>
+          <subtask id="1.9">Test: Soft delete (deleted flag)</subtask>
+          <subtask id="1.10">Agregar @AfterEach cleanup (truncate tables)</subtask>
+          <subtask id="1.11">Ejecutar tests y verificar coverage >70%</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>src/test/java/com/bank/signature/infrastructure/adapter/outbound/persistence/adapter/SignatureRequestRepositoryAdapterTest.java</file>
+        </filesToCreate>
+      </task>
+      
+      <task id="2" ac="AC2">
+        <title>Complete OutboxEventPublisherAdapterTest</title>
+        <subtasks>
+          <subtask id="2.1">Revisar OutboxPatternIT.java existente</subtask>
+          <subtask id="2.2">Mejorar tests existentes si necesario</subtask>
+          <subtask id="2.3">Agregar tests adicionales si faltan</subtask>
+          <subtask id="2.4">Verificar coverage >70%</subtask>
+        </subtasks>
+        <filesToModify>
+          <file>src/test/java/com/bank/signature/infrastructure/adapter/outbound/event/OutboxPatternIT.java</file>
+        </filesToModify>
+      </task>
+      
+      <task id="3" ac="AC3">
+        <title>Create ProviderAdapterTest (WireMock)</title>
+        <subtasks>
+          <subtask id="3.1">Agregar WireMock dependency si falta</subtask>
+          <subtask id="3.2">Crear ProviderAdapterTest.java</subtask>
+          <subtask id="3.3">Configurar WireMock server</subtask>
+          <subtask id="3.4">Test: enviar SMS → API call correcto</subtask>
+          <subtask id="3.5">Test: enviar Push → API call correcto</subtask>
+          <subtask id="3.6">Test: timeout → CircuitBreaker abre</subtask>
+          <subtask id="3.7">Test: retry logic con exponential backoff</subtask>
+          <subtask id="3.8">Test: error handling (4xx, 5xx)</subtask>
+          <subtask id="3.9">Ejecutar tests y verificar coverage >70%</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>src/test/java/com/bank/signature/infrastructure/adapter/outbound/provider/ProviderAdapterTest.java</file>
+        </filesToCreate>
+      </task>
+      
+      <task id="4" ac="AC4">
+        <title>Verify Testcontainers Configuration</title>
+        <subtasks>
+          <subtask id="4.1">Verificar PostgreSQL container reuse</subtask>
+          <subtask id="4.2">Verificar cleanup automático (@AfterEach)</subtask>
+          <subtask id="4.3">Verificar tests son determinísticos</subtask>
+          <subtask id="4.4">Verificar tiempo de ejecución <30s</subtask>
+        </subtasks>
+      </task>
+      
+      <task id="5" ac="AC5">
+        <title>Verify JaCoCo Coverage</title>
+        <subtasks>
+          <subtask id="5.1">Ejecutar mvn clean test jacoco:report</subtask>
+          <subtask id="5.2">Revisar reporte en target/site/jacoco/index.html</subtask>
+          <subtask id="5.3">Verificar Infrastructure layer >70% line coverage</subtask>
+          <subtask id="5.4">Verificar SignatureRepositoryAdapter >70%, OutboxEventPublisherAdapter >70%, ProviderAdapters >70%</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">
+      <title>SignatureRepositoryAdapterTest</title>
+      <given>Testcontainers PostgreSQL 15 configurado</given>
+      <when>Ejecuto SignatureRepositoryAdapterTest.java</when>
+      <then>
+        Coverage >70% con tests para: save → findById, JSONB serialization, queries personalizados, 
+        UUIDv7 generación, relaciones con challenges, soft delete
+      </then>
+      <verification>Tests ejecutan en <30s, determinísticos</verification>
+    </criterion>
+
+    <criterion id="AC2">
+      <title>OutboxEventPublisherAdapterTest</title>
+      <given>Testcontainers PostgreSQL + Kafka configurado</given>
+      <when>Ejecuto OutboxEventPublisherAdapterTest.java</when>
+      <then>
+        Coverage >70% con tests para: publicar evento, transaction atomicity, multiple events, 
+        Avro serialization, published_at NULL
+      </then>
+      <verification>Tests ejecutan en <30s, determinísticos</verification>
+    </criterion>
+
+    <criterion id="AC3">
+      <title>ProviderAdapterTest (WireMock)</title>
+      <given>WireMock configurado para simular Twilio/FCM</given>
+      <when>Ejecuto ProviderAdapterTest.java</when>
+      <then>
+        Coverage >70% con tests para: enviar SMS/Push, timeout → CircuitBreaker, retry logic, error handling
+      </then>
+      <verification>Tests ejecutan en <30s, determinísticos</verification>
+    </criterion>
+
+    <criterion id="AC4">
+      <title>Testcontainers Configuration</title>
+      <given>Suite de tests de integración</given>
+      <when>Ejecuto tests</when>
+      <then>
+        Configuración incluye: PostgreSQL 15 container (shared static), Kafka container (si necesario), 
+        WireMock server, cleanup automático, optimización de startup
+      </then>
+      <verification>Tests son determinísticos, ejecutan en <30s</verification>
+    </criterion>
+
+    <criterion id="AC5">
+      <title>JaCoCo Coverage Report</title>
+      <given>Todos los tests ejecutados</given>
+      <when>Reviso reporte JaCoCo</when>
+      <then>
+        Infrastructure layer muestra: Line coverage >70%, Branch coverage >65%, 
+        SignatureRepositoryAdapter >70%, OutboxEventPublisherAdapter >70%, ProviderAdapters >70%
+      </then>
+      <verification>Reporte generado en target/site/jacoco/index.html</verification>
+    </criterion>
+  </acceptanceCriteria>
+
+  <codeArtifacts>
+    <artifact type="test" package="com.bank.signature.infrastructure.adapter.outbound.persistence.adapter" name="SignatureRequestRepositoryAdapterTest">
+      <description>Integration tests for SignatureRequestRepositoryAdapter using Testcontainers PostgreSQL</description>
+      <dependencies>
+        <dependency>JUnit 5</dependency>
+        <dependency>Testcontainers</dependency>
+        <dependency>PostgreSQL Testcontainers</dependency>
+        <dependency>AssertJ</dependency>
+        <dependency>com.bank.signature.infrastructure.adapter.outbound.persistence.adapter.SignatureRequestRepositoryAdapter</dependency>
+      </dependencies>
+    </artifact>
+    
+    <artifact type="test" package="com.bank.signature.infrastructure.adapter.outbound.event" name="OutboxEventPublisherAdapterTest">
+      <description>Integration tests for OutboxEventPublisherAdapter (improve existing OutboxPatternIT)</description>
+      <dependencies>
+        <dependency>JUnit 5</dependency>
+        <dependency>Testcontainers</dependency>
+        <dependency>PostgreSQL Testcontainers</dependency>
+        <dependency>AssertJ</dependency>
+      </dependencies>
+    </artifact>
+    
+    <artifact type="test" package="com.bank.signature.infrastructure.adapter.outbound.provider" name="ProviderAdapterTest">
+      <description>Integration tests for Provider adapters using WireMock</description>
+      <dependencies>
+        <dependency>JUnit 5</dependency>
+        <dependency>WireMock</dependency>
+        <dependency>AssertJ</dependency>
+      </dependencies>
+    </artifact>
+  </codeArtifacts>
+
+  <constraints>
+    <constraint>Tests DEBEN usar Testcontainers (no mocks de DB)</constraint>
+    <constraint>Tests deben ejecutar en <30s total</constraint>
+    <constraint>Tests deben ser determinísticos (sin flakiness)</constraint>
+    <constraint>Coverage mínimo: Infrastructure layer >70%</constraint>
+    <constraint>Container reuse habilitado para optimizar startup</constraint>
+    <constraint>Cleanup automático (@AfterEach truncate tables)</constraint>
+  </constraints>
+</story-context>

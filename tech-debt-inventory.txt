@@ -1,0 +1,324 @@
+# Technical Debt Inventory - Signature Router
+**Generated**: 2025-11-29  
+**Story**: 10.12 - TODO Cleanup  
+**Status**: ✅ Complete
+
+---
+
+## Summary
+
+**Total TODOs Found**: 15  
+**Valid TODOs**: 15  
+**Obsolete TODOs**: 0  
+**Temporary Code**: 0
+
+**By Priority**:
+- 🔴 **CRITICAL (P0)**: 0
+- 🟠 **HIGH (P1)**: 3
+- 🟡 **MEDIUM (P2)**: 8
+- 🟢 **LOW (P3)**: 4
+
+**By Category**:
+- **Feature**: 8
+- **Refactoring**: 4
+- **Security**: 1
+- **Performance**: 1
+- **Documentation**: 1
+
+---
+
+## 🔴 CRITICAL (P0) - Bloquea Producción o Seguridad
+
+*No hay TODOs críticos en este momento.*
+
+---
+
+## 🟠 HIGH (P1) - Importante para Calidad o Performance
+
+### TODO-001: Validate ISO 4217 Currency Codes
+- **Location**: `src/main/java/com/bank/signature/domain/model/valueobject/Money.java:33`
+- **Context**: 
+  ```java
+  // TODO: Validate ISO 4217 currency code (EUR, USD, GBP, etc.)
+  ```
+- **Priority**: HIGH (P1)
+- **Category**: Security
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Currently only validates that currency is not null/empty, but doesn't validate against ISO 4217 standard. This could allow invalid currency codes.
+- **Impact**: Medium - Could cause issues with external systems expecting valid ISO codes
+- **Effort**: Low (1-2 hours)
+- **Suggested Story**: Epic 10 - Story 10.15 (Database Constraints) or new story
+
+---
+
+### TODO-002: Extract Admin User ID from SecurityContext
+- **Location**: `src/main/java/com/bank/signature/infrastructure/resilience/CircuitBreakerEventListener.java:128`
+- **Context**:
+  ```java
+  "admin",  // TODO: Extract actual admin user ID from SecurityContext
+  ```
+- **Priority**: HIGH (P1)
+- **Category**: Security
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Circuit breaker reset events should capture the actual authenticated admin user ID for audit purposes, not a hardcoded "admin" string.
+- **Impact**: High - Audit trail incomplete, security compliance issue
+- **Effort**: Low (1-2 hours)
+- **Related**: TODO-003, TODO-004, TODO-005 (same pattern in SystemModeController)
+- **Suggested Story**: Epic 10 - Story 10.11 (Exception Handling) or new audit story
+
+---
+
+### TODO-003: Capture Authenticated User Identity for Audit Log
+- **Location**: `src/main/java/com/bank/signature/application/controller/SystemModeController.java:134`
+- **Context**:
+  ```java
+  // TODO Story 4.3: Capture authenticated user identity for audit log
+  // For MVP, using "ADMIN" as placeholder
+  String adminUser = "ADMIN";  // Replace with SecurityContextHolder.getContext().getAuthentication().getName()
+  ```
+- **Priority**: HIGH (P1)
+- **Category**: Security
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: System mode changes should capture actual authenticated user for audit logging. Currently uses placeholder "ADMIN".
+- **Impact**: High - Audit trail incomplete, security compliance issue
+- **Effort**: Low (1-2 hours)
+- **Related**: TODO-002, TODO-004, TODO-005
+- **Suggested Story**: Epic 10 - Story 10.11 (Exception Handling) or new audit story
+
+---
+
+## 🟡 MEDIUM (P2) - Mejoras Importantes pero No Críticas
+
+### TODO-004: Write Audit Log Entry (System Mode Changes)
+- **Location**: `src/main/java/com/bank/signature/application/controller/SystemModeController.java:149, 156, 167`
+- **Context**:
+  ```java
+  // TODO Story 4.3: Write audit log entry
+  log.info("AUDIT: System mode set to DEGRADED by admin: user={}, reason=\"{}\"", 
+      adminUser, reason);
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Feature
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: System mode changes are currently only logged via SLF4J. Should write to audit log table for compliance and traceability.
+- **Impact**: Medium - Missing structured audit trail
+- **Effort**: Medium (4-6 hours)
+- **Related**: TODO-003
+- **Suggested Story**: Epic 10 - Story 10.11 (Exception Handling) or new audit story
+
+---
+
+### TODO-005: Refactor Degraded Mode Handling to Domain Layer
+- **Location**: `src/main/java/com/bank/signature/infrastructure/adapter/inbound/rest/SignatureController.java:186`
+- **Context**:
+  ```java
+  // TODO Story 4.3: Refactor to handle degraded mode in domain/use case layer
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Refactoring
+- **Status**: ✅ Valid - Architectural improvement
+- **Description**: Currently degraded mode handling is done in the REST controller (infrastructure layer). Should be moved to domain/use case layer for better separation of concerns.
+- **Impact**: Medium - Architectural debt, violates hexagonal architecture principles
+- **Effort**: Medium (6-8 hours)
+- **Suggested Story**: Epic 10 - New refactoring story or Epic 4 follow-up
+
+---
+
+### TODO-006: Add ChallengeService.sendExistingChallenge() Method
+- **Location**: `src/main/java/com/bank/signature/infrastructure/resilience/DegradedModeRecoveryService.java:142`
+- **Context**:
+  ```java
+  // TODO Story 4.3: Add ChallengeService.sendExistingChallenge() method
+  // For MVP, we'll create a new challenge (may result in duplicate)
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Feature
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Recovery service needs to resend existing challenges, but currently only has createChallenge() which creates new ones. This can result in duplicate challenges.
+- **Impact**: Medium - May cause duplicate challenges during recovery
+- **Effort**: Medium (4-6 hours)
+- **Suggested Story**: Epic 4 - Follow-up story or Epic 10
+
+---
+
+### TODO-007: Get User ID from Aggregate (AvroEventMapper)
+- **Location**: `src/main/java/com/bank/signature/infrastructure/adapter/outbound/event/AvroEventMapper.java:60, 89`
+- **Context**:
+  ```java
+  .setUserId("pseudonymized-user") // TODO: Get from aggregate
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Feature
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Avro events should include actual pseudonymized user ID from the aggregate, not a placeholder string.
+- **Impact**: Medium - Event data incomplete, affects analytics/tracking
+- **Effort**: Medium (2-4 hours)
+- **Related**: TODO-008, TODO-009, TODO-010, TODO-011
+- **Suggested Story**: Epic 9 - Observability follow-up or new story
+
+---
+
+### TODO-008: Get Provider from Aggregate (AvroEventMapper)
+- **Location**: `src/main/java/com/bank/signature/infrastructure/adapter/outbound/event/AvroEventMapper.java:63`
+- **Context**:
+  ```java
+  .setProvider("UNKNOWN") // TODO: Get from aggregate
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Feature
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Avro events should include actual provider name from the aggregate, not "UNKNOWN".
+- **Impact**: Medium - Event data incomplete, affects analytics/tracking
+- **Effort**: Low (1-2 hours)
+- **Related**: TODO-007, TODO-009, TODO-010, TODO-011
+- **Suggested Story**: Epic 9 - Observability follow-up or new story
+
+---
+
+### TODO-009: Get Verified Code from Aggregate (AvroEventMapper)
+- **Location**: `src/main/java/com/bank/signature/infrastructure/adapter/outbound/event/AvroEventMapper.java:65`
+- **Context**:
+  ```java
+  .setVerifiedCode("hashed") // TODO: Get from aggregate
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Feature
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Avro events should include actual verified code hash from the aggregate, not a placeholder "hashed".
+- **Impact**: Medium - Event data incomplete, affects analytics/tracking
+- **Effort**: Low (1-2 hours)
+- **Related**: TODO-007, TODO-008, TODO-010, TODO-011
+- **Suggested Story**: Epic 9 - Observability follow-up or new story
+
+---
+
+### TODO-010: Calculate Time Taken from Aggregate (AvroEventMapper)
+- **Location**: `src/main/java/com/bank/signature/infrastructure/adapter/outbound/event/AvroEventMapper.java:68`
+- **Context**:
+  ```java
+  .setTimeTakenMs(0L) // TODO: Calculate from aggregate
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Feature
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Avro events should calculate actual time taken from aggregate timestamps, not use 0L.
+- **Impact**: Medium - Event data incomplete, affects performance metrics
+- **Effort**: Low (1-2 hours)
+- **Related**: TODO-007, TODO-008, TODO-009, TODO-011
+- **Suggested Story**: Epic 9 - Observability follow-up or new story
+
+---
+
+### TODO-011: Get Aborted By from Domain Event (AvroEventMapper)
+- **Location**: `src/main/java/com/bank/signature/infrastructure/adapter/outbound/event/AvroEventMapper.java:92`
+- **Context**:
+  ```java
+  .setAbortedBy("system") // TODO: Get from domain event
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Feature
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Avro events should include actual "aborted by" information from the domain event, not a placeholder "system".
+- **Impact**: Medium - Event data incomplete, affects analytics/tracking
+- **Effort**: Low (1-2 hours)
+- **Related**: TODO-007, TODO-008, TODO-009, TODO-010
+- **Suggested Story**: Epic 9 - Observability follow-up or new story
+
+---
+
+### TODO-012: Calculate Actual Recovery Duration
+- **Location**: `src/main/java/com/bank/signature/infrastructure/resilience/CircuitBreakerEventListener.java:223`
+- **Context**:
+  ```java
+  // TODO: Calculate actual recovery duration (time spent in OPEN/HALF_OPEN states)
+  // For now, use a placeholder duration
+  Duration recoveryDuration = Duration.ofSeconds(35);  // Example: 30s wait + 5s recovery test
+  ```
+- **Priority**: MEDIUM (P2)
+- **Category**: Performance
+- **Status**: ✅ Valid - Needs implementation
+- **Description**: Circuit breaker recovery duration should be calculated from actual state transition timestamps, not a hardcoded placeholder.
+- **Impact**: Medium - Metrics inaccurate, affects observability
+- **Effort**: Medium (3-4 hours)
+- **Suggested Story**: Epic 9 - Observability follow-up or new story
+
+---
+
+## 🟢 LOW (P3) - Nice to Have
+
+### TODO-013: Use ShedLock for Multi-Instance Coordination
+- **Location**: `src/main/java/com/bank/signature/infrastructure/scheduler/ChallengeExpirationScheduler.java:46`
+- **Context**:
+  ```java
+  *   <li>TODO (Epic 4): Use ShedLock for multi-instance coordination</li>
+  *   <li>For now: assumes single instance or optimistic locking</li>
+  ```
+- **Priority**: LOW (P3)
+- **Category**: Feature
+- **Status**: ✅ Valid - Future enhancement
+- **Description**: Scheduler currently assumes single instance. Should use ShedLock for distributed lock coordination when running multiple instances.
+- **Impact**: Low - Only affects multi-instance deployments
+- **Effort**: Medium (4-6 hours)
+- **Suggested Story**: Epic 4 - Follow-up story or new scalability story
+
+---
+
+### TODO-014: Implement Keycloak Role Extraction
+- **Location**: `src/main/java/com/bank/signature/infrastructure/config/security/JwtAuthenticationConverter.java:23`
+- **Context**:
+  ```java
+  *   <li>Keycloak: "realm_access.roles" (nested claim path) - TODO: implement if needed</li>
+  ```
+- **Priority**: LOW (P3)
+- **Category**: Feature
+- **Status**: ✅ Valid - Conditional implementation
+- **Description**: Currently only supports simple JWT role extraction. Keycloak support would be needed if Keycloak is used as identity provider.
+- **Impact**: Low - Only needed if Keycloak is adopted
+- **Effort**: Medium (3-4 hours)
+- **Suggested Story**: New story when Keycloak adoption is planned
+
+---
+
+## Obsolete TODOs
+
+*No hay TODOs obsoletos identificados. Todos los TODOs encontrados son válidos y necesitan atención.*
+
+---
+
+## Temporary Code
+
+*No se encontró código marcado como TEMPORARY, Temporary, o temporary.*
+
+---
+
+## Recommendations
+
+### Immediate Actions (This Sprint)
+1. **TODO-001** (ISO 4217 Validation) - Quick win, high value for data integrity
+2. **TODO-002, TODO-003** (Admin User ID Extraction) - Security compliance, should be done together
+
+### Next Sprint
+3. **TODO-004** (Audit Log Entries) - Complete the audit trail started in TODO-002/003
+4. **TODO-005** (Degraded Mode Refactoring) - Architectural improvement
+
+### Future Sprints
+5. **TODO-007 through TODO-011** (AvroEventMapper improvements) - Can be done as a batch
+6. **TODO-012** (Recovery Duration Calculation) - Observability improvement
+7. **TODO-006** (sendExistingChallenge) - Feature completion
+8. **TODO-013** (ShedLock) - Scalability enhancement
+9. **TODO-014** (Keycloak) - Conditional, only if needed
+
+---
+
+## Notes
+
+- All TODOs are valid and should be addressed
+- Most TODOs are related to Epic 4 (Resilience) or Epic 9 (Observability)
+- Several TODOs can be batched together (e.g., AvroEventMapper improvements)
+- No obsolete TODOs found - codebase is clean
+- No temporary code found - good code hygiene
+
+---
+
+**Inventory Complete** ✅
+

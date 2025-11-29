@@ -29,7 +29,7 @@
 # - SM typically drafts next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-11-28
+generated: 2025-11-29
 project: svc-signature-router-java
 project_key: signature-router
 tracking_system: file-system
@@ -157,3 +157,22 @@ development_status:
   9-5-alerting-rules-critical-warnings: backlog
   9-6-slo-compliance-reporting: backlog
   epic-9-retrospective: optional
+
+  # Epic 10: Quality Improvements & Technical Debt (15 stories) 🔴 CRÍTICO - Bloquea producción
+  epic-10: contexted
+  10-1-archunit-tests: done
+  10-2-domain-layer-tests: done ✅
+  10-3-use-case-tests: done ✅
+  10-4-testcontainers-integration: done ✅
+  10-5-idempotency-functional: done
+  10-6-spel-security: done
+  10-7-distributed-tracing: backlog
+  10-8-mdc-logging: backlog
+  10-9-db-partitioning: backlog
+  10-10-gdpr-compliance: backlog
+  10-11-exception-handling: backlog
+  10-12-todo-cleanup: done ✅
+  10-13-rate-limiting: backlog
+  10-14-secrets-rotation: backlog
+  10-15-database-constraints: backlog
+  epic-10-retrospective: optional

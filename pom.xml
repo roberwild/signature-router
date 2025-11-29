@@ -23,7 +23,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
-        <archunit.version>1.1.0</archunit.version>
+        <archunit.version>1.2.1</archunit.version>
         <avro.version>1.11.3</avro.version>
         <confluent.version>7.5.0</confluent.version>
         <testcontainers.version>1.19.3</testcontainers.version>

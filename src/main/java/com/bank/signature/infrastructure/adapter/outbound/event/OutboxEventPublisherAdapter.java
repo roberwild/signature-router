@@ -10,6 +10,7 @@ import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,6 +52,7 @@ import java.util.List;
  */
 @Slf4j
 @Component
+@Primary
 public class OutboxEventPublisherAdapter implements EventPublisher {
     
     private final OutboxEventRepository outboxRepository;

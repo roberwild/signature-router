@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="signature-router-10-6-context" version="1.0">
+  <metadata>
+    <epicId>10</epicId>
+    <storyId>10.6</storyId>
+    <storyKey>10-6-spel-security</storyKey>
+    <title>SpEL Security - Whitelist TypeLocator y Validación</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-29</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/10-6-spel-security.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>System Administrator</asA>
+    <iWant>Validación de reglas SpEL al crearlas</iWant>
+    <soThat>Admin comprometido no pueda ejecutar código arbitrario</soThat>
+    
+    <context>
+      Esta story implementa validación de seguridad para expresiones SpEL usadas en routing rules. 
+      Actualmente, el sistema permite cualquier expresión SpEL, lo que representa un riesgo de seguridad 
+      crítico si un administrador comprometido intenta ejecutar código arbitrario 
+      (ej: T(java.lang.Runtime).getRuntime().exec(...)).
+      
+      Source: Evaluación de Calidad identificó vulnerabilidad de SpEL injection.
+      
+      Business Value: Previene ejecución de código arbitrario (security critical), protege sistema 
+      contra administradores comprometidos, cumple con estándares bancarios de seguridad, 
+      mantiene funcionalidad de routing rules mientras previene abuso.
+    </context>
+
+    <tasks>
+      <task id="1" ac="AC1,AC2,AC3,AC4">
+        <title>Create SpelValidatorService</title>
+        <subtasks>
+          <subtask id="1.1">Crear SpelValidatorService en application/service/</subtask>
+          <subtask id="1.2">Implementar whitelist de clases permitidas</subtask>
+          <subtask id="1.3">Implementar lista de clases prohibidas</subtask>
+          <subtask id="1.4">Implementar validación de sintaxis</subtask>
+          <subtask id="1.5">Implementar detección de patrones peligrosos</subtask>
+          <subtask id="1.6">Agregar JavaDoc completo</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>src/main/java/com/bank/signature/application/service/SpelValidatorService.java</file>
+        </filesToCreate>
+      </task>
+      
+      <task id="2" ac="AC5">
+        <title>Create Domain Exception</title>
+        <subtasks>
+          <subtask id="2.1">Crear InvalidSpelExpressionException en domain/exception/</subtask>
+          <subtask id="2.2">Extender DomainException</subtask>
+          <subtask id="2.3">Agregar error code</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>src/main/java/com/bank/signature/domain/exception/InvalidSpelExpressionException.java</file>
+        </filesToCreate>
+      </task>
+      
+      <task id="3" ac="AC5">
+        <title>Integrate in CreateRoutingRuleUseCase</title>
+        <subtasks>
+          <subtask id="3.1">Modificar CreateRoutingRuleUseCaseImpl</subtask>
+          <subtask id="3.2">Agregar validación antes de persistir</subtask>
+          <subtask id="3.3">Lanzar excepción si expresión inválida</subtask>
+          <subtask id="3.4">Agregar tests</subtask>
+        </subtasks>
+        <filesToModify>
+          <file>src/main/java/com/bank/signature/application/usecase/CreateRoutingRuleUseCaseImpl.java</file>
+        </filesToModify>
+      </task>
+      
+      <task id="4" ac="AC6">
+        <title>Create Validation Endpoint</title>
+        <subtasks>
+          <subtask id="4.1">Crear RoutingRuleValidationController</subtask>
+          <subtask id="4.2">Implementar POST /validate-spel endpoint</subtask>
+          <subtask id="4.3">Crear DTOs de request/response</subtask>
+          <subtask id="4.4">Agregar tests</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>src/main/java/com/bank/signature/infrastructure/adapter/inbound/rest/RoutingRuleValidationController.java</file>
+          <file>src/main/java/com/bank/signature/application/dto/SpelValidationRequest.java</file>
+          <file>src/main/java/com/bank/signature/application/dto/SpelValidationResponse.java</file>
+        </filesToCreate>
+      </task>
+      
+      <task id="5" ac="AC7">
+        <title>Security Audit Script</title>
+        <subtasks>
+          <subtask id="5.1">Crear script/endpoint para auditar reglas existentes</subtask>
+          <subtask id="5.2">Escanear todas las reglas en BD</subtask>
+          <subtask id="5.3">Identificar reglas potencialmente peligrosas</subtask>
+          <subtask id="5.4">Generar reporte</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>src/main/java/com/bank/signature/infrastructure/adapter/inbound/rest/SecurityAuditController.java</file>
+        </filesToCreate>
+      </task>
+      
+      <task id="6" ac="AC9">
+        <title>Write Tests</title>
+        <subtasks>
+          <subtask id="6.1">Crear SpelValidatorServiceTest (unit tests)</subtask>
+          <subtask id="6.2">Test: expresiones válidas → aceptadas</subtask>
+          <subtask id="6.3">Test: expresiones peligrosas → rechazadas</subtask>
+          <subtask id="6.4">Test: syntax errors → rechazadas</subtask>
+          <subtask id="6.5">Crear CreateRoutingRuleUseCaseImplTest (integration)</subtask>
+          <subtask id="6.6">Test: validación integrada en use case</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>src/test/java/com/bank/signature/application/service/SpelValidatorServiceTest.java</file>
+        </filesToCreate>
+        <filesToModify>
+          <file>src/test/java/com/bank/signature/application/usecase/CreateRoutingRuleUseCaseImplTest.java</file>
+        </filesToModify>
+      </task>
+      
+      <task id="7" ac="AC8">
+        <title>Update Documentation</title>
+        <subtasks>
+          <subtask id="7.1">Crear/actualizar SECURITY.md</subtask>
+          <subtask id="7.2">Documentar SpEL safe practices</subtask>
+          <subtask id="7.3">Agregar ejemplos de expresiones válidas/inválidas</subtask>
+          <subtask id="7.4">Documentar whitelist de clases</subtask>
+        </subtasks>
+        <filesToCreate>
+          <file>SECURITY.md</file>
+        </filesToCreate>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">
+      <title>SpelValidatorService Created</title>
+      <given>Application layer</given>
+      <when>Reviso com.bank.signature.application.service</when>
+      <then>
+        Existe SpelValidatorService con métodos:
+        - ValidationResult validate(String spelExpression)
+        - boolean isSafe(String spelExpression)
+      </then>
+      <verification>Clase existe y compila</verification>
+    </criterion>
+
+    <criterion id="AC2">
+      <title>Whitelist TypeLocator Implemented</title>
+      <given>SpelValidatorService</given>
+      <when>Valida expresión SpEL</when>
+      <then>
+        Solo permite acceso a clases en whitelist:
+        - com.bank.signature.domain.model.valueobject.TransactionContext
+        - com.bank.signature.domain.model.valueobject.Money
+        - java.lang.Math
+        - java.time.*
+        PROHIBIDO: java.lang.Runtime, ProcessBuilder, File, ClassLoader
+      </then>
+      <verification>Test rechaza expresiones con clases prohibidas</verification>
+    </criterion>
+
+    <criterion id="AC3">
+      <title>Syntax Validation</title>
+      <given>Expresión SpEL</given>
+      <when>Sistema valida</when>
+      <then>Verifica sintaxis válida (parser no lanza ParseException)</then>
+      <verification>Test rechaza expresiones con syntax errors</verification>
+    </criterion>
+
+    <criterion id="AC4">
+      <title>Dangerous Method Calls Blocked</title>
+      <given>Expresión SpEL con métodos peligrosos</given>
+      <when>Sistema valida</when>
+      <then>
+        Rechaza expresiones como:
+        - T(java.lang.Runtime).getRuntime().exec(...)
+        - new java.io.File(...).delete()
+        - #this.getClass().forName(...)
+        - T(java.lang.System).exit(0)
+      </then>
+      <verification>Test rechaza expresiones peligrosas</verification>
+    </criterion>
+
+    <criterion id="AC5">
+      <title>Integration in CreateRoutingRuleUseCase</title>
+      <given>CreateRoutingRuleUseCase</given>
+      <when>Admin crea routing rule con SpEL expression</when>
+      <then>
+        Sistema:
+        - Valida expresión ANTES de persistir
+        - Si válida: persiste rule normalmente
+        - Si inválida: lanza InvalidSpelExpressionException con mensaje claro
+      </then>
+      <verification>Integration test pasa</verification>
+    </criterion>
+
+    <criterion id="AC6">
+      <title>Validation Endpoint Created</title>
+      <given>Admin Portal</given>
+      <when>Admin quiere validar expresión antes de crear rule</when>
+      <then>
+        Existe endpoint:
+        POST /api/v1/admin/routing-rules/validate-spel
+        Retorna ValidationResult con isValid y errorMessage
+      </then>
+      <verification>Endpoint funciona y retorna respuestas correctas</verification>
+    </criterion>
+
+    <criterion id="AC7">
+      <title>Security Audit of Existing Rules</title>
+      <given>Base de datos con routing rules existentes</given>
+      <when>Ejecuto security audit</when>
+      <then>
+        Sistema:
+        - Escanea todas las reglas en BD
+        - Identifica reglas con expresiones potencialmente peligrosas
+        - Genera reporte de seguridad
+        - Marca reglas para revisión manual
+      </then>
+      <verification>Audit script genera reporte completo</verification>
+    </criterion>
+
+    <criterion id="AC8">
+      <title>Safe Expression Examples</title>
+      <given>Documentación</given>
+      <when>Reviso SECURITY.md</when>
+      <then>
+        Incluye ejemplos de expresiones válidas:
+        - amount.value &gt; 1000
+        - merchantId == 'MERCHANT_XYZ'
+        - amount.value &gt; 500 &amp;&amp; transactionType == 'PURCHASE'
+        - T(java.lang.Math).abs(amount.value) &gt; 100
+        Y ejemplos de expresiones inválidas con explicación
+      </then>
+      <verification>SECURITY.md contiene ejemplos completos</verification>
+    </criterion>
+
+    <criterion id="AC9">
+      <title>Tests Implemented</title>
+      <given>Test suite</given>
+      <when>Ejecuto tests de SpEL security</when>
+      <then>
+        Tests cubren:
+        - Expresiones válidas → aceptadas
+        - Expresiones peligrosas → rechazadas
+        - Syntax errors → rechazadas
+        - Integration con CreateRoutingRuleUseCase
+      </then>
+      <verification>Todos los tests pasan</verification>
+    </criterion>
+  </acceptanceCriteria>
+
+  <technicalNotes>
+    <note>
+      SpelValidatorService debe usar SpelExpressionParser para validar sintaxis antes de 
+      verificar seguridad. Esto previene que expresiones mal formadas pasen la validación.
+    </note>
+    <note>
+      Whitelist debe ser extensible pero segura por defecto. Considerar configuración 
+      externa si hay necesidad de agregar clases en el futuro.
+    </note>
+    <note>
+      Security audit debe ejecutarse periódicamente (cron job) para detectar reglas 
+      peligrosas que puedan haber sido creadas antes de implementar validación.
+    </note>
+  </technicalNotes>
+
+  <dependencies>
+    <internal>
+      <prerequisite>Epic 2 completado (routing rules con SpEL)</prerequisite>
+      <prerequisite>Epic 1 completado (Spring Expression Language disponible)</prerequisite>
+    </internal>
+    <external>
+      <library>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-expression</artifactId>
+        <version>6.0.13</version>
+        <scope>compile</scope>
+        <reason>SpEL parser para validación</reason>
+      </library>
+    </external>
+  </dependencies>
+
+  <testStrategy>
+    <unitTests>
+      SpelValidatorServiceTest: Test validación de expresiones
+      Test cases: válidas, peligrosas, syntax errors
+    </unitTests>
+    <integrationTests>
+      CreateRoutingRuleUseCaseImplTest: Test integración con use case
+      Test: crear rule con expresión válida → éxito
+      Test: crear rule con expresión peligrosa → excepción
+    </integrationTests>
+    <securityTests>
+      Intentar crear rule con T(java.lang.Runtime).getRuntime().exec(...)
+      Verificar que es rechazado
+      Verificar que no se ejecuta código
+    </securityTests>
+  </testStrategy>
+
+  <risks>
+    <risk>
+      <description>Whitelist muy restrictiva puede bloquear expresiones válidas</description>
+      <mitigation>Iterar whitelist basado en reglas existentes, permitir extensión si necesario</mitigation>
+    </risk>
+    <risk>
+      <description>Validación puede ser bypassed si se modifica código</description>
+      <mitigation>ArchUnit tests validan que validación siempre se ejecuta</mitigation>
+    </risk>
+    <risk>
+      <description>Expresiones complejas pueden ser difíciles de validar</description>
+      <mitigation>Usar parser de SpEL, validar AST si necesario</mitigation>
+    </risk>
+  </risks>
+
+  <references>
+    <reference>Epic 10 Tech Spec: docs/sprint-artifacts/tech-spec-epic-10.md</reference>
+    <reference>Quality Evaluation: Evaluación_de_Calidad_del_Proyecto_Signature_Router.md</reference>
+    <reference>Spring Expression Language Documentation: https://docs.spring.io/spring-framework/reference/core/expressions.html</reference>
+    <reference>OWASP Code Injection: https://owasp.org/www-community/attacks/Code_Injection</reference>
+  </references>
+</story-context>

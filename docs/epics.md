@@ -1,9 +1,9 @@
 # Signature Router & Management System - Epic Breakdown
 
 **Author:** BMAD Product Manager  
-**Date:** 2025-11-26  
-**Version:** 1.0  
-**Context:** Created from PRD + Complete Architecture  
+**Date:** 2025-11-29  
+**Version:** 1.1  
+**Context:** Created from PRD + Complete Architecture + Quality Evaluation Report  
 
 ---
 
@@ -33,8 +33,9 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E7** | Admin Portal - Monitoring & Ops | Admins monitorean providers y visualizan routing timelines | 9 stories | FR57-FR72 |
 | **E8** | Security & Compliance | Cumplir compliance bancario (PCI-DSS, GDPR, SOC 2) | 8 stories | FR73-FR90, NFR-S1-S16 |
 | **E9** | Observability & SLO Tracking | Métricas, logs, traces para SLO ≥99.9% y P99 <300ms | 6 stories | NFR-O1-O14, NFR-P1-P10 |
+| **E10** | Quality Improvements & Technical Debt | Corregir problemas críticos identificados en evaluación de calidad | 15 stories | Quality Report 2025-11-28 |
 
-**Total**: 9 Epics, ~78 Stories
+**Total**: 10 Epics, ~93 Stories
 
 ---
 
@@ -874,6 +875,1240 @@ Sistema ahora puede:
 ---
 
 *[Documento continúa con Epic 3-9... Para mantener el documento a tamaño manejable, he detallado completamente Epic 1 (Foundation) y Epic 2 (Signature Orchestration). Los epics restantes seguirán el mismo formato detallado.]*
+
+---
+
+## Epic 10: Quality Improvements & Technical Debt 🔧
+
+**Epic Goal:** Resolver problemas críticos identificados en la evaluación de calidad (28-Nov-2025) para alcanzar production-readiness bancario
+
+**Business Value:**
+- ✅ Reducir riesgo de bugs en producción (testing coverage 14% → 75%)
+- ✅ Prevenir doble procesamiento y doble costo (idempotencia funcional)
+- ✅ Eliminar vulnerabilidades de seguridad (SpEL injection)
+- ✅ Mejorar observabilidad para troubleshooting en producción
+- ✅ Asegurar compliance GDPR y regulatorio
+
+**Source:** [Evaluación de Calidad del Proyecto - 28 Nov 2025]
+**Overall Score:** 7.5/10 → Target: 9.0/10
+**Crítico para:** Deployment a producción bancaria
+
+**Story Count:** 15 stories
+**Estimated Effort:** 12-15 sprints (6-8 semanas)
+**Priority:** 🔴 CRÍTICO - Bloquea deployment a producción
+
+---
+
+### 🔴 Fase 1: Problemas Críticos (Sprint 1-4)
+
+#### Story 10.1: Arquitectura ArchUnit - Validación Automatizada
+
+**As a** Developer  
+**I want** Tests automatizados que validen arquitectura hexagonal  
+**So that** No se violen capas arquitectónicas en futuros cambios
+
+**Acceptance Criteria:**
+
+**Given** Arquitectura hexagonal implementada  
+**When** Ejecuto `HexagonalArchitectureTest.java`  
+**Then** Valida:
+- ✅ Domain layer tiene CERO dependencias de framework (Spring, JPA, Jackson)
+- ✅ Application layer NO depende de Infrastructure
+- ✅ Flujo unidireccional: Infrastructure → Application → Domain
+- ✅ Ports están en paquetes correctos (`domain.port.inbound/outbound`)
+- ✅ Adapters implementan ports sin acoplar dominio
+
+**And** Tests fallan si se agrega dependencia prohibida (ej: `@Entity` en dominio)
+
+**And** Integrado en pipeline CI/CD (Maven build falla si arquitectura viola)
+
+**Technical Notes:**
+```java
+// src/test/java/com/bank/signature/architecture/HexagonalArchitectureTest.java
+
+@AnalyzeClasses(packages = "com.bank.signature")
+public class HexagonalArchitectureTest {
+    
+    @ArchTest
+    static final ArchRule domainLayerShouldNotDependOnInfrastructure =
+        noClasses().that().resideInAPackage("..domain..")
+            .should().dependOnClassesThat()
+            .resideInAnyPackage("..infrastructure..", "org.springframework..", "javax.persistence..");
+    
+    @ArchTest
+    static final ArchRule portsShouldBeInterfaces =
+        classes().that().resideInAPackage("..domain.port..")
+            .should().beInterfaces();
+            
+    @ArchTest
+    static final ArchRule adaptersShouldImplementPorts =
+        classes().that().resideInAPackage("..infrastructure.adapter..")
+            .should().implement(JavaClass.Predicates.resideInAPackage("..domain.port.."));
+}
+```
+
+**Definition of Done:**
+- [ ] `HexagonalArchitectureTest.java` creado con 8+ reglas ArchUnit
+- [ ] Tests pasan en codebase actual
+- [ ] Integrado en `pom.xml` (falla build si viola)
+- [ ] Documentado en README.md sección "Architecture Validation"
+
+**Estimation:** 3 SP
+
+---
+
+#### Story 10.2: Testing Coverage - Domain Layer (Aggregates & Value Objects)
+
+**As a** Developer  
+**I want** >90% coverage en capa de dominio  
+**So that** Reglas de negocio críticas estén protegidas contra regresión
+
+**Acceptance Criteria:**
+
+**Given** Aggregates: `SignatureRequest`, `Challenge`, `RoutingRule`  
+**When** Ejecuto tests unitarios  
+**Then** Coverage por clase:
+- ✅ `SignatureRequestTest.java`: 95%+ coverage
+  - Test: crear challenge, validar solo 1 activo
+  - Test: transiciones de estado (PENDING → SIGNED → COMPLETED)
+  - Test: expiración por TTL
+  - Test: abortar signature request
+  - Test: no permitir challenge duplicado
+  
+- ✅ `ChallengeTest.java`: 90%+ coverage
+  - Test: crear challenge con código generado
+  - Test: validar código correcto/incorrecto
+  - Test: expirar challenge por timeout
+  - Test: marcar como SENT/COMPLETED/FAILED
+  
+- ✅ Value Objects (TransactionContext, Money, etc.): 100% coverage
+  - Test: validación en compact constructor
+  - Test: inmutabilidad (Records)
+
+**And** JaCoCo reporta: Domain layer >90% line coverage
+
+**Technical Notes:**
+- Framework: JUnit 5 + AssertJ
+- Mocking: NO necesario (dominio puro, sin deps)
+- Pattern: Arrange-Act-Assert (AAA)
+
+**Example Test:**
+```java
+@Test
+void shouldNotAllowMultipleActiveChallenges() {
+    // Given
+    SignatureRequest request = SignatureRequest.builder()
+        .id(UUID.randomUUID())
+        .customerId("CUSTOMER_123")
+        .status(SignatureStatus.PENDING)
+        .build();
+    
+    request.createChallenge(ChannelType.SMS, ProviderType.TWILIO);
+    
+    // When/Then
+    assertThatThrownBy(() -> 
+        request.createChallenge(ChannelType.PUSH, ProviderType.FCM)
+    ).isInstanceOf(ChallengeAlreadyActiveException.class)
+     .hasMessageContaining("already active");
+}
+```
+
+**Definition of Done:**
+- [ ] 25+ tests unitarios para dominio
+- [ ] Coverage: SignatureRequest >95%, Challenge >90%
+- [ ] Tests ejecutan en <5s (sin I/O)
+- [ ] Integrado en pipeline CI
+
+**Estimation:** 5 SP
+
+---
+
+#### Story 10.3: Testing Coverage - Use Cases (Application Layer)
+
+**As a** Developer  
+**I want** Tests de use cases con mocks de ports  
+**So that** Orquestación de casos de uso esté validada
+
+**Acceptance Criteria:**
+
+**Given** Use cases críticos  
+**When** Ejecuto integration tests con mocks  
+**Then** Validar:
+
+✅ **StartSignatureUseCaseImplTest**
+- Mock: SignatureRepository, RoutingService, EventPublisher
+- Test: happy path (crear signature → evaluar routing → guardar → publicar evento)
+- Test: idempotencia (duplicate idempotency key → retornar existente)
+- Test: validación de input (customer ID nulo → exception)
+
+✅ **CompleteSignatureUseCaseImplTest**
+- Mock: SignatureRepository
+- Test: código correcto → SIGNED
+- Test: código incorrecto → error (max 3 intentos)
+- Test: challenge expirado → TtlExceededException
+
+✅ **EvaluateRoutingUseCaseImplTest**
+- Mock: RoutingRuleRepository
+- Test: SpEL rule match → retorna canal correcto
+- Test: múltiples reglas → prioridad aplicada
+- Test: sin match → default SMS
+
+**And** Coverage: Use cases >85%
+
+**Technical Notes:**
+- Framework: Mockito + JUnit 5
+- Pattern: Given-When-Then con BDD (Behavior Driven Development)
+- Verificar interacciones: `verify(repository).save(any())`
+
+**Example:**
+```java
+@Test
+void shouldPublishEventAfterCreatingSignature() {
+    // Given
+    StartSignatureCommand command = new StartSignatureCommand(...);
+    when(routingService.evaluate(any())).thenReturn(ChannelType.SMS);
+    when(repository.save(any())).thenReturn(signatureRequest);
+    
+    // When
+    SignatureRequest result = useCase.execute(command);
+    
+    // Then
+    verify(eventPublisher).publish(argThat(event -> 
+        event.getType() == EventType.SIGNATURE_CREATED &&
+        event.getAggregateId().equals(result.getId())
+    ));
+}
+```
+
+**Definition of Done:**
+- [ ] 20+ tests para use cases principales
+- [ ] Coverage: Application layer >85%
+- [ ] Mocks verifican interacciones (save, publish)
+- [ ] Tests aislados (no dependen de DB/Kafka)
+
+**Estimation:** 5 SP
+
+---
+
+#### Story 10.4: Integration Tests con Testcontainers (Adapters)
+
+**As a** Developer  
+**I want** Integration tests con PostgreSQL y Kafka reales (containers)  
+**So that** Adapters funcionen correctamente en entorno real
+
+**Acceptance Criteria:**
+
+**Given** Testcontainers configurado  
+**When** Ejecuto integration tests  
+**Then** Validar:
+
+✅ **SignatureRepositoryAdapterTest**
+- Container: PostgreSQL 15
+- Test: save → findById (round-trip)
+- Test: JSONB serialization (TransactionContext)
+- Test: Queries personalizados (findByCustomerIdAndStatus)
+- Test: UUIDv7 generación
+
+✅ **OutboxEventPublisherAdapterTest**
+- Container: PostgreSQL + Kafka
+- Test: publicar evento → outbox_event table tiene registro
+- Test: Debezium CDC lee evento → publica a Kafka
+- Test: Avro serialization correcta
+
+✅ **ProviderAdapterTest**
+- Container: WireMock (simular Twilio/FCM)
+- Test: enviar SMS → API call correcto
+- Test: timeout → CircuitBreaker abre
+- Test: retry logic con exponential backoff
+
+**And** Tests ejecutan en <30s (container startup optimizado)
+
+**Technical Notes:**
+- Framework: Testcontainers + JUnit 5
+- Containers: PostgreSQL 15, Kafka + Schema Registry, WireMock
+- Cleanup: `@AfterEach` truncate tables
+
+**Example:**
+```java
+@Testcontainers
+class SignatureRepositoryAdapterTest {
+    
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+        .withDatabaseName("testdb");
+    
+    @Test
+    void shouldSaveAndRetrieveSignatureRequest() {
+        // Given
+        SignatureRequest request = SignatureRequest.builder()...build();
+        
+        // When
+        repository.save(request);
+        Optional<SignatureRequest> found = repository.findById(request.getId());
+        
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getCustomerId()).isEqualTo(request.getCustomerId());
+    }
+}
+```
+
+**Definition of Done:**
+- [ ] 15+ integration tests con Testcontainers
+- [ ] Coverage: Infrastructure layer >70%
+- [ ] Tests ejecutan en pipeline CI
+- [ ] Documentado en TESTING.md
+
+**Estimation:** 8 SP
+
+---
+
+#### Story 10.5: Idempotencia Funcional - IdempotencyService
+
+**As a** Client Application  
+**I want** Enviar `Idempotency-Key` header para prevenir procesamiento duplicado  
+**So that** Doble-click no cause doble SMS/doble costo
+
+**Acceptance Criteria:**
+
+**Given** Cliente envía request con `Idempotency-Key: uuid-123`  
+**When** Request procesado exitosamente  
+**Then** Sistema:
+- ✅ Guarda en tabla `idempotency_record`:
+  - `id` (PK): UUID
+  - `idempotency_key`: "uuid-123"
+  - `request_hash`: SHA-256 de request body
+  - `response_body`: JSON de response (cachear)
+  - `status_code`: 201
+  - `created_at`: timestamp
+  - `expires_at`: now + 24h (TTL)
+
+**And** Si cliente reenvía MISMO `Idempotency-Key` dentro de 24h:
+- ✅ Sistema detecta duplicate en `findByKey(key)`
+- ✅ Valida `request_hash` coincide (misma request)
+- ✅ Retorna `response_body` cacheado (HTTP 201)
+- ✅ NO ejecuta use case nuevamente
+- ✅ NO envía SMS duplicado
+
+**And** Si `request_hash` difiere (key reusado con distinto body):
+- ❌ HTTP 409 Conflict: "Idempotency key reused with different request"
+
+**And** Si key expiró (>24h):
+- ✅ Procesa como nuevo request
+- ✅ Limpia registro antiguo
+
+**Technical Notes:**
+```java
+// IdempotencyService.java
+public <T> ResponseEntity<T> executeIdempotent(
+    String idempotencyKey,
+    String requestHash,
+    Supplier<ResponseEntity<T>> operation
+) {
+    Optional<IdempotencyRecord> existing = repository.findByKey(idempotencyKey);
+    
+    if (existing.isPresent() && !existing.get().isExpired()) {
+        if (!existing.get().getRequestHash().equals(requestHash)) {
+            throw new IdempotencyKeyConflictException();
+        }
+        return deserializeCachedResponse(existing.get());
+    }
+    
+    ResponseEntity<T> response = operation.get(); // Execute
+    
+    repository.save(IdempotencyRecord.builder()
+        .key(idempotencyKey)
+        .requestHash(requestHash)
+        .responseBody(serialize(response.getBody()))
+        .statusCode(response.getStatusCode().value())
+        .expiresAt(Instant.now().plus(24, ChronoUnit.HOURS))
+        .build());
+    
+    return response;
+}
+```
+
+**Controller Integration:**
+```java
+@PostMapping
+public ResponseEntity<SignatureResponseDto> createSignature(
+    @RequestBody SignatureRequestDto request,
+    @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
+) {
+    if (idempotencyKey == null) {
+        idempotencyKey = UUID.randomUUID().toString(); // Auto-generate
+    }
+    
+    String requestHash = hashService.sha256(request);
+    
+    return idempotencyService.executeIdempotent(
+        idempotencyKey,
+        requestHash,
+        () -> {
+            SignatureRequest result = startSignatureUseCase.execute(request);
+            return ResponseEntity.created(...).body(mapper.toDto(result));
+        }
+    );
+}
+```
+
+**Definition of Done:**
+- [ ] Tabla `idempotency_record` creada (Liquibase migration)
+- [ ] `IdempotencyService` implementado
+- [ ] Controller integrado (POST /api/v1/signatures)
+- [ ] Tests: duplicate key → cached response
+- [ ] Tests: key conflict → HTTP 409
+- [ ] Job cleanup: eliminar registros expirados (>24h)
+
+**Estimation:** 5 SP
+
+---
+
+#### Story 10.6: SpEL Validation & Security - Whitelist TypeLocator
+
+**As a** System Administrator  
+**I want** Validación de reglas SpEL al crearlas  
+**So that** Admin comprometido no pueda ejecutar código arbitrario
+
+**Acceptance Criteria:**
+
+**Given** Admin crea routing rule con SpEL expression  
+**When** POST `/admin/routing-rules` con `{ expression: "..." }`  
+**Then** Sistema valida ANTES de persistir:
+
+✅ **Sintaxis válida**: Parser no lanza `ParseException`
+✅ **Whitelist classes**: Solo permite acceso a:
+  - `TransactionContext` (amount, merchantId, etc.)
+  - `java.lang.Math` (abs, max, min)
+  - `java.time.*` (LocalDate, Instant)
+  - ❌ PROHIBIDO: `Runtime`, `ProcessBuilder`, `File`, `ClassLoader`
+
+✅ **No method calls peligrosos**:
+  - ❌ `T(java.lang.Runtime).getRuntime().exec(...)`
+  - ❌ `new java.io.File(...).delete()`
+
+**And** Si validación falla → HTTP 400: "Invalid SpEL expression: {reason}"
+
+**And** Ejemplos válidos:
+```java
+// ✅ PERMITIDO
+"amount.value > 1000"
+"merchantId == 'MERCHANT_XYZ'"
+"amount.value > 500 && transactionType == 'PURCHASE'"
+"T(java.lang.Math).abs(amount.value) > 100"
+
+// ❌ RECHAZADO
+"T(java.lang.Runtime).getRuntime().exec('rm -rf /')"
+"new java.io.File('/etc/passwd').delete()"
+"#this.getClass().forName('java.lang.Runtime')"
+```
+
+**Technical Notes:**
+```java
+// SpelValidatorServiceImpl.java
+public void validate(String expression) {
+    SpelExpressionParser parser = new SpelExpressionParser();
+    
+    // Whitelist TypeLocator (custom)
+    StandardEvaluationContext context = new StandardEvaluationContext();
+    context.setTypeLocator(new WhitelistTypeLocator(
+        List.of(
+            "java.lang.Math",
+            "java.time.LocalDate",
+            "java.time.Instant",
+            "com.bank.signature.domain.model.TransactionContext"
+        )
+    ));
+    
+    try {
+        Expression exp = parser.parseExpression(expression);
+        
+        // Dry-run con contexto mock
+        TransactionContext mockContext = TransactionContext.builder()
+            .amount(Money.of(1000, "USD"))
+            .merchantId("TEST")
+            .build();
+        
+        exp.getValue(context, mockContext); // Validate execution
+        
+    } catch (SpelEvaluationException e) {
+        throw new InvalidSpelExpressionException("Forbidden operation: " + e.getMessage());
+    } catch (ParseException e) {
+        throw new InvalidSpelExpressionException("Syntax error: " + e.getMessage());
+    }
+}
+```
+
+**Security Audit:**
+- [ ] Auditar TODAS las reglas existentes en DB
+- [ ] Re-validar con nuevo validator
+- [ ] Deshabilitar reglas que fallen validación
+- [ ] Notificar admin de reglas deshabilitadas
+
+**Definition of Done:**
+- [ ] `SpelValidatorService` con whitelist implementado
+- [ ] Validación en `CreateRoutingRuleUseCase`
+- [ ] Tests: reglas maliciosas → rechazadas
+- [ ] Security audit de reglas existentes ejecutado
+- [ ] Documentado en SECURITY.md
+
+**Estimation:** 5 SP  
+**Priority:** 🔴 CRÍTICO (Security vulnerability)
+
+---
+
+### 🟡 Fase 2: Mejoras Importantes (Sprint 5-8)
+
+#### Story 10.7: Distributed Tracing con OpenTelemetry + Jaeger
+
+**As a** Operations Engineer  
+**I want** Tracing distribuido end-to-end  
+**So that** Puedo debuggear latencia en producción
+
+**Acceptance Criteria:**
+
+**Given** Request end-to-end: Client → Controller → UseCase → Provider → Kafka  
+**When** Sistema procesa request  
+**Then** OpenTelemetry genera spans:
+
+```
+Trace: 7f8a3d2b-1234-5678-abcd-9876543210ef
+├─ Span 1: POST /api/v1/signatures (200ms)
+│  ├─ Span 2: StartSignatureUseCase.execute (150ms)
+│  │  ├─ Span 3: RoutingService.evaluate (10ms)
+│  │  ├─ Span 4: SignatureRepository.save (20ms)
+│  │  └─ Span 5: TwilioSmsProvider.send (120ms) ← BOTTLENECK
+│  │     └─ Span 6: HTTP POST api.twilio.com (115ms)
+│  └─ Span 7: EventPublisher.publish (10ms)
+```
+
+**And** Jaeger UI muestra:
+- ✅ Trace completo con spans anidados
+- ✅ Cada span con tags: `http.method`, `http.status_code`, `db.statement`
+- ✅ Latencia por span (P50/P95/P99)
+- ✅ Errors marcados en rojo
+
+**And** Logs correlacionados con `traceId`:
+```json
+{
+  "timestamp": "2025-11-28T10:30:45.123Z",
+  "level": "INFO",
+  "traceId": "7f8a3d2b123456789876543210ef",
+  "spanId": "5a6b7c8d9e0f",
+  "message": "Sending SMS via Twilio",
+  "customerId": "CUSTOMER_123_PSEUDO"
+}
+```
+
+**Technical Notes:**
+- Framework: OpenTelemetry Java Agent
+- Backend: Jaeger (Docker Compose)
+- Instrumentación automática: Spring Boot, JDBC, Kafka
+- Custom spans: `@WithSpan` en use cases
+
+```java
+// StartSignatureUseCaseImpl.java
+@WithSpan
+public SignatureRequest execute(StartSignatureCommand command) {
+    Span span = Span.current();
+    span.setAttribute("customer.id", command.getCustomerId());
+    span.setAttribute("routing.channel", selectedChannel.name());
+    
+    // ... business logic ...
+}
+```
+
+**Definition of Done:**
+- [ ] OpenTelemetry agent configurado en `pom.xml`
+- [ ] Jaeger running en Docker Compose
+- [ ] Spans generados para controller, use cases, providers
+- [ ] Logs con `traceId` en MDC
+- [ ] Dashboard en Grafana con trace stats
+
+**Estimation:** 5 SP
+
+---
+
+#### Story 10.8: Structured Logging con MDC (Mapped Diagnostic Context)
+
+**As a** Operations Engineer  
+**I want** Logs estructurados con contexto enriquecido  
+**So that** Pueda filtrar logs por customer, trace, operation
+
+**Acceptance Criteria:**
+
+**Given** Request procesado  
+**When** Sistema loggea eventos  
+**Then** Logs incluyen MDC context:
+
+```json
+{
+  "timestamp": "2025-11-28T10:30:45.123Z",
+  "level": "INFO",
+  "logger": "com.bank.signature.application.usecase.StartSignatureUseCaseImpl",
+  "message": "Creating signature request",
+  "mdc": {
+    "traceId": "7f8a3d2b-1234-5678-abcd-9876543210ef",
+    "customerId": "c8f5d3e1a2b9", // pseudonymized
+    "operation": "START_SIGNATURE",
+    "channel": "SMS",
+    "provider": "TWILIO"
+  },
+  "thread": "http-nio-8080-exec-1"
+}
+```
+
+**And** MDC poblado en `RequestLoggingFilter`:
+```java
+@Override
+protected void doFilterInternal(HttpServletRequest request, ...) {
+    String traceId = generateTraceId();
+    String customerId = extractCustomerId(request);
+    
+    MDC.put("traceId", traceId);
+    MDC.put("customerId", pseudonymize(customerId));
+    MDC.put("operation", extractOperation(request));
+    
+    try {
+        filterChain.doFilter(request, response);
+    } finally {
+        MDC.clear(); // CRITICAL: prevent thread leak
+    }
+}
+```
+
+**And** Queries en Kibana/Splunk:
+```
+mdc.customerId:"c8f5d3e1a2b9" AND mdc.operation:"START_SIGNATURE"
+```
+
+**Technical Notes:**
+- Encoder: Logstash JSON encoder (`logstash-logback-encoder`)
+- Output: Console (dev) + File (prod) + ELK stack
+- GDPR: Customer ID pseudonymizado en logs
+
+**Definition of Done:**
+- [ ] `logback-spring.xml` con Logstash encoder
+- [ ] `RequestLoggingFilter` pobla MDC
+- [ ] Logs en JSON estructurado
+- [ ] Documentado en OBSERVABILITY.md
+
+**Estimation:** 3 SP
+
+---
+
+#### Story 10.9: Database Partitioning - Tabla signature_request
+
+**As a** Database Administrator  
+**I want** Particionamiento por fecha en `signature_request`  
+**So that** Performance no degrade con millones de registros
+
+**Acceptance Criteria:**
+
+**Given** Tabla `signature_request` con >1M filas  
+**When** Implemento particionamiento RANGE por `created_at`  
+**Then** PostgreSQL crea particiones mensuales:
+
+```sql
+-- Parent table (partitioned)
+CREATE TABLE signature_request (
+    id UUID PRIMARY KEY,
+    customer_id VARCHAR(255) NOT NULL,
+    transaction_context JSONB NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    ...
+) PARTITION BY RANGE (created_at);
+
+-- Monthly partitions
+CREATE TABLE signature_request_2025_11 PARTITION OF signature_request
+    FOR VALUES FROM ('2025-11-01') TO ('2025-12-01');
+
+CREATE TABLE signature_request_2025_12 PARTITION OF signature_request
+    FOR VALUES FROM ('2025-12-01') TO ('2026-01-01');
+```
+
+**And** Queries automáticamente usan partition pruning:
+```sql
+-- Solo escanea partition 2025_11 (fast)
+SELECT * FROM signature_request 
+WHERE created_at >= '2025-11-01' 
+  AND created_at < '2025-12-01';
+```
+
+**And** Job mensual crea siguiente partition:
+```java
+@Scheduled(cron = "0 0 1 * * *") // 1st of month
+public void createNextMonthPartition() {
+    YearMonth nextMonth = YearMonth.now().plusMonths(1);
+    String tableName = "signature_request_" + nextMonth.toString().replace("-", "_");
+    
+    jdbcTemplate.execute(String.format(
+        "CREATE TABLE %s PARTITION OF signature_request " +
+        "FOR VALUES FROM ('%s-01') TO ('%s-01')",
+        tableName, nextMonth, nextMonth.plusMonths(1)
+    ));
+}
+```
+
+**And** Retention policy: Archivar partitions >90 días a cold storage
+
+**Technical Notes:**
+- PostgreSQL 15: Native partitioning
+- Migration: Liquibase para crear estructura inicial
+- Monitoring: Partition size en Grafana
+
+**Definition of Done:**
+- [ ] Liquibase migration crea partitioned table
+- [ ] 3 partitions iniciales (current + 2 futuros)
+- [ ] Job scheduler crea partitions automáticamente
+- [ ] Tests: partition pruning funciona
+- [ ] Documentado en DATABASE_MIGRATIONS.md
+
+**Estimation:** 5 SP
+
+---
+
+#### Story 10.10: GDPR Compliance - Right to Erasure (DELETE endpoint)
+
+**As a** Customer  
+**I want** Solicitar eliminación de mis datos personales  
+**So that** Sistema cumple GDPR Article 17
+
+**Acceptance Criteria:**
+
+**Given** Customer solicita eliminación de datos  
+**When** Admin ejecuta `DELETE /api/v1/admin/customers/{customerId}/data`  
+**Then** Sistema:
+
+✅ **Busca todos los registros**:
+- `signature_request` donde `customer_id` = pseudonymized ID
+- `signature_challenge` (via foreign key)
+- `audit_log` con customer references
+- `idempotency_record` con customer context
+
+✅ **Anonimiza (NO elimina físicamente)**:
+- `customer_id` → "DELETED_USER_{UUID}"
+- `transaction_context.customerName` → "REDACTED"
+- `transaction_context.email` → "redacted@deleted.local"
+- `transaction_context.phone` → "+00000000000"
+
+✅ **Registra auditoría**:
+```json
+{
+  "event": "CUSTOMER_DATA_DELETED",
+  "customerId": "CUSTOMER_123",
+  "requestedBy": "admin@bank.com",
+  "deletedAt": "2025-11-28T10:30:00Z",
+  "recordsAffected": 47,
+  "reason": "GDPR_RIGHT_TO_ERASURE"
+}
+```
+
+✅ **Exporta antes de eliminar** (Right to Access):
+- JSON con todos los datos del customer
+- Almacena en S3/cold storage (compliance 90 días)
+
+**And** Response HTTP 200:
+```json
+{
+  "customerId": "CUSTOMER_123",
+  "recordsAnonymized": 47,
+  "exportLocation": "s3://compliance-archive/2025-11/CUSTOMER_123.json",
+  "completedAt": "2025-11-28T10:30:00Z"
+}
+```
+
+**Technical Notes:**
+```java
+// DeleteCustomerDataUseCase.java
+@Transactional
+public DeleteCustomerDataResult execute(String customerId) {
+    // 1. Export data first (Right to Access)
+    CustomerDataExport export = exportService.exportAllData(customerId);
+    archiveService.store(export); // S3 + 90 day retention
+    
+    // 2. Anonymize (soft delete)
+    int affectedRecords = 0;
+    affectedRecords += signatureRepository.anonymizeByCustomerId(customerId);
+    affectedRecords += auditLogRepository.anonymizeByCustomerId(customerId);
+    
+    // 3. Audit
+    auditService.log(AuditEvent.CUSTOMER_DATA_DELETED, customerId, affectedRecords);
+    
+    return DeleteCustomerDataResult.builder()
+        .recordsAnonymized(affectedRecords)
+        .exportLocation(export.getLocation())
+        .build();
+}
+```
+
+**IMPORTANTE:** Pseudonymization complica búsqueda
+- Customer ID está hasheado (HMAC no reversible)
+- Necesita lookup table: `customer_id_mapping`
+  - `original_id` (encrypted)
+  - `pseudonymized_id` (HMAC)
+  - Solo accesible por admin con `GDPR_ADMIN` role
+
+**Definition of Done:**
+- [ ] Endpoint `DELETE /admin/customers/{id}/data`
+- [ ] Export service (JSON completo del customer)
+- [ ] Anonymization queries (UPDATE, no DELETE)
+- [ ] Audit log de eliminaciones
+- [ ] Tests: verificar anonimización completa
+- [ ] Documentado en GDPR_COMPLIANCE.md
+
+**Estimation:** 8 SP  
+**Priority:** 🟡 IMPORTANTE (Regulatory compliance)
+
+---
+
+#### Story 10.11: Exception Handling - Controller Error Context
+
+**As a** Developer  
+**I want** Logging contextual en controllers antes de delegar a GlobalExceptionHandler  
+**So that** Troubleshooting sea más fácil
+
+**Acceptance Criteria:**
+
+**Given** Controller procesa request  
+**When** Ocurre exception  
+**Then** Controller loggea contexto ANTES de re-throw:
+
+```java
+@PostMapping
+public ResponseEntity<SignatureResponseDto> createSignature(
+    @RequestBody SignatureRequestDto request,
+    @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey
+) {
+    try {
+        log.info("Creating signature request: customerId={}, idempotencyKey={}, channel={}", 
+            pseudonymize(request.customerId()), idempotencyKey, request.preferredChannel());
+        
+        SignatureRequest result = startSignatureUseCase.execute(request);
+        
+        log.info("Signature request created successfully: id={}, status={}", 
+            result.getId(), result.getStatus());
+        
+        return ResponseEntity.created(...).body(mapper.toDto(result));
+        
+    } catch (DomainException e) {
+        log.warn("Business rule violation: customerId={}, error={}", 
+            pseudonymize(request.customerId()), e.getMessage());
+        throw e; // Re-throw para GlobalExceptionHandler
+        
+    } catch (Exception e) {
+        log.error("Unexpected error creating signature: customerId={}, idempotencyKey={}", 
+            pseudonymize(request.customerId()), idempotencyKey, e);
+        throw e;
+    }
+}
+```
+
+**And** GlobalExceptionHandler retorna error estructurado:
+```json
+{
+  "code": "SIG_001",
+  "message": "Ya existe una verificación en curso",
+  "messageEn": "A verification is already in progress",
+  "traceId": "7f8a3d2b-1234",
+  "timestamp": "2025-11-28T10:30:45.123Z",
+  "path": "/api/v1/signatures",
+  "details": {
+    "signatureId": "01933e5d-...",
+    "retryAfter": "2025-11-28T10:33:00Z"
+  }
+}
+```
+
+**And** Error codes catalog documentado:
+```
+SIG_001: Challenge already active
+SIG_002: Signature request expired
+SIG_003: Invalid challenge code
+SIG_004: Provider unavailable (degraded mode)
+...
+```
+
+**Technical Notes:**
+- Logging levels:
+  - `INFO`: Happy path
+  - `WARN`: Business exceptions (esperadas)
+  - `ERROR`: Technical exceptions (inesperadas)
+  
+- NO loggear datos sensibles:
+  - ❌ Customer phone/email
+  - ❌ Transaction amounts sin pseudonymize
+  - ✅ Customer ID pseudonymizado
+
+**Definition of Done:**
+- [ ] Todos los controllers con try-catch contextual
+- [ ] Error codes catalog creado (ERROR_CODES.md)
+- [ ] GlobalExceptionHandler con códigos estructurados
+- [ ] I18N: mensajes en español e inglés
+- [ ] Tests: verificar logging en exceptions
+
+**Estimation:** 3 SP
+
+---
+
+#### Story 10.12: Código TODO Cleanup & Technical Debt Tracking
+
+**As a** Developer  
+**I want** Eliminar TODOs del código y crear tickets en backlog  
+**So that** Deuda técnica esté planificada
+
+**Acceptance Criteria:**
+
+**Given** Código con comentarios TODO  
+**When** Ejecuto análisis de TODOs  
+**Then** Para cada TODO:
+
+✅ **Crear ticket en backlog**:
+```
+# GitHub Issue #123
+Title: Refactor degraded mode to domain layer
+Description: Currently degraded mode logic is in controller (violates hexagonal architecture).
+Should be moved to use case or domain service.
+
+Location: SignatureController.java:184-186
+Epic: E10 - Quality Improvements
+Story Points: 3
+Priority: Medium
+
+Current code:
+// TODO Story 4.3: Refactor to handle degraded mode in domain/use case layer
+if (degradedModeActive) { ... }
+```
+
+✅ **Reemplazar TODO con referencia a ticket**:
+```java
+// TECH_DEBT #123: Degraded mode in controller (should be in use case)
+// Target: Sprint 12
+if (degradedModeActive) { ... }
+```
+
+✅ **Eliminar TODOs sin acción**:
+- Si TODO es obsoleto → eliminar
+- Si TODO ya implementado → eliminar
+
+**And** Análisis de providers temporales:
+```
+README.md:528: "Current provider implementations are TEMPORARY 
+and will be replaced by MuleSoftApiProvider"
+```
+
+**Decision Framework:**
+- ✅ SI migración MuleSoft < 6 meses → Keep simple, no over-engineer
+- ✅ SI migración MuleSoft > 1 año → Treat as PERMANENT
+- ❓ SI timeline unclear → Create decision ticket
+
+**Technical Notes:**
+```bash
+# Script para detectar TODOs
+grep -r "TODO" src/main/java --include="*.java" > tech-debt-inventory.txt
+
+# Formato output:
+# src/.../SignatureController.java:184: // TODO Story 4.3: ...
+```
+
+**Definition of Done:**
+- [ ] Todos los TODOs inventariados (tech-debt-inventory.txt)
+- [ ] Tickets creados para TODOs válidos
+- [ ] TODOs obsoletos eliminados
+- [ ] Decisión sobre providers temporales documentada
+- [ ] Backlog priorizado con tech debt
+
+**Estimation:** 2 SP
+
+---
+
+### ✅ Fase 3: Optimizaciones (Sprint 9-12)
+
+#### Story 10.13: Rate Limiting Granular - Per Customer + Global
+
+**As a** System  
+**I want** Rate limiting configurable por customer y global  
+**So that** Prevenir abuso y noisy neighbor
+
+**Acceptance Criteria:**
+
+**Given** Rate limits configurados  
+**When** Cliente envía requests  
+**Then** Sistema aplica:
+
+✅ **Global rate limit**: 100 req/s (todos los customers)
+```yaml
+rate-limit:
+  global:
+    requests-per-second: 100
+    bucket-capacity: 200
+```
+
+✅ **Per-customer rate limit**: 10 req/min por customer ID
+```java
+@RateLimiter(name = "perCustomer")
+public SignatureRequest createSignature(String customerId, ...) {
+    // Resilience4j RateLimiter
+    // Limit: 10 requests / 60 seconds per customerId
+}
+```
+
+**And** Si límite excedido:
+```json
+HTTP 429 Too Many Requests
+{
+  "code": "RATE_LIMIT_EXCEEDED",
+  "message": "Has excedido el límite de solicitudes",
+  "retryAfter": "2025-11-28T10:31:00Z",
+  "limits": {
+    "perCustomer": "10 requests/min",
+    "current": 15,
+    "resetAt": "2025-11-28T10:31:00Z"
+  }
+}
+```
+
+**And** Headers en response:
+```
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 3
+X-RateLimit-Reset: 1732791060
+```
+
+**And** Métricas Prometheus:
+```
+rate_limit_exceeded_total{customer="CUSTOMER_123",type="per_customer"} 5
+rate_limit_remaining{customer="CUSTOMER_123"} 3
+```
+
+**Technical Notes:**
+- Framework: Resilience4j RateLimiter
+- Storage: Redis (distributed rate limiting)
+- Algorithm: Token Bucket
+
+**Definition of Done:**
+- [ ] Rate limiter configurado (global + per-customer)
+- [ ] Redis para estado distribuido
+- [ ] Headers `X-RateLimit-*` en responses
+- [ ] Métricas en Prometheus
+- [ ] Tests: verify HTTP 429 cuando excede
+
+**Estimation:** 5 SP
+
+---
+
+#### Story 10.14: Secrets Rotation Strategy - Vault Auto-Rotation
+
+**As a** Security Engineer  
+**I want** Rotación automática de secretos cada 90 días  
+**So that** Cumplir política de seguridad bancaria
+
+**Acceptance Criteria:**
+
+**Given** Secretos almacenados en HashiCorp Vault  
+**When** Secreto alcanza 90 días de antigüedad  
+**Then** Vault:
+
+✅ **Auto-rotation configurada**:
+```hcl
+# Vault config
+path "secret/data/signature-router/twilio" {
+  rotation {
+    period = "2160h"  # 90 days
+    auto_rotate = true
+  }
+}
+```
+
+✅ **Aplicación detecta cambio**:
+- Spring Cloud Vault: `@RefreshScope` beans
+- Config refresh cada 5 min
+- No requiere restart de aplicación
+
+**And** Proceso de rotación:
+```
+1. Vault genera nuevo secreto (API_KEY_v2)
+2. Guarda ambos: API_KEY_v1 (grace period 7 días), API_KEY_v2
+3. Aplicación usa API_KEY_v2 para nuevas requests
+4. Requests en flight con API_KEY_v1 siguen funcionando (grace period)
+5. Después de 7 días: Vault elimina API_KEY_v1
+```
+
+**And** Audit log de rotaciones:
+```json
+{
+  "event": "SECRET_ROTATED",
+  "secretPath": "secret/signature-router/twilio/api-key",
+  "rotatedAt": "2025-11-28T10:00:00Z",
+  "rotatedBy": "vault-auto-rotation",
+  "previousVersion": 5,
+  "currentVersion": 6
+}
+```
+
+**And** Alerting si rotación falla:
+- Prometheus alert: `vault_rotation_failed`
+- Notify: Ops team via PagerDuty
+
+**Technical Notes:**
+- Vault: Dynamic secrets para databases
+- Spring Cloud Vault: Auto-refresh con `@RefreshScope`
+- Grace period: 7 días para evitar downtime
+
+**Definition of Done:**
+- [ ] Vault rotation configurada (90 días)
+- [ ] Spring Cloud Vault con `@RefreshScope`
+- [ ] Tests: simular rotation, verificar switch
+- [ ] Alert si rotation falla
+- [ ] Documentado en VAULT_ROTATION.md
+
+**Estimation:** 5 SP
+
+---
+
+#### Story 10.15: Database Constraints & Data Integrity
+
+**As a** Database Administrator  
+**I want** Constraints de dominio en PostgreSQL  
+**So that** Integridad de datos garantizada a nivel DB
+
+**Acceptance Criteria:**
+
+**Given** Schema PostgreSQL  
+**When** Ejecuto migration para agregar constraints  
+**Then** Valida:
+
+✅ **CHECK constraints**:
+```sql
+ALTER TABLE signature_request
+  ADD CONSTRAINT chk_status 
+  CHECK (status IN ('PENDING', 'SIGNED', 'COMPLETED', 'EXPIRED', 'ABORTED'));
+
+ALTER TABLE signature_request
+  ADD CONSTRAINT chk_expires_at_future
+  CHECK (expires_at > created_at);
+
+ALTER TABLE signature_challenge
+  ADD CONSTRAINT chk_challenge_status
+  CHECK (status IN ('PENDING', 'SENT', 'COMPLETED', 'FAILED', 'EXPIRED'));
+```
+
+✅ **NOT NULL constraints** (ya existentes, validar):
+```sql
+ALTER TABLE signature_request
+  ALTER COLUMN customer_id SET NOT NULL,
+  ALTER COLUMN transaction_context SET NOT NULL,
+  ALTER COLUMN status SET NOT NULL;
+```
+
+✅ **FOREIGN KEY constraints**:
+```sql
+ALTER TABLE signature_challenge
+  ADD CONSTRAINT fk_signature_request
+  FOREIGN KEY (signature_request_id) 
+  REFERENCES signature_request(id)
+  ON DELETE CASCADE; -- Si signature borrado, borrar challenges
+```
+
+✅ **UNIQUE constraints**:
+```sql
+ALTER TABLE idempotency_record
+  ADD CONSTRAINT uq_idempotency_key
+  UNIQUE (idempotency_key);
+```
+
+✅ **GIN indexes para JSONB**:
+```sql
+CREATE INDEX idx_transaction_context_gin 
+  ON signature_request USING GIN (transaction_context);
+
+CREATE INDEX idx_routing_timeline_gin
+  ON signature_request USING GIN (routing_timeline);
+```
+
+**And** Tests: intentar violar constraint → DB rechaza
+```java
+@Test
+void shouldRejectInvalidStatus() {
+    assertThatThrownBy(() -> 
+        jdbcTemplate.execute(
+            "INSERT INTO signature_request (id, status, ...) " +
+            "VALUES (uuid_generate_v7(), 'INVALID_STATUS', ...)"
+        )
+    ).isInstanceOf(DataIntegrityViolationException.class)
+     .hasMessageContaining("chk_status");
+}
+```
+
+**Definition of Done:**
+- [ ] Liquibase migration con constraints
+- [ ] CHECK constraints para enums
+- [ ] Foreign keys configuradas
+- [ ] GIN indexes para JSONB queries
+- [ ] Tests: verificar constraints funcionan
+- [ ] Documentado en DATABASE_SCHEMA.md
+
+**Estimation:** 3 SP
+
+---
+
+## Epic 10 Summary
+
+**Objetivo Final:** Elevar calificación de 7.5/10 → 9.0/10
+
+### Antes vs Después
+
+| Dimensión | Before | After | Mejora |
+|-----------|--------|-------|--------|
+| **Testing Coverage** | 14% (24 tests) | 75%+ (150+ tests) | +428% |
+| **Idempotencia** | No funcional ❌ | Funcional ✅ | Critical fix |
+| **SpEL Security** | Vulnerable ❌ | Whitelisted ✅ | Critical fix |
+| **Observability** | Logs básicos | Tracing + MDC ✅ | +Debuggability |
+| **GDPR Compliance** | Parcial ⚠️ | Completo ✅ | Regulatory |
+| **Database Performance** | No partitioning | Partitioned ✅ | +Scalability |
+| **Architecture Validation** | Manual | ArchUnit auto ✅ | +Safety |
+
+### Effort Summary
+
+| Fase | Stories | Story Points | Duration |
+|------|---------|--------------|----------|
+| **Fase 1: Críticos** | 6 stories | 31 SP | 3-4 sprints |
+| **Fase 2: Importantes** | 6 stories | 29 SP | 3-4 sprints |
+| **Fase 3: Optimizaciones** | 3 stories | 13 SP | 2 sprints |
+| **TOTAL** | **15 stories** | **73 SP** | **8-10 sprints** |
+
+**Duración estimada:** 6-8 semanas (2 meses)
+
+### Prioridad de Ejecución
+
+**Sprint 1-2 (CRÍTICO):**
+- Story 10.1: ArchUnit tests
+- Story 10.2: Domain testing
+- Story 10.5: Idempotencia
+- Story 10.6: SpEL security
+
+**Sprint 3-4 (CRÍTICO):**
+- Story 10.3: Use case tests
+- Story 10.4: Integration tests
+
+**Sprint 5-6 (IMPORTANTE):**
+- Story 10.7: Distributed tracing
+- Story 10.9: DB partitioning
+- Story 10.10: GDPR compliance
+
+**Sprint 7-8 (OPTIMIZACIÓN):**
+- Story 10.8: MDC logging
+- Story 10.11: Exception handling
+- Story 10.13: Rate limiting
+- Story 10.14: Secrets rotation
+- Story 10.15: DB constraints
+
+---
+
+**Siguiente paso:** Iniciar Sprint Planning para Epic 10, comenzando con Fase 1 (Problemas Críticos)
+
+**Bloqueador para Producción:** Epic 10 debe completarse ANTES de deployment a producción bancaria.
 
 ---
 

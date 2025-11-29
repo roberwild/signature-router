@@ -8,6 +8,24 @@ The Signature Router orchestrates multi-channel digital signature delivery (SMS,
 
 > **🔄 Integration Strategy:** Current implementation uses direct provider connections (Twilio, FCM). **Future migration to MuleSoft API Gateway** planned with **zero-downtime** plug-and-play adapter swap. See [MuleSoft Integration Strategy](docs/architecture/08-mulesoft-integration-strategy.md) for details.
 
+### ⚠️ Project Status (Updated: 29-Nov-2025)
+
+**Current State:** ⚠️ **FUNCTIONAL - REQUIRES CRITICAL IMPROVEMENTS BEFORE PRODUCTION**
+
+**Quality Score:** 7.5/10 ⭐⭐⭐⭐ → **Target:** 9.0/10
+
+🔴 **IMPORTANT:** A professional quality evaluation identified **3 critical issues** that must be resolved before production deployment:
+
+1. **Testing Coverage:** 14% (needs 75%+)
+2. **Idempotency:** Not functional (duplicates possible)
+3. **Security:** SpEL injection vulnerability
+
+**Action Required:** [Epic 10 - Quality Improvements](EPIC-10-RESUMEN-EJECUTIVO.md) (15 stories, 6-8 weeks)
+
+📊 **See:** [Quality Report](Evaluación_de_Calidad_del_Proyecto_Signature_Router.md) | [Epic 10 Checklist](EPIC-10-CHECKLIST.md) | [Project Status](ESTADO-DEL-PROYECTO.md)
+
+---
+
 ### Key Features
 
 - ✅ **Multi-Provider Routing**: Dynamic channel selection based on SpEL rules
@@ -1557,7 +1575,17 @@ The application uses the `local` profile by default, which enables:
 
 ### Code Quality
 
-The project enforces architectural constraints using **ArchUnit**:
+The project enforces architectural constraints using **ArchUnit** (Story 10.1):
+
+- ✅ **11 Architecture Rules** validated automatically in CI/CD
+- ✅ **Domain Purity**: Domain layer has zero framework dependencies
+- ✅ **Hexagonal Boundaries**: Application and Infrastructure layers properly isolated
+- ⚠️ **2 Known Violations**: Documented in [`docs/sprint-artifacts/ARCHITECTURE-VIOLATIONS.md`](docs/sprint-artifacts/ARCHITECTURE-VIOLATIONS.md)
+
+**Run Architecture Tests**:
+```bash
+./mvnw test -Dtest=HexagonalArchitectureTest
+```
 
 - Domain layer has zero framework dependencies ✅
 - Application layer doesn't depend on infrastructure adapters ✅
