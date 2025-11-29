@@ -242,6 +242,17 @@
     </dependencyManagement>
 
     <repositories>
+        <!-- Maven Central Repository (primary) -->
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
         <!-- Confluent Maven Repository (required for kafka-avro-serializer) -->
         <repository>
             <id>confluent</id>
