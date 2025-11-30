@@ -30,9 +30,16 @@ signature-router/
 │   └── ...                       # Dashboard anterior (deprecado)
 │
 └── docs/                         # 📚 Documentación General
-    ├── INFORME-EJECUTIVO-CTO.md  # Informe para CTO
-    ├── sprint-artifacts/         # Documentación de sprints
-    └── ...                       # Otra documentación
+    ├── INDEX.md                  # 📑 Índice completo de documentación
+    ├── INFORME-EJECUTIVO-CTO.md  # 📊 Informe ejecutivo para CTO
+    ├── architecture/             # 🏗️ Arquitectura y diseño
+    ├── development/              # 🔧 Guías de desarrollo
+    ├── observability/            # 📊 Monitoreo y alertas
+    ├── executive/                # 📈 Informes ejecutivos
+    ├── sessions/                 # 📝 Resúmenes de sesiones
+    ├── frontend/                 # 🎨 Documentación frontend
+    ├── setup/                    # ⚙️ Configuración y deployment
+    └── sprint-artifacts/         # 📦 Artefactos de sprints (135 archivos)
 ```
 
 > **🔄 Integration Strategy:** Current implementation uses direct provider connections (Twilio, FCM). **Future migration to MuleSoft API Gateway** planned with **zero-downtime** plug-and-play adapter swap.
@@ -136,10 +143,20 @@ Panel de administración moderno construido con Next.js 15 y React 19:
 
 ### 3. Documentación General (`docs/`)
 
-Documentación ejecutiva, técnica y de proyecto:
+Documentación ejecutiva, técnica y de proyecto completamente organizada:
 
-- [`docs/INFORME-EJECUTIVO-CTO.md`](docs/INFORME-EJECUTIVO-CTO.md) - Informe completo para CTO
-- [`docs/sprint-artifacts/`](docs/sprint-artifacts/) - Documentación de épicas y sprints
+- **📑 [Índice Completo](docs/INDEX.md)** - Navegación completa por toda la documentación
+- **📊 [Informe Ejecutivo CTO](docs/INFORME-EJECUTIVO-CTO.md)** - Estado completo del proyecto
+- **🏗️ [Arquitectura](docs/architecture/)** - Diseño del sistema, ADRs, patrones
+- **🔧 [Desarrollo](docs/development/)** - Guías técnicas (DB, Kafka, Vault, JWT)
+- **📊 [Observabilidad](docs/observability/)** - SLOs, alertas, tracing, runbooks
+- **📈 [Ejecutivos](docs/executive/)** - Informes de gestión y evaluaciones
+- **📝 [Sesiones](docs/sessions/)** - Resúmenes de trabajo y épicas completadas
+- **🎨 [Frontend](docs/frontend/)** - Guías específicas de desarrollo frontend
+- **⚙️ [Setup](docs/setup/)** - Configuración inicial y deployment
+- **📦 [Sprint Artifacts](docs/sprint-artifacts/)** - 135 documentos de desarrollo detallado
+
+> **💡 Tip:** Comienza con el [Índice de Documentación](docs/INDEX.md) para navegar por rol o tema
 - [`docs/observability/`](docs/observability/) - Guías de observabilidad
 
 ## 🚀 Tech Stack Consolidado
