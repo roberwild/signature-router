@@ -1,0 +1,302 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "close": "Cerrar",
+    "copy": "Copiar",
+    "download": "Descargar",
+    "save": "Guardar"
+  },
+  "navigation": {
+    "account": "Cuenta",
+    "security": "Seguridad",
+    "notifications": "Notificaciones"
+  },
+  "profile": {
+    "title": "Perfil",
+    "personalDetails": {
+      "title": "Detalles Personales",
+      "description": "Actualiza tu información personal",
+      "fields": {
+        "name": "Nombre",
+        "phone": "Teléfono",
+        "email": "Correo Electrónico",
+        "avatar": "Avatar"
+      },
+      "actions": {
+        "changeEmail": "Cambiar",
+        "removeImage": "Eliminar imagen",
+        "save": "Guardar",
+        "uploadImage": "Subir imagen"
+      },
+      "messages": {
+        "updateSuccess": "Detalles personales actualizados",
+        "updateError": "No se pudieron actualizar los detalles personales",
+        "imageSizeError": "La imagen cargada no debe exceder el límite de {{size}} MB"
+      }
+    },
+    "preferences": {
+      "title": "Preferencias",
+      "description": "Gestiona las preferencias de tu cuenta",
+      "fields": {
+        "language": "Idioma",
+        "languageDescription": "Este es el idioma que se usará en la aplicación.",
+        "theme": "Tema",
+        "themeDescription": "Selecciona el tema para la aplicación.",
+        "themeOptions": {
+          "light": "Claro",
+          "dark": "Oscuro",
+          "system": "Sistema"
+        }
+      },
+      "actions": {
+        "save": "Guardar"
+      },
+      "messages": {
+        "updateSuccess": "Preferencias actualizadas",
+        "updateError": "No se pudieron actualizar las preferencias"
+      }
+    },
+    "dangerZone": {
+      "title": "Zona de Peligro",
+      "description": "Acciones irreversibles y destructivas",
+      "deleteAccount": {
+        "title": "Eliminar Cuenta",
+        "description": "Elimina permanentemente tu cuenta y todos los datos asociados",
+        "button": "Eliminar Cuenta",
+        "confirmTitle": "¿Estás absolutamente seguro?",
+        "confirmDescription": "Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta y borrará tus datos de nuestros servidores.",
+        "confirmButton": "Sí, eliminar mi cuenta"
+      }
+    }
+  },
+  "security": {
+    "changePassword": {
+      "title": "Cambiar Contraseña",
+      "description": "Actualiza tu contraseña para mantener tu cuenta segura",
+      "fields": {
+        "currentPassword": "Contraseña Actual",
+        "newPassword": "Nueva Contraseña",
+        "confirmPassword": "Confirmar Nueva Contraseña"
+      },
+      "actions": {
+        "changePassword": "Cambiar Contraseña"
+      },
+      "messages": {
+        "updateSuccess": "Contraseña cambiada exitosamente",
+        "updateError": "No se pudo cambiar la contraseña"
+      }
+    },
+    "multiFactorAuth": {
+      "title": "Autenticación de Dos Factores",
+      "description": "Agrega una capa extra de seguridad a tu cuenta",
+      "status": {
+        "enabled": "Habilitada",
+        "disabled": "Deshabilitada"
+      },
+      "actions": {
+        "enable": "Habilitar 2FA",
+        "disable": "Deshabilitar 2FA",
+        "regenerateCodes": "Regenerar Códigos de Respaldo"
+      },
+      "modal": {
+        "disable": {
+          "title": "¿Deshabilitar aplicación autenticadora?",
+          "description": "La aplicación autenticadora será deshabilitada, ¿estás seguro de que quieres continuar?",
+          "confirm": "Sí, deshabilitar"
+        },
+        "enable": {
+          "title": "Aplicación Autenticadora",
+          "description": "Agrega una aplicación autenticadora completando el formulario a continuación.",
+          "instruction": "Usando una aplicación autenticadora como Google Authenticator, Microsoft Authenticator, Authy o 1Password escanea este código QR. Generará un código de 6 dígitos para que ingreses a continuación.",
+          "codeLabel": "Ingresa el código de 6 dígitos de la aplicación",
+          "issuerHelp": "Si tu aplicación solicita un emisor usa \"{{issuer}}\" y para el nombre de la cuenta usa \"{{accountName}}\".",
+          "turnOn": "Activar"
+        },
+        "recoveryCodes": {
+          "title": "Códigos de Recuperación",
+          "description": "Cada código de recuperación se puede usar exactamente una vez para otorgar acceso sin tu autenticador.",
+          "copy": "Copiar",
+          "download": "Descargar",
+          "close": "Cerrar"
+        }
+      },
+      "messages": {
+        "enableSuccess": "Aplicación autenticadora habilitada",
+        "enableError": "No se pudo habilitar la aplicación autenticadora",
+        "disableSuccess": "Aplicación autenticadora deshabilitada",
+        "disableError": "No se pudo deshabilitar la aplicación autenticadora",
+        "codesCopied": "¡Copiado!",
+        "setupError": "No se pudieron generar los datos de configuración TOTP"
+      }
+    },
+    "sessions": {
+      "title": "Sesiones Activas",
+      "description": "Gestiona tus sesiones activas en diferentes dispositivos",
+      "currentSession": "Sesión Actual",
+      "otherSessions": "Otras Sesiones",
+      "sessionInfo": {
+        "browser": "Navegador",
+        "device": "Dispositivo",
+        "location": "Ubicación",
+        "lastActive": "Última Actividad"
+      },
+      "actions": {
+        "revokeSession": "Revocar Sesión",
+        "revokeAllSessions": "Revocar Todas las Otras Sesiones"
+      },
+      "status": {
+        "expired": "Expirada",
+        "expiresOn": "Expira el {{date}}"
+      },
+      "messages": {
+        "sessionRevoked": "Sesión revocada",
+        "sessionRevokeError": "No se pudo revocar la sesión"
+      },
+      "emptyState": "No se encontraron sesiones."
+    },
+    "connectedAccounts": {
+      "title": "Cuentas Conectadas",
+      "description": "Gestiona las cuentas de terceros conectadas a tu perfil",
+      "providers": {
+        "google": "Google",
+        "github": "GitHub",
+        "microsoft": "Microsoft"
+      },
+      "actions": {
+        "connect": "Conectar",
+        "disconnect": "Desconectar"
+      },
+      "status": {
+        "connected": "Conectada",
+        "disconnected": "No conectada"
+      },
+      "messages": {
+        "connected": "Cuenta conectada",
+        "disconnected": "Cuenta desconectada",
+        "connectError": "No se pudo conectar la cuenta",
+        "disconnectError": "No se pudo desconectar la cuenta"
+      },
+      "emptyState": "No se encontraron cuentas conectadas.",
+      "passwordHint": "Independientemente de las cuentas conectadas, siempre tendrás un inicio de sesión con contraseña también."
+    }
+  },
+  "notifications": {
+    "title": "Preferencias de Notificaciones",
+    "description": "Administra cómo y cuándo recibes notificaciones",
+    "channels": {
+      "title": "Canales de Notificación",
+      "description": "Elige cómo quieres recibir notificaciones",
+      "email": {
+        "title": "Notificaciones por Correo",
+        "description": "Recibe notificaciones por correo electrónico"
+      },
+      "push": {
+        "title": "Notificaciones Push",
+        "description": "Recibe notificaciones push del navegador"
+      },
+      "inApp": {
+        "title": "Notificaciones en la App",
+        "description": "Recibe notificaciones dentro de la aplicación"
+      }
+    },
+    "preferences": {
+      "title": "Tipos de Notificación",
+      "description": "Elige qué notificaciones quieres recibir",
+      "categories": {
+        "account": {
+          "title": "Actividad de la Cuenta",
+          "description": "Notificaciones sobre tu cuenta",
+          "events": {
+            "loginAlert": "Nuevo inicio de sesión desde dispositivo no reconocido",
+            "passwordChanged": "Contraseña cambiada",
+            "profileUpdated": "Información del perfil actualizada"
+          }
+        },
+        "security": {
+          "title": "Alertas de Seguridad",
+          "description": "Notificaciones importantes de seguridad",
+          "events": {
+            "suspiciousActivity": "Actividad sospechosa detectada",
+            "twoFactorEnabled": "Cambios en autenticación de dos factores",
+            "sessionExpired": "Sesión expirada"
+          }
+        },
+        "updates": {
+          "title": "Actualizaciones del Producto",
+          "description": "Noticias sobre funciones y mejoras",
+          "events": {
+            "newFeatures": "Nuevas funciones disponibles",
+            "systemMaintenance": "Mantenimiento programado",
+            "newsletter": "Boletín semanal"
+          }
+        }
+      }
+    },
+    "schedule": {
+      "title": "Horario de Notificaciones",
+      "description": "Establece horas de silencio para las notificaciones",
+      "fields": {
+        "enableQuietHours": "Habilitar Horas de Silencio",
+        "startTime": "Hora de Inicio",
+        "endTime": "Hora de Fin",
+        "timezone": "Zona Horaria",
+        "weekends": "Incluir Fines de Semana"
+      }
+    },
+    "actions": {
+      "save": "Guardar Preferencias",
+      "reset": "Restablecer Valores Predeterminados",
+      "testNotification": "Enviar Notificación de Prueba"
+    },
+    "messages": {
+      "updateSuccess": "Preferencias de notificación actualizadas",
+      "updateError": "No se pudieron actualizar las preferencias de notificación",
+      "testSent": "Notificación de prueba enviada"
+    },
+    "emails": {
+      "transactional": {
+        "title": "Notificaciones por Correo",
+        "description": "Administra notificaciones importantes sobre tu cuenta y actividades",
+        "contacts": {
+          "title": "Contactos",
+          "description": "Alguien de tu equipo agregó o cambió un prospecto."
+        },
+        "inbox": {
+          "title": "Bandeja de entrada",
+          "description": "Un mensaje me fue asignado o fui mencionado."
+        },
+        "weeklySummary": {
+          "title": "Resumen semanal",
+          "description": "Resumen de todas las actividades relevantes de la semana pasada."
+        },
+        "security": {
+          "title": "Correos de seguridad",
+          "description": "Cambios que no requieren confirmación por correo electrónico."
+        },
+        "messages": {
+          "updateSuccess": "Correos transaccionales actualizados",
+          "updateError": "No se pudieron actualizar los correos transaccionales"
+        }
+      },
+      "marketing": {
+        "title": "Correos de Marketing",
+        "description": "Elige qué información promocional y de productos te gustaría recibir",
+        "newsletter": {
+          "title": "Boletín",
+          "description": "Recibe correos llenos de conocimiento de la industria."
+        },
+        "productUpdates": {
+          "title": "Actualizaciones del producto",
+          "description": "Recibe correos con todas las nuevas características y actualizaciones."
+        },
+        "messages": {
+          "updateSuccess": "Correos de marketing actualizados",
+          "updateError": "No se pudieron actualizar los correos de marketing"
+        }
+      },
+      "actions": {
+        "save": "Guardar"
+      }
+    }
+  }
+}

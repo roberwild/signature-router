@@ -1,0 +1,165 @@
+{
+  "title": "Usuarios",
+  "subtitle": "Administrar usuarios de la plataforma",
+  "searchPlaceholder": "Buscar usuarios por nombre, email o teléfono...",
+  "filters": {
+    "all": "Todos",
+    "active": "Activos",
+    "inactive": "Inactivos",
+    "verified": "Verificados",
+    "unverified": "Sin Verificar",
+    "admin": "Administradores"
+  },
+  "actions": {
+    "create": "Nuevo Usuario",
+    "edit": "Editar",
+    "view": "Ver Perfil",
+    "suspend": "Suspender",
+    "activate": "Activar",
+    "delete": "Eliminar",
+    "export": "Exportar",
+    "sendEmail": "Enviar Email",
+    "resetPassword": "Restablecer Contraseña",
+    "impersonate": "Suplantar"
+  },
+  "table": {
+    "name": "Nombre",
+    "email": "Email",
+    "role": "Rol",
+    "organization": "Organización",
+    "status": "Estado",
+    "verified": "Verificado",
+    "createdAt": "Registrado",
+    "lastLogin": "Último Acceso",
+    "actions": "Acciones"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo",
+    "suspended": "Suspendido",
+    "pending": "Pendiente"
+  },
+  "roles": {
+    "admin": "Administrador",
+    "user": "Usuario",
+    "moderator": "Moderador",
+    "viewer": "Observador",
+    "platformAdmin": "Admin Plataforma"
+  },
+  "details": {
+    "title": "Detalles del Usuario",
+    "personalInfo": "Información Personal",
+    "accountInfo": "Información de Cuenta",
+    "permissions": "Permisos",
+    "activity": "Actividad",
+    "sessions": "Sesiones",
+    "security": "Seguridad",
+    "userInformation": "Información del Usuario",
+    "emailStatus": "Estado del Email",
+    "verified": "Verificado",
+    "notVerified": "No Verificado",
+    "accountType": "Tipo de Cuenta",
+    "platformAdmin": "Admin de Plataforma",
+    "regularUser": "Usuario Regular",
+    "joined": "Se Unió",
+    "lastUpdated": "Última Actualización",
+    "organizations": "Organizaciones",
+    "total": "total",
+    "noOrganizations": "Sin organizaciones",
+    "organization": "Organización",
+    "role": "Rol",
+    "serviceInterest": "Interés en Servicios",
+    "clicks": "clics",
+    "services": "servicios",
+    "noActivity": "Sin actividad",
+    "view": "Ver",
+    "recentServiceRequests": "Solicitudes de Servicio Recientes",
+    "noRecentActivity": "Sin actividad reciente",
+    "statistics": "Estadísticas",
+    "serviceRequests": "Solicitudes de Servicio",
+    "serviceClicks": "Clics de Servicio",
+    "adminControls": "Controles de Admin",
+    "saveChanges": "Guardar Cambios",
+    "quickActions": "Acciones Rápidas",
+    "sendEmail": "Enviar Email",
+    "viewServiceRequests": "Ver Solicitudes de Servicio",
+    "backToUsers": "Volver a Usuarios"
+  },
+  "fields": {
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "company": "Empresa",
+    "position": "Cargo",
+    "location": "Ubicación",
+    "bio": "Biografía",
+    "website": "Sitio Web",
+    "timezone": "Zona Horaria",
+    "language": "Idioma"
+  },
+  "stats": {
+    "totalLogins": "Total de Accesos",
+    "lastActivity": "Última Actividad",
+    "accountAge": "Antigüedad de Cuenta",
+    "dataUsage": "Uso de Datos"
+  },
+  "messages": {
+    "createSuccess": "Usuario creado exitosamente",
+    "updateSuccess": "Usuario actualizado exitosamente",
+    "deleteSuccess": "Usuario eliminado exitosamente",
+    "suspendSuccess": "Usuario suspendido exitosamente",
+    "activateSuccess": "Usuario activado exitosamente",
+    "passwordResetSent": "Email de restablecimiento de contraseña enviado",
+    "confirmDelete": "¿Está seguro de que desea eliminar este usuario? Esta acción no se puede deshacer.",
+    "confirmSuspend": "¿Está seguro de que desea suspender este usuario?",
+    "confirmPasswordReset": "¿Está seguro de que desea restablecer la contraseña de este usuario?",
+    "noUsers": "No se encontraron usuarios"
+  },
+  "pageTitle": "Usuarios",
+  "pageSubtitle": "Administrar usuarios de la plataforma",
+  "backToDashboard": "Volver al Panel",
+  "statsCards": {
+    "totalUsers": "Total de Usuarios",
+    "verified": "Verificados",
+    "admins": "Administradores",
+    "newThisMonth": "Nuevos Este Mes",
+    "allTime": "Histórico",
+    "emailVerified": "Email verificado",
+    "platformAdmins": "Administradores de plataforma",
+    "currentMonth": "Mes actual"
+  },
+  "usersTable": {
+    "title": "Todos los Usuarios",
+    "description": "Administrar y ver todos los usuarios en la plataforma con inteligencia de leads",
+    "emptyState": {
+      "title": "Aún no hay usuarios",
+      "description": "Los usuarios aparecerán aquí cuando se registren"
+    }
+  },
+  "userCard": {
+    "admin": "Admin",
+    "verified": "Verificado"
+  },
+  "contactInfo": {
+    "noEmail": "Sin email"
+  },
+  "leadStatus": {
+    "noLeadData": "Sin datos de lead",
+    "hotLead": "Lead Caliente",
+    "warmLead": "Lead Tibio",
+    "coldLead": "Lead Frío",
+    "lowIntent": "Baja Intención",
+    "lastActivity": "Última actividad"
+  },
+  "tableHeaders": {
+    "user": "Usuario",
+    "contact": "Contacto",
+    "leadStatus": "Estado del Lead",
+    "organizations": "Organizaciones",
+    "joined": "Se Unió"
+  },
+  "actions": {
+    "view": "Ver"
+  }
+}

@@ -1,0 +1,222 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fuentes Corporativas Singular Bank - Lynstone */
+@font-face {
+  font-family: 'Lynstone';
+  src: url('/fonts/Lynstone-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lynstone';
+  src: url('/fonts/Lynstone-Book.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lynstone';
+  src: url('/fonts/Lynstone-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    /* Singular Bank Theme - Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    
+    /* Rojo Singular Bank #c63527 */
+    --primary: 7 68% 47%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Gris Claro #F5F5F5 */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+    
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 60%;
+    
+    --accent: 7 68% 47%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 0 0% 93%;
+    --input: 0 0% 93%;
+    --ring: 7 68% 47%;
+    
+    --radius: 0.5rem;
+  }
+  
+  .dark {
+    /* Fondo oscuro profesional */
+    --background: 222 13% 10%;
+    --foreground: 0 0% 98%;
+    
+    /* Cards con contraste suave */
+    --card: 222 13% 14%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 222 13% 14%;
+    --popover-foreground: 0 0% 98%;
+    
+    /* Rojo Singular Bank en oscuro */
+    --primary: 7 68% 50%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Grises oscuros */
+    --secondary: 222 10% 22%;
+    --secondary-foreground: 0 0% 95%;
+    
+    --muted: 222 10% 22%;
+    --muted-foreground: 0 0% 70%;
+    
+    /* Acento rojo */
+    --accent: 222 10% 18%;
+    --accent-foreground: 0 0% 95%;
+    
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Bordes sutiles */
+    --border: 222 10% 22%;
+    --input: 222 10% 22%;
+    --ring: 7 68% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Lynstone', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Singular Bank Custom Styles */
+@layer utilities {
+  .singular-card {
+    @apply bg-white shadow-sm hover:shadow-md transition-shadow border border-border rounded-lg;
+  }
+  
+  .singular-metric-card {
+    @apply singular-card border-l-4 border-l-primary;
+  }
+  
+  /* Lynstone Font Variants */
+  .font-lynstone-light {
+    font-family: 'Lynstone', sans-serif;
+    font-weight: 300;
+  }
+  
+  .font-lynstone {
+    font-family: 'Lynstone', sans-serif;
+    font-weight: 400;
+  }
+  
+  .font-lynstone-semibold {
+    font-family: 'Lynstone', sans-serif;
+    font-weight: 600;
+  }
+}
+
+/* Custom Scrollbar - Estilo Singular Bank */
+@layer base {
+  /* Para navegadores WebKit (Chrome, Safari, Edge) - Light Mode */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #f5f5f5;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+    transition: background 0.2s;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+
+  /* Dark Mode - WebKit Scrollbars */
+  .dark ::-webkit-scrollbar-track {
+    background: #1f2937;
+  }
+
+  .dark ::-webkit-scrollbar-thumb {
+    background: #4b5563;
+  }
+
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background: #6b7280;
+  }
+
+  /* Para Firefox - Light Mode */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f5f5f5;
+  }
+
+  /* Para Firefox - Dark Mode */
+  .dark * {
+    scrollbar-color: #4b5563 #1f2937;
+  }
+
+  /* Scrollbar más sutil en tablas y contenedores específicos - Light Mode */
+  .overflow-x-auto::-webkit-scrollbar,
+  .overflow-y-auto::-webkit-scrollbar {
+    height: 6px;
+    width: 6px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-track,
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb,
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 3px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb:hover,
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #d1d5db;
+  }
+
+  /* Scrollbar más sutil en tablas y contenedores - Dark Mode */
+  .dark .overflow-x-auto::-webkit-scrollbar-thumb,
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #374151;
+  }
+
+  .dark .overflow-x-auto::-webkit-scrollbar-thumb:hover,
+  .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #4b5563;
+  }
+}
+

@@ -1,0 +1,194 @@
+{
+  "title": "Lead Management",
+  "subtitle": "Comprehensive lead tracking and analytics",
+  "searchPlaceholder": "Search leads...",
+  "tabs": {
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "scoring": "Scoring & AI"
+  },
+  "filters": {
+    "all": "All",
+    "new": "New",
+    "contacted": "Contacted",
+    "qualified": "Qualified",
+    "converted": "Converted",
+    "lost": "Lost"
+  },
+  "actions": {
+    "create": "New Lead",
+    "import": "Import Leads",
+    "export": "Export",
+    "contact": "Contact",
+    "qualify": "Qualify",
+    "convert": "Convert",
+    "archive": "Archive",
+    "delete": "Delete",
+    "assignTo": "Assign to",
+    "bulkEmail": "Bulk Email"
+  },
+  "table": {
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "company": "Company",
+    "source": "Source",
+    "score": "Score",
+    "status": "Status",
+    "assignedTo": "Assigned to",
+    "createdAt": "Created Date",
+    "lastContact": "Last Contact",
+    "actions": "Actions"
+  },
+  "status": {
+    "new": "New",
+    "contacted": "Contacted",
+    "qualified": "Qualified",
+    "proposal": "Proposal",
+    "negotiation": "Negotiation",
+    "converted": "Converted",
+    "lost": "Lost"
+  },
+  "sources": {
+    "website": "Website",
+    "referral": "Referral",
+    "socialMedia": "Social Media",
+    "email": "Email",
+    "phone": "Phone",
+    "event": "Event",
+    "advertisement": "Advertisement",
+    "other": "Other"
+  },
+  "details": {
+    "title": "Lead Details",
+    "contactInfo": "Contact Information",
+    "companyInfo": "Company Information",
+    "leadInfo": "Lead Information",
+    "activity": "Activity",
+    "notes": "Notes",
+    "timeline": "Timeline",
+    "tasks": "Tasks"
+  },
+  "scoring": {
+    "title": "Lead Scoring",
+    "demographic": "Demographic",
+    "behavioral": "Behavioral",
+    "engagement": "Engagement",
+    "total": "Total",
+    "aiPowered": {
+      "title": "AI-Powered Lead Scoring",
+      "subtitle": "Machine learning assessment for lead quality and prioritization",
+      "overview": "Lead Scoring Overview",
+      "overviewSubtitle": "AI-powered lead quality assessment and prioritization"
+    },
+    "actions": {
+      "refresh": "Refresh",
+      "recalculateAll": "Recalculate All"
+    },
+    "metrics": {
+      "totalLeads": "Total Leads",
+      "highValueLeads": "High Value Leads",
+      "scoreThreshold": "Score ≥ 80",
+      "atRiskLeads": "At Risk Leads",
+      "needAttention": "Need immediate attention",
+      "averageScore": "Average Score"
+    },
+    "tabs": {
+      "topLeads": "Top Leads",
+      "scoreDistribution": "Score Distribution",
+      "factorAnalysis": "Factor Analysis",
+      "insights": "Insights"
+    },
+    "leaderboard": {
+      "title": "Lead Leaderboard",
+      "subtitle": "Top performing leads ranked by score",
+      "allCategories": "All Categories"
+    },
+    "table": {
+      "rank": "Rank",
+      "lead": "Lead",
+      "score": "Score",
+      "category": "Category",
+      "risk": "Risk",
+      "completedSessions": "Completed Sessions",
+      "lastActivity": "Last Activity",
+      "recommendations": "Recommendations"
+    }
+  },
+  "analytics": {
+    "keyMetrics": {
+      "totalLeads": "Total Leads",
+      "totalLeadsSubtitle": "Last 30 days",
+      "totalLeadsTrend": "+12% from last month",
+      "completionRate": "Completion Rate",
+      "completionRateSubtitle": "Forms completed",
+      "completionRateTrend": "+5% from last month",
+      "avgCompletionTime": "Avg Completion Time",
+      "avgCompletionTimeSubtitle": "Time to complete",
+      "averageScore": "Average Score",
+      "averageScoreSubtitle": "Out of 100"
+    },
+    "conversionFunnel": {
+      "title": "Conversion Funnel",
+      "subtitle": "Lead journey from qualification to customer",
+      "leads": "Leads",
+      "qualified": "Qualified",
+      "serviceRequested": "Service Requested",
+      "serviceCompleted": "Service Completed (Customer)"
+    },
+    "leadDistribution": {
+      "title": "Lead Distribution",
+      "subtitle": "Breakdown by classification",
+      "a1Hot": "A1 - Hot",
+      "a1HotDescription": "Immediate action",
+      "b1Warm": "B1 - Warm",
+      "b1WarmDescription": "24h follow-up",
+      "c1Cold": "C1 - Cold",
+      "c1ColdDescription": "72h follow-up",
+      "d1Info": "D1 - Info",
+      "d1InfoDescription": "Weekly check"
+    },
+    "deviceAnalysis": {
+      "title": "Device Analysis",
+      "subtitle": "Form completion by device type",
+      "desktop": "Desktop",
+      "mobile": "Mobile",
+      "tablet": "Tablet"
+    },
+    "abandonmentAnalysis": {
+      "title": "Abandonment Analysis",
+      "subtitle": "Where users drop off in the questionnaire",
+      "abandonmentRate": "abandonment rate",
+      "noDataAvailable": "No abandonment data available",
+      "abandonments": "abandonments"
+    },
+    "dailyTrend": {
+      "title": "Daily Lead Trend",
+      "subtitle": "Lead volume and quality over the last 7 days",
+      "noDataAvailable": "No trend data available",
+      "leads": "leads",
+      "avg": "Avg"
+    },
+    "conversionPerformance": {
+      "title": "Conversion Performance",
+      "subtitle": "Lead to customer conversion rates",
+      "a1LeadConversion": "A1 Lead Conversion",
+      "b1LeadConversion": "B1 Lead Conversion",
+      "overallConversion": "Overall Conversion",
+      "avgTimeToConvert": "Avg Time to Convert"
+    }
+  },
+  "messages": {
+    "createSuccess": "Lead created successfully",
+    "updateSuccess": "Lead updated successfully",
+    "deleteSuccess": "Lead deleted successfully",
+    "importSuccess": "Leads imported successfully",
+    "contactSuccess": "Lead contacted successfully",
+    "qualifySuccess": "Lead qualified successfully",
+    "convertSuccess": "Lead converted successfully",
+    "assignSuccess": "Lead assigned successfully",
+    "confirmDelete": "Are you sure you want to delete this lead?",
+    "confirmArchive": "Are you sure you want to archive this lead?",
+    "noLeads": "No leads found"
+  }
+}

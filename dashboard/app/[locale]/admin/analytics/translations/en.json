@@ -1,0 +1,284 @@
+{
+  "pageTitle": "Lead Management",
+  "pageDescription": "Comprehensive lead tracking and analytics",
+  "tabs": {
+    "overview": "Overview",
+    "analytics": "Analytics",
+    "scoring": "Scoring & AI"
+  },
+  "overview": {
+    "statsCards": {
+      "totalLeads": "Total Leads",
+      "thisWeek": "this week",
+      "qualified": "Qualified",
+      "readyForOutreach": "Ready for outreach",
+      "averageScore": "Average Score",
+      "outOf100": "Out of 100",
+      "hotLeads": "Hot Leads",
+      "immediateActionNeeded": "Immediate action needed"
+    },
+    "distribution": {
+      "title": "Lead Classification Distribution",
+      "description": "Current leads by priority classification",
+      "viewAnalytics": "View Analytics",
+      "classifications": {
+        "a1": {
+          "label": "A1 - Hot",
+          "description": "Immediate response (15 min)"
+        },
+        "b1": {
+          "label": "B1 - Warm",
+          "description": "Quick follow-up (24h)"
+        },
+        "c1": {
+          "label": "C1 - Cold",
+          "description": "Standard follow-up (72h)"
+        },
+        "d1": {
+          "label": "D1 - Info",
+          "description": "Nurture campaign"
+        }
+      }
+    },
+    "recentLeads": {
+      "title": "Recent Leads",
+      "description": "Latest qualified leads requiring attention",
+      "markAsViewed": "Mark as Viewed",
+      "markAllAsViewed": "Mark {count} as Viewed",
+      "marking": "Marking...",
+      "filter": "Filter",
+      "unknownCompany": "Unknown Company",
+      "noEmail": "No email",
+      "score": "Score",
+      "new": "New",
+      "noLeadsFound": "No leads found"
+    },
+    "mainConcerns": {
+      "security_concerns": "Security Concerns",
+      "cost_reduction": "Cost Reduction",
+      "compliance": "Compliance",
+      "operational_efficiency": "Operational Efficiency",
+      "digital_transformation": "Digital Transformation",
+      "unknown": "Unknown"
+    }
+  },
+  "analytics": {
+    "keyMetrics": {
+      "totalLeads": "Total Leads",
+      "last30Days": "Last 30 days",
+      "increaseFromLastMonth": "+12% from last month",
+      "completionRate": "Completion Rate",
+      "formsCompleted": "Forms completed",
+      "completionIncrease": "+5% from last month",
+      "avgCompletionTime": "Avg Completion Time",
+      "timeToComplete": "Time to complete",
+      "averageScore": "Average Score",
+      "outOf100": "Out of 100"
+    },
+    "conversionFunnel": {
+      "title": "Conversion Funnel",
+      "description": "Lead journey from qualification to customer",
+      "stages": {
+        "leads": "Leads",
+        "qualified": "Qualified",
+        "serviceRequested": "Service Requested",
+        "serviceCompleted": "Service Completed (Customer)"
+      }
+    },
+    "leadDistribution": {
+      "title": "Lead Distribution",
+      "description": "Breakdown by classification",
+      "classifications": {
+        "a1": {
+          "label": "A1 - Hot",
+          "description": "Immediate action"
+        },
+        "b1": {
+          "label": "B1 - Warm",
+          "description": "24h follow-up"
+        },
+        "c1": {
+          "label": "C1 - Cold",
+          "description": "72h follow-up"
+        },
+        "d1": {
+          "label": "D1 - Info",
+          "description": "Weekly check"
+        }
+      }
+    },
+    "deviceAnalysis": {
+      "title": "Device Analysis",
+      "description": "Form completion by device type",
+      "devices": {
+        "desktop": "Desktop",
+        "mobile": "Mobile",
+        "tablet": "Tablet"
+      }
+    },
+    "abandonmentAnalysis": {
+      "title": "Abandonment Analysis",
+      "description": "Where users drop off in the questionnaire",
+      "abandonmentRate": "abandonment rate",
+      "abandonments": "abandonments",
+      "noDataAvailable": "No abandonment data available"
+    },
+    "dailyTrend": {
+      "title": "Daily Lead Trend",
+      "description": "Lead volume and quality over the last 7 days",
+      "leads": "leads",
+      "avg": "Avg",
+      "noTrendData": "No trend data available"
+    },
+    "conversionPerformance": {
+      "title": "Conversion Performance",
+      "description": "Lead to customer conversion rates",
+      "a1LeadConversion": "A1 Lead Conversion",
+      "b1LeadConversion": "B1 Lead Conversion",
+      "overallConversion": "Overall Conversion",
+      "avgTimeToConvert": "Avg Time to Convert"
+    }
+  },
+  "scoring": {
+    "title": "AI-Powered Lead Scoring",
+    "description": "Machine learning assessment for lead quality and prioritization",
+    "loadingScores": "Loading lead scores...",
+    "overview": {
+      "title": "Lead Scoring Overview",
+      "description": "AI-powered lead quality assessment and prioritization",
+      "refresh": "Refresh",
+      "recalculateAll": "Recalculate All"
+    },
+    "summaryCards": {
+      "totalLeads": "Total Leads",
+      "highValueLeads": "High Value Leads",
+      "highValueDescription": "Score ≥ 80",
+      "atRiskLeads": "At Risk Leads",
+      "atRiskDescription": "Need immediate attention",
+      "averageScore": "Average Score"
+    },
+    "tabs": {
+      "topLeads": "Top Leads",
+      "scoreDistribution": "Score Distribution",
+      "factorAnalysis": "Factor Analysis",
+      "insights": "Insights"
+    },
+    "leaderboard": {
+      "title": "Lead Leaderboard",
+      "description": "Top performing leads ranked by score",
+      "filters": {
+        "allCategories": "All Categories",
+        "a1Hot": "A1 - Hot",
+        "b1Warm": "B1 - Warm",
+        "c1Cool": "C1 - Cool",
+        "d1Cold": "D1 - Cold",
+        "sortBy": "Sort by",
+        "score": "Score",
+        "lastActivity": "Last Activity",
+        "riskLevel": "Risk Level"
+      },
+      "tableHeaders": {
+        "rank": "Rank",
+        "lead": "Lead",
+        "score": "Score",
+        "category": "Category",
+        "risk": "Risk",
+        "completedSessions": "Completed Sessions",
+        "lastActivity": "Last Activity",
+        "recommendations": "Recommendations"
+      },
+      "scoreBadges": {
+        "hot": "Hot",
+        "warm": "Warm",
+        "cool": "Cool",
+        "cold": "Cold"
+      },
+      "riskBadges": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "unknown": "Unknown"
+      }
+    },
+    "distribution": {
+      "scoreDistribution": {
+        "title": "Score Distribution",
+        "description": "Distribution of lead scores across ranges"
+      },
+      "categoryBreakdown": {
+        "title": "Category Breakdown",
+        "description": "Lead distribution by category"
+      },
+      "categoryPerformance": {
+        "title": "Category Performance",
+        "description": "Average scores and conversion rates by category",
+        "leads": "leads",
+        "avgScore": "Avg Score",
+        "conversion": "Conversion"
+      },
+      "scorePercentiles": {
+        "title": "Score Percentiles",
+        "description": "Score distribution percentages",
+        "score": "Score"
+      }
+    },
+    "factors": {
+      "analysis": {
+        "title": "Scoring Factor Analysis",
+        "description": "Performance across different scoring factors"
+      },
+      "impact": {
+        "title": "Factor Impact Analysis",
+        "description": "Weight and performance of each scoring factor",
+        "impact": "impact",
+        "weight": "Weight",
+        "avg": "Avg",
+        "impactLevels": {
+          "high": "high",
+          "medium": "medium",
+          "low": "low"
+        }
+      }
+    },
+    "insights": {
+      "opportunities": {
+        "title": "Improvement Opportunities",
+        "description": "Key areas to focus on for better lead quality",
+        "impactLevel": "Impact"
+      },
+      "statistics": {
+        "title": "Scoring Statistics",
+        "description": "Key metrics about your lead scoring performance",
+        "averageScore": "Average Score",
+        "highValue": "High Value",
+        "atRisk": "At Risk",
+        "distributionQuality": "Score Distribution Quality",
+        "distributionMessage": "Your leads show good score distribution across categories",
+        "modelPerformance": "Model Performance",
+        "modelMessage": "Scoring model is performing well with good factor correlation",
+        "qualityBadges": {
+          "good": "Good",
+          "excellent": "Excellent"
+        }
+      }
+    },
+    "errors": {
+      "loadingError": "Error Loading Lead Scores",
+      "loadingDescription": "Failed to load lead scoring data. Please try again.",
+      "retry": "Retry"
+    },
+    "toast": {
+      "refreshed": "Lead scores refreshed",
+      "recalculated": "Lead scores recalculated",
+      "recalculateError": "Failed to recalculate scores"
+    }
+  },
+  "common": {
+    "dateFormats": {
+      "weekdayShortMonthDay": "EEE, MMM d"
+    },
+    "loading": "Loading...",
+    "error": "Error",
+    "noData": "No data available"
+  }
+}

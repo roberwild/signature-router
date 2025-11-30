@@ -1,0 +1,180 @@
+{
+  "title": "Organizations",
+  "subtitle": "Manage platform organizations",
+  "searchPlaceholder": "Search organizations...",
+  "filters": {
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "suspended": "Suspended"
+  },
+  "actions": {
+    "create": "New Organization",
+    "edit": "Edit",
+    "view": "View",
+    "viewDetails": "View Details",
+    "suspend": "Suspend",
+    "activate": "Activate",
+    "delete": "Delete",
+    "export": "Export",
+    "back": "Back to Dashboard"
+  },
+  "table": {
+    "total": "total",
+    "name": "Name",
+    "slug": "Slug",
+    "organization": "Organization",
+    "owner": "Owner",
+    "users": "Users",
+    "members": "Members",
+    "leadStatus": "Lead Status",
+    "status": "Status",
+    "plan": "Plan",
+    "createdAt": "Created",
+    "lastActivity": "Last Activity",
+    "actions": "Actions",
+    "searchPlaceholder": "Search organizations by name or slug..."
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "suspended": "Suspended",
+    "trial": "Trial",
+    "expired": "Expired",
+    "noOwner": "No owner",
+    "noLeadData": "No lead data"
+  },
+  "leadClassification": {
+    "A1": "Hot Lead",
+    "B1": "Warm Lead",
+    "C1": "Cold Lead",
+    "D1": "Low Intent",
+    "best": "Best",
+    "avg": "Avg",
+    "lead": "lead",
+    "leads": "leads"
+  },
+  "plans": {
+    "free": "Free",
+    "starter": "Starter",
+    "professional": "Professional",
+    "enterprise": "Enterprise"
+  },
+  "details": {
+    "title": "Organization Details",
+    "information": "Information",
+    "settings": "Settings",
+    "members": "Members",
+    "activity": "Activity",
+    "billing": "Billing",
+    "danger": "Danger Zone"
+  },
+  "stats": {
+    "totalOrganizations": "Total Organizations",
+    "newThisMonth": "New This Month",
+    "totalMembers": "Total Members",
+    "totalUsers": "Total Users",
+    "activeUsers": "Active Users",
+    "storage": "Storage Used",
+    "apiCalls": "API Calls",
+    "allTime": "All time",
+    "currentMonth": "Current month",
+    "acrossAllOrganizations": "Across all organizations"
+  },
+  "cards": {
+    "allOrganizations": "All Organizations",
+    "allOrganizationsDescription": "Manage and view all organizations with lead intelligence"
+  },
+  "empty": {
+    "noOrganizations": "No organizations yet",
+    "noOrganizationsDescription": "Organizations will appear here when created"
+  },
+  "actions": {
+    "create": "New Organization",
+    "edit": "Edit",
+    "view": "View",
+    "viewDetails": "View Details",
+    "suspend": "Suspend",
+    "activate": "Activate",
+    "delete": "Delete",
+    "export": "Export",
+    "back": "Back to Dashboard",
+    "openMenu": "Open menu",
+    "copyOrganizationId": "Copy organization ID",
+    "copySlug": "Copy slug",
+    "viewOrganization": "View Organization",
+    "viewMembers": "View members",
+    "contactOwner": "Contact owner",
+    "editDetails": "Edit Details",
+    "addMember": "Add Member",
+    "transferOwnership": "Transfer Ownership",
+    "deleteOrganization": "Delete Organization",
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "transferring": "Transferring...",
+    "adding": "Adding..."
+  },
+  "dialogs": {
+    "editOrganization": {
+      "title": "Edit Organization",
+      "description": "Update the organization's name and slug. These changes will affect how the organization appears across the platform.",
+      "organizationName": "Organization Name",
+      "nameplaceholder": "Enter organization name",
+      "urlSlug": "URL Slug",
+      "slugPlaceholder": "organization-slug",
+      "urlPreview": "Used in URLs:"
+    },
+    "deleteOrganization": {
+      "title": "Are you absolutely sure?",
+      "description": "This action cannot be undone. This will permanently delete the organization and remove all associated data including members, evaluations, and settings."
+    },
+    "transferOwnership": {
+      "title": "Transfer Organization Ownership",
+      "description": "Select a new owner for the organization. Only organization members can be selected as the new owner.",
+      "selectNewOwner": "Select New Owner",
+      "selectPlaceholder": "Choose a member to become the new owner",
+      "noMembers": "No other members found in this organization. Members must be added to the organization before ownership can be transferred.",
+      "warningText": "The selected member will become the new owner and gain full administrative access to the organization."
+    },
+    "addMember": {
+      "title": "Add Member to Organization",
+      "description": "Select a user to add as a member to the organization. They will gain access to view and manage organization data.",
+      "searchUsers": "Search Users",
+      "searchPlaceholder": "Filter users by name or email...",
+      "selectUser": "Select User",
+      "selectPlaceholder": "Choose a user to add as member",
+      "noUsers": "No available users found. All platform users are already members of this organization.",
+      "warningText": "The selected user will become a member and can access organization resources."
+    }
+  },
+  "toasts": {
+    "organizationIdCopied": "Organization ID copied to clipboard",
+    "slugCopied": "Slug copied to clipboard",
+    "selectUser": "Please select a user to add",
+    "selectNewOwner": "Please select a new owner",
+    "memberAddedSuccess": "Member added successfully",
+    "ownershipTransferredSuccess": "Ownership transferred successfully",
+    "organizationUpdatedSuccess": "Organization updated successfully",
+    "organizationDeletedSuccess": "Organization deleted successfully",
+    "failedToLoadMembers": "Failed to load organization members",
+    "failedToLoadUsers": "Failed to load available users",
+    "failedToAddMember": "Failed to add member",
+    "failedToTransferOwnership": "Failed to transfer ownership",
+    "failedToUpdateOrganization": "Failed to update organization",
+    "failedToDeleteOrganization": "Failed to delete organization"
+  },
+  "messages": {
+    "createSuccess": "Organization created successfully",
+    "updateSuccess": "Organization updated successfully",
+    "deleteSuccess": "Organization deleted successfully",
+    "suspendSuccess": "Organization suspended successfully",
+    "activateSuccess": "Organization activated successfully",
+    "confirmDelete": "Are you sure you want to delete this organization? This action cannot be undone.",
+    "confirmSuspend": "Are you sure you want to suspend this organization?",
+    "noOrganizations": "No organizations found"
+  }
+}

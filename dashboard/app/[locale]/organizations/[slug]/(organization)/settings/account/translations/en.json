@@ -1,0 +1,302 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "copy": "Copy",
+    "download": "Download",
+    "save": "Save"
+  },
+  "navigation": {
+    "account": "Account",
+    "security": "Security",
+    "notifications": "Notifications"
+  },
+  "profile": {
+    "title": "Profile",
+    "personalDetails": {
+      "title": "Personal Details",
+      "description": "Update your personal information",
+      "fields": {
+        "name": "Name",
+        "phone": "Phone",
+        "email": "Email",
+        "avatar": "Avatar"
+      },
+      "actions": {
+        "changeEmail": "Change",
+        "removeImage": "Remove image",
+        "save": "Save",
+        "uploadImage": "Upload image"
+      },
+      "messages": {
+        "updateSuccess": "Personal details updated",
+        "updateError": "Couldn't update personal details",
+        "imageSizeError": "Uploaded image shouldn't exceed {{size}} MB size limit"
+      }
+    },
+    "preferences": {
+      "title": "Preferences",
+      "description": "Manage your account preferences",
+      "fields": {
+        "language": "Language",
+        "languageDescription": "This is the language that will be used in the application.",
+        "theme": "Theme",
+        "themeDescription": "Select the theme for the application.",
+        "themeOptions": {
+          "light": "Light",
+          "dark": "Dark",
+          "system": "System"
+        }
+      },
+      "actions": {
+        "save": "Save"
+      },
+      "messages": {
+        "updateSuccess": "Preferences updated",
+        "updateError": "Couldn't update preferences"
+      }
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "description": "Irreversible and destructive actions",
+      "deleteAccount": {
+        "title": "Delete Account",
+        "description": "Permanently delete your account and all associated data",
+        "button": "Delete Account",
+        "confirmTitle": "Are you absolutely sure?",
+        "confirmDescription": "This action cannot be undone. This will permanently delete your account and remove your data from our servers.",
+        "confirmButton": "Yes, delete my account"
+      }
+    }
+  },
+  "security": {
+    "changePassword": {
+      "title": "Change Password",
+      "description": "Update your password to keep your account secure",
+      "fields": {
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password"
+      },
+      "actions": {
+        "changePassword": "Change Password"
+      },
+      "messages": {
+        "updateSuccess": "Password changed successfully",
+        "updateError": "Couldn't change password"
+      }
+    },
+    "multiFactorAuth": {
+      "title": "Two-Factor Authentication",
+      "description": "Add an extra layer of security to your account",
+      "status": {
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
+      "actions": {
+        "enable": "Enable 2FA",
+        "disable": "Disable 2FA",
+        "regenerateCodes": "Regenerate Backup Codes"
+      },
+      "modal": {
+        "disable": {
+          "title": "Disable authenticator app?",
+          "description": "The authenticator app will be disabled, are you sure you want to continue?",
+          "confirm": "Yes, disable"
+        },
+        "enable": {
+          "title": "Authenticator app",
+          "description": "Add an authenticator app by filling out the form below.",
+          "instruction": "Using an authenticator app like Google Authenticator, Microsoft Authenticator, Authy or 1Password scan this QR code. It will generate a 6 digit code for you to enter below.",
+          "codeLabel": "Enter 6-digit code from the app",
+          "issuerHelp": "If your app asks for an issuer use \"{{issuer}}\" and for an account name use \"{{accountName}}\".",
+          "turnOn": "Turn on"
+        },
+        "recoveryCodes": {
+          "title": "Recovery codes",
+          "description": "Each recovery code can be used exactly once to grant access without your authenticator.",
+          "copy": "Copy",
+          "download": "Download",
+          "close": "Close"
+        }
+      },
+      "messages": {
+        "enableSuccess": "Authenticator app enabled",
+        "enableError": "Couldn't enable authenticator app",
+        "disableSuccess": "Authenticator app disabled",
+        "disableError": "Couldn't disable authenticator app",
+        "codesCopied": "Copied!",
+        "setupError": "Couldn't generate TOTP setup data"
+      }
+    },
+    "sessions": {
+      "title": "Active Sessions",
+      "description": "Manage your active sessions across devices",
+      "currentSession": "Current Session",
+      "otherSessions": "Other Sessions",
+      "sessionInfo": {
+        "browser": "Browser",
+        "device": "Device",
+        "location": "Location",
+        "lastActive": "Last Active"
+      },
+      "actions": {
+        "revokeSession": "Revoke Session",
+        "revokeAllSessions": "Revoke All Other Sessions"
+      },
+      "status": {
+        "expired": "Expired",
+        "expiresOn": "Expires on {{date}}"
+      },
+      "messages": {
+        "sessionRevoked": "Session signed out",
+        "sessionRevokeError": "Couldn't sign out session"
+      },
+      "emptyState": "No session found."
+    },
+    "connectedAccounts": {
+      "title": "Connected Accounts",
+      "description": "Manage third-party accounts connected to your profile",
+      "providers": {
+        "google": "Google",
+        "github": "GitHub",
+        "microsoft": "Microsoft"
+      },
+      "actions": {
+        "connect": "Connect",
+        "disconnect": "Disconnect"
+      },
+      "status": {
+        "connected": "Connected",
+        "disconnected": "Not connected"
+      },
+      "messages": {
+        "connected": "Account connected",
+        "disconnected": "Account disconnected",
+        "connectError": "Couldn't connect account",
+        "disconnectError": "Couldn't disconnect account"
+      },
+      "emptyState": "No connected account found.",
+      "passwordHint": "Regardless of connected accounts, you will always have a password login as well."
+    }
+  },
+  "notifications": {
+    "title": "Notification Preferences",
+    "description": "Manage how and when you receive notifications",
+    "channels": {
+      "title": "Notification Channels",
+      "description": "Choose how you want to receive notifications",
+      "email": {
+        "title": "Email Notifications",
+        "description": "Receive notifications via email"
+      },
+      "push": {
+        "title": "Push Notifications",
+        "description": "Receive browser push notifications"
+      },
+      "inApp": {
+        "title": "In-App Notifications",
+        "description": "Receive notifications within the application"
+      }
+    },
+    "preferences": {
+      "title": "Notification Types",
+      "description": "Choose which notifications you want to receive",
+      "categories": {
+        "account": {
+          "title": "Account Activity",
+          "description": "Notifications about your account",
+          "events": {
+            "loginAlert": "New login from unrecognized device",
+            "passwordChanged": "Password changed",
+            "profileUpdated": "Profile information updated"
+          }
+        },
+        "security": {
+          "title": "Security Alerts",
+          "description": "Important security notifications",
+          "events": {
+            "suspiciousActivity": "Suspicious activity detected",
+            "twoFactorEnabled": "Two-factor authentication changes",
+            "sessionExpired": "Session expired"
+          }
+        },
+        "updates": {
+          "title": "Product Updates",
+          "description": "News about features and improvements",
+          "events": {
+            "newFeatures": "New features available",
+            "systemMaintenance": "Scheduled maintenance",
+            "newsletter": "Weekly newsletter"
+          }
+        }
+      }
+    },
+    "schedule": {
+      "title": "Notification Schedule",
+      "description": "Set quiet hours for notifications",
+      "fields": {
+        "enableQuietHours": "Enable Quiet Hours",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "timezone": "Timezone",
+        "weekends": "Include Weekends"
+      }
+    },
+    "actions": {
+      "save": "Save Preferences",
+      "reset": "Reset to Default",
+      "testNotification": "Send Test Notification"
+    },
+    "messages": {
+      "updateSuccess": "Notification preferences updated",
+      "updateError": "Couldn't update notification preferences",
+      "testSent": "Test notification sent"
+    },
+    "emails": {
+      "transactional": {
+        "title": "Email Notifications",
+        "description": "Manage important notifications about your account and activities",
+        "contacts": {
+          "title": "Contacts",
+          "description": "Someone on your team added or changed a lead."
+        },
+        "inbox": {
+          "title": "Inbox",
+          "description": "Message is assigned to me or I got mentioned."
+        },
+        "weeklySummary": {
+          "title": "Weekly summary",
+          "description": "Summary of all relevant acitivities in the past week."
+        },
+        "security": {
+          "title": "Security emails",
+          "description": "Changes that do not require an email confirmation."
+        },
+        "messages": {
+          "updateSuccess": "Transactional emails updated",
+          "updateError": "Couldn't update transactional emails"
+        }
+      },
+      "marketing": {
+        "title": "Marketing Emails",
+        "description": "Choose what promotional and product information you'd like to receive",
+        "newsletter": {
+          "title": "Newsletter",
+          "description": "Receive emails filled with industry expertise."
+        },
+        "productUpdates": {
+          "title": "Product updates",
+          "description": "Receive emails with all new features and updates."
+        },
+        "messages": {
+          "updateSuccess": "Marketing emails updated",
+          "updateError": "Couldn't update marketing emails"
+        }
+      },
+      "actions": {
+        "save": "Save"
+      }
+    }
+  }
+}

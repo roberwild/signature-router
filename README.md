@@ -1,12 +1,41 @@
-# Signature Router & Management System
+# 🏦 Signature Router Platform
 
-Banking-grade digital signature routing and management system built with **Domain-Driven Design (DDD)** and **Hexagonal Architecture**.
+Sistema completo de enrutamiento inteligente de firmas digitales para Singular Bank, construido con **Domain-Driven Design (DDD)** y **Hexagonal Architecture**.
 
-## 📋 Overview
+## 📋 Descripción General
 
-The Signature Router orchestrates multi-channel digital signature delivery (SMS, PUSH, VOICE, BIOMETRIC) with intelligent routing, cost optimization, and resilience patterns. Designed for banking compliance (PCI-DSS, GDPR, SOC 2).
+La **Signature Router Platform** es una solución enterprise-grade que orquesta la entrega multi-canal de firmas digitales (SMS, PUSH, VOICE, BIOMETRIC) con enrutamiento inteligente, optimización de costos y patrones de resiliencia. Diseñada para cumplir con normativas bancarias (PCI-DSS, GDPR, SOC 2).
 
-> **🔄 Integration Strategy:** Current implementation uses direct provider connections (Twilio, FCM). **Future migration to MuleSoft API Gateway** planned with **zero-downtime** plug-and-play adapter swap. See [MuleSoft Integration Strategy](docs/architecture/08-mulesoft-integration-strategy.md) for details.
+## 🏗️ Estructura del Proyecto
+
+Este repositorio contiene tres componentes principales:
+
+### 📁 Estructura de Directorios
+
+```
+signature-router/
+├── svc-signature-router/         # 🔧 Backend Service (Spring Boot)
+│   ├── src/                      # Código fuente Java
+│   ├── docker-compose.yml        # Infraestructura local
+│   ├── pom.xml                   # Configuración Maven
+│   └── README.md                 # Documentación del backend
+│
+├── app-signature-router-admin/   # 🎨 Admin Panel (Next.js 15)
+│   ├── app/                      # App Router de Next.js
+│   ├── components/               # Componentes React
+│   ├── package.json              # Dependencias npm
+│   └── README.md                 # Documentación del frontend
+│
+├── dashboard/                    # 📊 Dashboard Legacy (migrado)
+│   └── ...                       # Dashboard anterior (deprecado)
+│
+└── docs/                         # 📚 Documentación General
+    ├── INFORME-EJECUTIVO-CTO.md  # Informe para CTO
+    ├── sprint-artifacts/         # Documentación de sprints
+    └── ...                       # Otra documentación
+```
+
+> **🔄 Integration Strategy:** Current implementation uses direct provider connections (Twilio, FCM). **Future migration to MuleSoft API Gateway** planned with **zero-downtime** plug-and-play adapter swap.
 
 ### ⚠️ Project Status (Updated: 29-Nov-2025)
 
@@ -64,181 +93,216 @@ com.bank.signature/
 
 **For detailed architecture, see**: [`docs/architecture/README.md`](docs/architecture/README.md)
 
-## 🚀 Tech Stack
+## 🚀 Componentes del Sistema
 
-| Component | Technology | Version |
-|-----------|------------|---------|
-| **Backend** | Spring Boot | 3.2.0 |
-| **Language** | Java | 21 |
-| **Build Tool** | Maven | 3.9+ |
-| **Database** | PostgreSQL | 15 |
-| **Messaging** | Apache Kafka | 3.6 (Confluent) |
-| **Secret Management** | HashiCorp Vault | 1.15 |
-| **Testing** | JUnit 5, Testcontainers, ArchUnit | - |
-| **API Docs** | OpenAPI 3.1 | - |
+### 1. Backend Service (`svc-signature-router/`)
 
-## 📦 Prerequisites
+Microservicio Spring Boot con arquitectura hexagonal que gestiona la lógica de negocio:
 
-Before you begin, ensure you have the following installed:
+- **Stack Tecnológico:**
+  - Java 21 + Spring Boot 3.2
+  - PostgreSQL 15 (base de datos)
+  - Apache Kafka (mensajería)
+  - HashiCorp Vault (secretos)
+  - Keycloak (OAuth2/JWT)
 
-- **Java 21+** (OpenJDK or Oracle JDK) - [Download](https://adoptium.net/)
-- **Maven 3.9+** (or use included Maven Wrapper `./mvnw`)
-- **Docker & Docker Compose** (for local infrastructure: PostgreSQL, Kafka, Vault)
-- **Git** (for version control)
+- **Características:**
+  - ✅ Motor de routing con reglas SpEL
+  - ✅ Integración multi-proveedor (SMS, PUSH, VOICE, BIOMETRIC)
+  - ✅ Circuit breakers y fallback automático
+  - ✅ Event-driven con Kafka + Outbox pattern
+  - ✅ Observabilidad completa (Prometheus, Grafana, Jaeger)
+
+- **Documentación:** Ver [`svc-signature-router/README.md`](svc-signature-router/README.md)
+
+### 2. Admin Panel (`app-signature-router-admin/`)
+
+Panel de administración moderno construido con Next.js 15 y React 19:
+
+- **Stack Tecnológico:**
+  - Next.js 15 (App Router)
+  - React 19 + TypeScript
+  - Tailwind CSS + shadcn/ui
+  - Recharts (gráficos)
+
+- **Características:**
+  - ✅ Dashboard ejecutivo con métricas en tiempo real
+  - ✅ Gestión de reglas de routing (CRUD)
+  - ✅ Monitoreo de firmas y proveedores
+  - ✅ Análisis de costos y rendimiento
+  - ✅ Modo oscuro con persistencia
+
+- **Documentación:** Ver [`app-signature-router-admin/README.md`](app-signature-router-admin/README.md)
+
+### 3. Documentación General (`docs/`)
+
+Documentación ejecutiva, técnica y de proyecto:
+
+- [`docs/INFORME-EJECUTIVO-CTO.md`](docs/INFORME-EJECUTIVO-CTO.md) - Informe completo para CTO
+- [`docs/sprint-artifacts/`](docs/sprint-artifacts/) - Documentación de épicas y sprints
+- [`docs/observability/`](docs/observability/) - Guías de observabilidad
+
+## 🚀 Tech Stack Consolidado
+
+| Componente | Tecnología | Versión | Ubicación |
+|-----------|------------|---------|-----------|
+| **Backend** | Spring Boot | 3.2.0 | `svc-signature-router/` |
+| **Frontend** | Next.js | 15 | `app-signature-router-admin/` |
+| **Language (Backend)** | Java | 21 | Backend |
+| **Language (Frontend)** | TypeScript | 5 | Frontend |
+| **Build Tool (Backend)** | Maven | 3.9+ | Backend |
+| **Build Tool (Frontend)** | npm | 10+ | Frontend |
+| **Database** | PostgreSQL | 15 | Backend |
+| **Messaging** | Apache Kafka | 3.6 | Backend |
+| **Secret Management** | HashiCorp Vault | 1.15 | Backend |
+| **Testing** | JUnit 5, Jest | - | Backend/Frontend |
+| **API Docs** | OpenAPI 3.1 | - | Backend |
+
+## 📦 Requisitos Previos
+
+Antes de comenzar, asegúrate de tener instalado:
+
+### Para el Backend (`svc-signature-router/`)
+- **Java 21+** (OpenJDK o Oracle JDK) - [Download](https://adoptium.net/)
+- **Maven 3.9+** (o usa el Maven Wrapper incluido `./mvnw`)
+- **Docker Desktop** (para infraestructura local: PostgreSQL, Kafka, Vault)
+- **Git** (para control de versiones)
+
+### Para el Frontend (`app-signature-router-admin/`)
+- **Node.js 20+** (recomendado LTS)
+- **npm 10+** (incluido con Node.js)
 
 ## 🛠️ Quick Start
 
-> **⚡ Nuevo:** Scripts automáticos disponibles para Windows PowerShell
-
-### Opción A: Inicio Automático (Recomendado para Windows)
-
-```powershell
-# Script que inicia Docker Desktop, levanta servicios y verifica salud
-.\start-system.ps1
-```
-
-Este script:
-- ✅ Detecta y arranca Docker Desktop automáticamente
-- ✅ Levanta todos los servicios de infraestructura
-- ✅ Verifica la salud de los servicios
-- ✅ Compila el proyecto
-
-**Scripts adicionales:**
-- `.\check-docker.ps1` - Diagnosticar estado de Docker y servicios
-- `.\verify-health.ps1` - Verificar salud de servicios
-
-**¿Problemas con Docker?** Ver: [`SOLUCION-RAPIDA.md`](SOLUCION-RAPIDA.md)
-
----
-
-### Opción B: Inicio Manual (Paso a Paso)
-
-### 1. Clone the Repository
+### Opción 1: Iniciar Backend + Frontend (Desarrollo Completo)
 
 ```bash
+# 1. Clonar el repositorio
 git clone <repository-url>
 cd signature-router
-```
 
-### 2. Build the Project
-
-```bash
-# Using Maven Wrapper (recommended)
-./mvnw clean install
-
-# Or using system Maven
-mvn clean install
-```
-
-### 3. Start Local Infrastructure
-
-```bash
-# Start all infrastructure services (PostgreSQL, Kafka, Vault, Observability)
+# 2. Iniciar infraestructura del backend
+cd svc-signature-router
 docker-compose up -d
 
-# Or start services individually:
-docker-compose up -d postgres          # PostgreSQL 15 (Story 1.2)
-docker-compose up -d zookeeper kafka   # Kafka cluster (Story 1.3)
-docker-compose up -d schema-registry   # Confluent Schema Registry (Story 1.3)
-docker-compose up -d vault             # HashiCorp Vault (Story 1.4)
-docker-compose up -d prometheus        # Prometheus metrics (Story 1.8)
-docker-compose up -d grafana           # Grafana dashboards (Story 1.8)
+# 3. Compilar y ejecutar backend
+./mvnw spring-boot:run
 
-# Wait for services to be ready (healthchecks)
-docker-compose logs -f
+# 4. En otra terminal, iniciar frontend
+cd ../app-signature-router-admin
+npm install
+npm run dev
 
-# Verify all services are running
+# 5. Acceder a las aplicaciones
+# Backend API: http://localhost:8080
+# Frontend Admin: http://localhost:3000
+# Swagger UI: http://localhost:8080/swagger-ui.html
+```
+
+### Opción 2: Solo Backend (Desarrollo de API)
+
+```bash
+# 1. Navegar al directorio del backend
+cd svc-signature-router
+
+# 2. Iniciar infraestructura (PostgreSQL, Kafka, Vault, etc.)
+docker-compose up -d
+
+# 3. Compilar y ejecutar backend
+./mvnw spring-boot:run
+
+# Backend API disponible en: http://localhost:8080
+# Swagger UI: http://localhost:8080/swagger-ui.html
+```
+
+**Ver documentación completa:** [`svc-signature-router/README.md`](svc-signature-router/README.md)
+
+### Opción 3: Solo Frontend (Desarrollo de UI)
+
+```bash
+# 1. Navegar al directorio del frontend
+cd app-signature-router-admin
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Iniciar servidor de desarrollo
+npm run dev
+
+# Frontend disponible en: http://localhost:3000
+```
+
+**Nota:** El frontend necesita que el backend esté corriendo en `http://localhost:8080` para funcionar correctamente.
+
+**Ver documentación completa:** [`app-signature-router-admin/README.md`](app-signature-router-admin/README.md)
+
+## 🔍 Servicios de Infraestructura
+
+Cuando inicias el backend con `docker-compose up -d`, se levantan los siguientes servicios:
+
+| Servicio | Puerto | Descripción | URL |
+|----------|--------|-------------|-----|
+| **PostgreSQL (App)** | 5432 | Base de datos principal | `localhost:5432` |
+| **PostgreSQL (Keycloak)** | 5433 | Base de datos para Keycloak | `localhost:5433` |
+| **Keycloak** | 8082 | OAuth2 / OpenID Connect | http://localhost:8082 |
+| **Kafka** | 9092 | Event streaming | `localhost:9092` |
+| **Zookeeper** | 2181 | Coordinación de Kafka | `localhost:2181` |
+| **Schema Registry** | 8081 | Validación de schemas Avro | http://localhost:8081 |
+| **HashiCorp Vault** | 8200 | Gestión de secretos | http://localhost:8200 |
+| **Prometheus** | 9090 | Recolección de métricas | http://localhost:9090 |
+| **Grafana** | 3000 | Visualización de métricas | http://localhost:3000 |
+| **Jaeger** | 16686 | Distributed tracing | http://localhost:16686 |
+
+### Comandos Útiles de Docker
+
+```bash
+# Ver estado de todos los servicios
 docker-compose ps
 
-# Stop all services
+# Ver logs de un servicio específico
+docker-compose logs -f postgres
+
+# Detener todos los servicios
 docker-compose down
 
-# Stop and remove volumes (clean state)
+# Detener y eliminar volúmenes (reset completo)
 docker-compose down -v
+
+# Reiniciar un servicio específico
+docker-compose restart kafka
 ```
 
-**Infrastructure Services:**
-- **PostgreSQL 15 (Application)**: Database for Signature Router (port 5432)
-- **PostgreSQL 15 (Keycloak)**: Database for Keycloak IAM (port 5433)
-- **Keycloak**: OAuth2 / OpenID Connect KDC (port 8180)
-- **Kafka**: Event streaming (port 9092)
-- **Zookeeper**: Kafka coordination (port 2181)
-- **Schema Registry**: Avro schema validation (port 8081)
-- **HashiCorp Vault**: Secret management (port 8200)
-- **Prometheus**: Metrics collection (port 9090)
-- **Grafana**: Metrics visualization (port 3000)
+## ✅ Verificación de Salud del Sistema
 
-### 4. Run the Application
+### Verificación Rápida
 
 ```bash
-# Using Maven Wrapper with local profile
-./mvnw spring-boot:run -Dspring.profiles.active=local
+# Backend API
+curl http://localhost:8080/actuator/health
 
-# Application will start on http://localhost:8080
-# LiquidBase will auto-execute database migrations on startup
-```
+# Frontend
+curl http://localhost:3000/api/health
 
-**Database Migrations:**
-- LiquidBase automatically creates 6 tables: `signature_request`, `signature_challenge`, `routing_rule`, `connector_config`, `outbox_event`, `audit_log`
-- UUIDv7 function is created for sortable UUID primary keys
-- See [`docs/development/database-migrations.md`](docs/development/database-migrations.md) for details
-
-### 5. Verify Health
-
-**Automated Health Check Script:**
-
-```bash
-# Windows (PowerShell)
-.\verify-health.ps1
-
-# Linux/Mac (Bash)
-chmod +x verify-health.sh
-./verify-health.sh
-```
-
-The script checks:
-- ✅ Docker container health status
-- ✅ HTTP health endpoints (Vault, Schema Registry, Prometheus, Grafana)
-- ✅ Spring Boot application (if running)
-
-**Manual Health Checks:**
-
-```bash
-# Check application health
-curl http://localhost:8080/actuator/health | jq .
-
-# Expected response:
-# {
-#   "status": "UP",
-#   "components": {
-#     "db": {"status": "UP"},
-#     "kafka": {"status": "UP"},
-#     "vault": {"status": "UP"},
-#     ...
-#   }
-# }
-
-# Check individual components
-curl http://localhost:8080/actuator/health/kafka | jq .
-curl http://localhost:8080/actuator/health/db | jq .
-curl http://localhost:8080/actuator/health/vault | jq .
-
-# Check infrastructure services
-curl http://localhost:8081/ | jq .                    # Schema Registry
-curl http://localhost:8200/v1/sys/health | jq .      # Vault
-curl http://localhost:9090/-/healthy                  # Prometheus
-curl http://localhost:3000/api/health | jq .         # Grafana
-
-# Check all Docker containers
+# Infraestructura (desde svc-signature-router/)
 docker-compose ps
 ```
 
-### 6. Access API Documentation
+### Endpoints Principales
 
-Once the application is running:
+Una vez que todo esté corriendo:
 
-- **Swagger UI**: http://localhost:8080/swagger-ui.html
-- **OpenAPI Spec**: http://localhost:8080/v3/api-docs
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| **Backend API** | http://localhost:8080 | API REST principal |
+| **Swagger UI** | http://localhost:8080/swagger-ui.html | Documentación interactiva |
+| **Admin Panel** | http://localhost:3000 | Panel de administración |
+| **Grafana** | http://localhost:3000 | Dashboards de métricas |
+| **Prometheus** | http://localhost:9090 | Servidor de métricas |
+| **Jaeger UI** | http://localhost:16686 | Trazas distribuidas |
+
+**Ver documentación detallada:**
+- Backend: [`svc-signature-router/README.md`](svc-signature-router/README.md)
+- Frontend: [`app-signature-router-admin/README.md`](app-signature-router-admin/README.md)
 
 ## 📊 Observability - Prometheus Metrics
 

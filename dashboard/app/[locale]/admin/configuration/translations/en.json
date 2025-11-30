@@ -1,0 +1,120 @@
+{
+  "title": "Configuration",
+  "subtitle": "Manage system configuration",
+  "pageTitle": "Configuration",
+  "info": "{{count}} configs",
+  "backToDashboard": "Back to Dashboard",
+  "errorTitle": "Error Loading Configurations",
+  "tabs": {
+    "configuration": "Configuration",
+    "auditLog": "Audit Log",
+    "general": "General",
+    "security": "Security",
+    "api": "API",
+    "database": "Database",
+    "cache": "Cache",
+    "notifications": "Notifications",
+    "integrations": "Integrations",
+    "advanced": "Advanced"
+  },
+  "searchPlaceholder": "Search configuration...",
+  "categories": {
+    "all": "All",
+    "system": "System",
+    "security": "Security",
+    "performance": "Performance",
+    "features": "Features",
+    "ui": "Interface",
+    "email": "Email",
+    "storage": "Storage"
+  },
+  "actions": {
+    "save": "Save Changes",
+    "reset": "Reset",
+    "export": "Export Configuration",
+    "import": "Import Configuration",
+    "backup": "Backup",
+    "restore": "Restore",
+    "clearCache": "Clear Cache",
+    "testConnection": "Test Connection"
+  },
+  "fields": {
+    "siteName": "Site Name",
+    "siteUrl": "Site URL",
+    "adminEmail": "Admin Email",
+    "timezone": "Timezone",
+    "dateFormat": "Date Format",
+    "language": "Language",
+    "maintenanceMode": "Maintenance Mode",
+    "debugMode": "Debug Mode",
+    "maxUploadSize": "Max Upload Size",
+    "sessionTimeout": "Session Timeout",
+    "apiRateLimit": "API Rate Limit",
+    "cacheEnabled": "Cache Enabled",
+    "cacheTTL": "Cache TTL",
+    "emailProvider": "Email Provider",
+    "smtpHost": "SMTP Host",
+    "smtpPort": "SMTP Port",
+    "smtpUser": "SMTP User",
+    "smtpPassword": "SMTP Password",
+    "smtpEncryption": "SMTP Encryption"
+  },
+  "sections": {
+    "general": {
+      "title": "General Settings",
+      "description": "Basic system configuration"
+    },
+    "security": {
+      "title": "Security Settings",
+      "description": "Security and authentication options"
+    },
+    "performance": {
+      "title": "Performance Settings",
+      "description": "Optimization and caching"
+    },
+    "email": {
+      "title": "Email Settings",
+      "description": "Mail server configuration"
+    },
+    "api": {
+      "title": "API Settings",
+      "description": "API keys and rate limits"
+    },
+    "backup": {
+      "title": "Backup & Restore",
+      "description": "Manage system backups"
+    }
+  },
+  "audit": {
+    "title": "Audit Log",
+    "user": "User",
+    "action": "Action",
+    "timestamp": "Timestamp",
+    "details": "Details",
+    "ip": "IP Address"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email",
+    "invalidUrl": "Invalid URL",
+    "minLength": "Minimum {{min}} characters",
+    "maxLength": "Maximum {{max}} characters",
+    "numeric": "Must be a number",
+    "alphanumeric": "Alphanumeric characters only"
+  },
+  "messages": {
+    "saveSuccess": "Configuration saved successfully",
+    "saveError": "Error saving configuration",
+    "resetSuccess": "Configuration reset successfully",
+    "importSuccess": "Configuration imported successfully",
+    "exportSuccess": "Configuration exported successfully",
+    "backupSuccess": "Backup created successfully",
+    "restoreSuccess": "Configuration restored successfully",
+    "cacheCleared": "Cache cleared successfully",
+    "testSuccess": "Connection successful",
+    "testFailed": "Connection failed",
+    "confirmReset": "Are you sure you want to reset all configuration?",
+    "confirmRestore": "Are you sure you want to restore from this backup?",
+    "unsavedChanges": "You have unsaved changes. Do you want to continue?"
+  }
+}

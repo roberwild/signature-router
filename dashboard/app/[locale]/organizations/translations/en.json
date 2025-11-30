@@ -1,0 +1,24 @@
+{
+  "title": "Organizations",
+  "description": "Jump into an existing organization or add a new one.",
+  "search": {
+    "placeholder": "Search..."
+  },
+  "addOrganization": {
+    "full": "Add organization",
+    "short": "Add"
+  },
+  "emptyState": {
+    "title": "No organization found",
+    "descriptionWithSearch": "Adjust your search query to show more.",
+    "descriptionWithoutSearch": "Add your first organization to get started."
+  },
+  "adminPanel": "Admin Panel",
+  "footer": {
+    "copyright": "© {year} Minery Report S.L.",
+    "legalNotice": "Legal Notice",
+    "privacy": "Privacy",
+    "cookies": "Cookies",
+    "signOut": "Sign out"
+  }
+}

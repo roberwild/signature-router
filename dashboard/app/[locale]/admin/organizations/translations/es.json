@@ -1,0 +1,180 @@
+{
+  "title": "Organizaciones",
+  "subtitle": "Administrar organizaciones de la plataforma",
+  "searchPlaceholder": "Buscar organizaciones...",
+  "filters": {
+    "all": "Todas",
+    "active": "Activas",
+    "inactive": "Inactivas",
+    "pending": "Pendientes",
+    "suspended": "Suspendidas"
+  },
+  "actions": {
+    "create": "Nueva Organización",
+    "edit": "Editar",
+    "view": "Ver",
+    "viewDetails": "Ver Detalles",
+    "suspend": "Suspender",
+    "activate": "Activar",
+    "delete": "Eliminar",
+    "export": "Exportar",
+    "back": "Volver al Panel"
+  },
+  "table": {
+    "total": "total",
+    "name": "Nombre",
+    "slug": "Slug",
+    "organization": "Organización",
+    "owner": "Propietario",
+    "users": "Usuarios",
+    "members": "Miembros",
+    "leadStatus": "Estado de Lead",
+    "status": "Estado",
+    "plan": "Plan",
+    "createdAt": "Creado",
+    "lastActivity": "Última Actividad",
+    "actions": "Acciones",
+    "searchPlaceholder": "Buscar organizaciones por nombre o slug..."
+  },
+  "status": {
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "pending": "Pendiente",
+    "suspended": "Suspendida",
+    "trial": "Prueba",
+    "expired": "Expirada",
+    "noOwner": "Sin propietario",
+    "noLeadData": "Sin datos de lead"
+  },
+  "leadClassification": {
+    "A1": "Lead Caliente",
+    "B1": "Lead Tibio",
+    "C1": "Lead Frío",
+    "D1": "Baja Intención",
+    "best": "Mejor",
+    "avg": "Prom",
+    "lead": "lead",
+    "leads": "leads"
+  },
+  "plans": {
+    "free": "Gratis",
+    "starter": "Inicial",
+    "professional": "Profesional",
+    "enterprise": "Empresa"
+  },
+  "details": {
+    "title": "Detalles de la Organización",
+    "information": "Información",
+    "settings": "Configuración",
+    "members": "Miembros",
+    "activity": "Actividad",
+    "billing": "Facturación",
+    "danger": "Zona de Peligro"
+  },
+  "stats": {
+    "totalOrganizations": "Total de Organizaciones",
+    "newThisMonth": "Nuevas Este Mes",
+    "totalMembers": "Total de Miembros",
+    "totalUsers": "Total de Usuarios",
+    "activeUsers": "Usuarios Activos",
+    "storage": "Almacenamiento Usado",
+    "apiCalls": "Llamadas API",
+    "allTime": "Todo el tiempo",
+    "currentMonth": "Mes actual",
+    "acrossAllOrganizations": "En todas las organizaciones"
+  },
+  "cards": {
+    "allOrganizations": "Todas las Organizaciones",
+    "allOrganizationsDescription": "Administrar y ver todas las organizaciones con inteligencia de leads"
+  },
+  "empty": {
+    "noOrganizations": "Aún no hay organizaciones",
+    "noOrganizationsDescription": "Las organizaciones aparecerán aquí cuando se creen"
+  },
+  "actions": {
+    "create": "Nueva Organización",
+    "edit": "Editar",
+    "view": "Ver",
+    "viewDetails": "Ver Detalles",
+    "suspend": "Suspender",
+    "activate": "Activar",
+    "delete": "Eliminar",
+    "export": "Exportar",
+    "back": "Volver al Panel",
+    "openMenu": "Abrir menú",
+    "copyOrganizationId": "Copiar ID de organización",
+    "copySlug": "Copiar slug",
+    "viewOrganization": "Ver Organización",
+    "viewMembers": "Ver miembros",
+    "contactOwner": "Contactar propietario",
+    "editDetails": "Editar Detalles",
+    "addMember": "Agregar Miembro",
+    "transferOwnership": "Transferir Propiedad",
+    "deleteOrganization": "Eliminar Organización",
+    "cancel": "Cancelar",
+    "saveChanges": "Guardar Cambios",
+    "saving": "Guardando...",
+    "deleting": "Eliminando...",
+    "transferring": "Transfiriendo...",
+    "adding": "Agregando..."
+  },
+  "dialogs": {
+    "editOrganization": {
+      "title": "Editar Organización",
+      "description": "Actualizar el nombre y slug de la organización. Estos cambios afectarán cómo aparece la organización en toda la plataforma.",
+      "organizationName": "Nombre de la Organización",
+      "nameplaceholder": "Ingrese el nombre de la organización",
+      "urlSlug": "Slug de URL",
+      "slugPlaceholder": "slug-organizacion",
+      "urlPreview": "Usado en URLs:"
+    },
+    "deleteOrganization": {
+      "title": "¿Está absolutamente seguro?",
+      "description": "Esta acción no se puede deshacer. Esto eliminará permanentemente la organización y removerá todos los datos asociados incluyendo miembros, evaluaciones y configuraciones."
+    },
+    "transferOwnership": {
+      "title": "Transferir Propiedad de la Organización",
+      "description": "Seleccionar un nuevo propietario para la organización. Solo los miembros de la organización pueden ser seleccionados como el nuevo propietario.",
+      "selectNewOwner": "Seleccionar Nuevo Propietario",
+      "selectPlaceholder": "Elegir un miembro para que se convierta en el nuevo propietario",
+      "noMembers": "No se encontraron otros miembros en esta organización. Los miembros deben ser agregados a la organización antes de que se pueda transferir la propiedad.",
+      "warningText": "El miembro seleccionado se convertirá en el nuevo propietario y obtendrá acceso administrativo completo a la organización."
+    },
+    "addMember": {
+      "title": "Agregar Miembro a la Organización",
+      "description": "Seleccionar un usuario para agregar como miembro a la organización. Obtendrán acceso para ver y administrar los datos de la organización.",
+      "searchUsers": "Buscar Usuarios",
+      "searchPlaceholder": "Filtrar usuarios por nombre o email...",
+      "selectUser": "Seleccionar Usuario",
+      "selectPlaceholder": "Elegir un usuario para agregar como miembro",
+      "noUsers": "No se encontraron usuarios disponibles. Todos los usuarios de la plataforma ya son miembros de esta organización.",
+      "warningText": "El usuario seleccionado se convertirá en miembro y podrá acceder a los recursos de la organización."
+    }
+  },
+  "toasts": {
+    "organizationIdCopied": "ID de organización copiado al portapapeles",
+    "slugCopied": "Slug copiado al portapapeles",
+    "selectUser": "Por favor seleccione un usuario para agregar",
+    "selectNewOwner": "Por favor seleccione un nuevo propietario",
+    "memberAddedSuccess": "Miembro agregado exitosamente",
+    "ownershipTransferredSuccess": "Propiedad transferida exitosamente",
+    "organizationUpdatedSuccess": "Organización actualizada exitosamente",
+    "organizationDeletedSuccess": "Organización eliminada exitosamente",
+    "failedToLoadMembers": "Error al cargar los miembros de la organización",
+    "failedToLoadUsers": "Error al cargar los usuarios disponibles",
+    "failedToAddMember": "Error al agregar miembro",
+    "failedToTransferOwnership": "Error al transferir propiedad",
+    "failedToUpdateOrganization": "Error al actualizar organización",
+    "failedToDeleteOrganization": "Error al eliminar organización"
+  },
+  "messages": {
+    "createSuccess": "Organización creada exitosamente",
+    "updateSuccess": "Organización actualizada exitosamente",
+    "deleteSuccess": "Organización eliminada exitosamente",
+    "suspendSuccess": "Organización suspendida exitosamente",
+    "activateSuccess": "Organización activada exitosamente",
+    "confirmDelete": "¿Está seguro de que desea eliminar esta organización? Esta acción no se puede deshacer.",
+    "confirmSuspend": "¿Está seguro de que desea suspender esta organización?",
+    "noOrganizations": "No se encontraron organizaciones"
+  }
+}

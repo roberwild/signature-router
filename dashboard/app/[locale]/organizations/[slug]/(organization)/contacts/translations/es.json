@@ -1,0 +1,39 @@
+{
+  "title": "Contactos",
+  "description": "Gestiona los contactos de tu organización",
+  "actions": {
+    "newContact": "Nuevo Contacto",
+    "import": "Importar Contactos",
+    "export": "Exportar Contactos",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver Detalles"
+  },
+  "form": {
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "jobTitle": "Cargo",
+    "department": "Departamento",
+    "company": "Empresa",
+    "address": "Dirección",
+    "notes": "Notas",
+    "tags": "Etiquetas"
+  },
+  "filters": {
+    "search": "Buscar contactos...",
+    "department": "Departamento",
+    "tags": "Etiquetas",
+    "dateAdded": "Fecha de Agregado"
+  },
+  "messages": {
+    "contactCreated": "Contacto creado exitosamente",
+    "contactUpdated": "Contacto actualizado",
+    "contactDeleted": "Contacto eliminado",
+    "importSuccess": "Contactos importados exitosamente",
+    "exportSuccess": "Contactos exportados",
+    "noContacts": "No hay contactos registrados",
+    "loadingContacts": "Cargando contactos..."
+  }
+}

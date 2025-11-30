@@ -339,3 +339,4 @@ Progress: ░░░░░░░░░░░░░░░░░░░░ 0%
 _Última actualización: 29-Nov-2025_  
 _Próxima revisión: Al completar cada sprint_
 
+

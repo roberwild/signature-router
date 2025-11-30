@@ -1,0 +1,139 @@
+{
+  "title": "Lead Scoring Overview",
+  "subtitle": "AI-powered lead quality assessment and prioritization",
+  "actions": {
+    "refresh": "Refresh",
+    "recalculateAll": "Recalculate All",
+    "retry": "Retry"
+  },
+  "error": {
+    "title": "Error Loading Lead Scores",
+    "description": "Failed to load lead scoring data. Please try again."
+  },
+  "toasts": {
+    "refreshSuccess": "Lead scores refreshed",
+    "recalculateSuccess": "Lead scores recalculated",
+    "recalculateError": "Failed to recalculate scores"
+  },
+  "summaryCards": {
+    "totalLeads": "Total Leads",
+    "highValueLeads": "High Value Leads",
+    "atRiskLeads": "At Risk Leads",
+    "averageScore": "Average Score",
+    "highValueDescription": "Score ≥ 80",
+    "atRiskDescription": "Need immediate attention"
+  },
+  "tabs": {
+    "leaderboard": "Top Leads",
+    "distribution": "Score Distribution",
+    "factors": "Factor Analysis",
+    "insights": "Insights"
+  },
+  "leaderboard": {
+    "title": "Lead Leaderboard",
+    "description": "Top performing leads ranked by score",
+    "filters": {
+      "category": "Category",
+      "sortBy": "Sort by",
+      "allCategories": "All Categories",
+      "categories": {
+        "a1": "A1 - Hot",
+        "b1": "B1 - Warm",
+        "c1": "C1 - Cool",
+        "d1": "D1 - Cold"
+      },
+      "sortOptions": {
+        "score": "Score",
+        "activity": "Last Activity",
+        "risk": "Risk Level"
+      }
+    },
+    "table": {
+      "rank": "Rank",
+      "lead": "Lead",
+      "score": "Score",
+      "category": "Category",
+      "risk": "Risk",
+      "completedSessions": "Completed Sessions",
+      "lastActivity": "Last Activity",
+      "recommendations": "Recommendations"
+    }
+  },
+  "badges": {
+    "hot": "Hot",
+    "warm": "Warm",
+    "cool": "Cool",
+    "cold": "Cold",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "unknown": "Unknown"
+  },
+  "distribution": {
+    "scoreDistribution": {
+      "title": "Score Distribution",
+      "description": "Distribution of lead scores across ranges"
+    },
+    "categoryBreakdown": {
+      "title": "Category Breakdown",
+      "description": "Lead distribution by category"
+    },
+    "categoryPerformance": {
+      "title": "Category Performance",
+      "description": "Average scores and conversion rates by category",
+      "leads": "leads",
+      "avgScore": "Avg Score",
+      "conversion": "Conversion"
+    },
+    "scorePercentiles": {
+      "title": "Score Percentiles",
+      "description": "Score distribution percentages",
+      "scoreLabel": "Score"
+    },
+    "chart": {
+      "leadsLabel": "Leads"
+    }
+  },
+  "factors": {
+    "analysis": {
+      "title": "Scoring Factor Analysis",
+      "description": "Performance across different scoring factors"
+    },
+    "impact": {
+      "title": "Factor Impact Analysis",
+      "description": "Weight and performance of each scoring factor",
+      "weight": "Weight",
+      "avg": "Avg",
+      "impactLevels": {
+        "high": "high impact",
+        "medium": "medium impact",
+        "low": "low impact"
+      }
+    },
+    "chart": {
+      "scoreLabel": "Score"
+    }
+  },
+  "insights": {
+    "improvements": {
+      "title": "Improvement Opportunities",
+      "description": "Key areas to focus on for better lead quality",
+      "impact": "Impact"
+    },
+    "statistics": {
+      "title": "Scoring Statistics",
+      "description": "Key metrics about your lead scoring performance",
+      "averageScore": "Average Score",
+      "highValue": "High Value",
+      "atRisk": "At Risk",
+      "scoreDistributionQuality": "Score Distribution Quality",
+      "scoreDistributionDescription": "Your leads show good score distribution across categories",
+      "modelPerformance": "Model Performance",
+      "modelPerformanceDescription": "Scoring model is performing well with good factor correlation",
+      "qualityLabels": {
+        "good": "Good",
+        "excellent": "Excellent"
+      }
+    }
+  }
+}

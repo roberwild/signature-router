@@ -1,0 +1,68 @@
+{
+  "title": "Cybersecurity Services",
+  "description": "Professional services to protect your organization",
+  "categories": {
+    "assessment": "Assessment",
+    "consulting": "Consulting",
+    "managed": "Managed Services",
+    "training": "Training",
+    "incident": "Incident Response",
+    "compliance": "Compliance"
+  },
+  "services": {
+    "maturityAnalysis": {
+      "title": "Maturity Analysis",
+      "description": "Detailed professional assessment of your security posture"
+    },
+    "cisoService": {
+      "title": "Virtual CISO",
+      "description": "Chief Information Security Officer as a service"
+    },
+    "managedSecurity": {
+      "title": "24/7 Managed Security",
+      "description": "Continuous monitoring and protection of your infrastructure"
+    },
+    "penetrationTesting": {
+      "title": "Penetration Testing",
+      "description": "Attack simulation to identify vulnerabilities"
+    },
+    "securityAwareness": {
+      "title": "Security Awareness",
+      "description": "Employee training on security best practices"
+    },
+    "incidentResponse": {
+      "title": "Incident Response",
+      "description": "Expert team to manage security incidents"
+    }
+  },
+  "pricing": {
+    "monthly": "Monthly",
+    "annual": "Annual",
+    "custom": "Custom",
+    "starting": "Starting at",
+    "contact": "Contact",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "save": "Save"
+  },
+  "actions": {
+    "learnMore": "Learn More",
+    "getQuote": "Get Quote",
+    "startTrial": "Free Trial",
+    "contact": "Contact",
+    "schedule": "Schedule Meeting",
+    "download": "Download Brochure"
+  },
+  "features": {
+    "included": "Included",
+    "notIncluded": "Not included",
+    "optional": "Optional",
+    "all": "All features"
+  },
+  "messages": {
+    "quoteSent": "Request sent successfully",
+    "contactSoon": "We'll contact you soon",
+    "trialStarted": "Trial started",
+    "downloadReady": "Download ready"
+  }
+}

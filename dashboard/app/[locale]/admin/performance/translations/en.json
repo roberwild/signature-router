@@ -1,0 +1,118 @@
+{
+  "title": "System Performance Monitoring",
+  "subtitle": "Monitor system performance, resource usage, and health metrics",
+  "loading": "Loading performance data...",
+  "controls": {
+    "timeframe": "Timeframe",
+    "autoRefresh": "Auto Refresh",
+    "refresh": "Refresh"
+  },
+  "timeframes": {
+    "1h": "1 hour",
+    "24h": "24 hours",
+    "7d": "7 days"
+  },
+  "metrics": {
+    "systemHealth": "System Health",
+    "activeUsers": "Active Users",
+    "totalSessions": "Total Sessions",
+    "avgResponseTime": "Avg Response Time",
+    "errorRate": "Error Rate"
+  },
+  "healthStatus": {
+    "healthy": "Healthy",
+    "warning": "Warning",
+    "critical": "Critical",
+    "unknown": "Unknown"
+  },
+  "indicators": {
+    "lastFiveMinutes": "Last 5 minutes",
+    "last24h": "Last 24h",
+    "aboveThreshold": "Above threshold",
+    "normal": "Normal",
+    "high": "High",
+    "low": "Low"
+  },
+  "alerts": {
+    "title": "Active Alerts",
+    "subtitle": "System alerts requiring attention",
+    "threshold": "Threshold"
+  },
+  "resources": {
+    "cpuUsage": "CPU Usage",
+    "memoryUsage": "Memory Usage",
+    "diskUsage": "Disk Usage",
+    "networkIO": "Network I/O"
+  },
+  "tabs": {
+    "performance": "Performance",
+    "endpoints": "Endpoints",
+    "errors": "Errors",
+    "resources": "Resources"
+  },
+  "charts": {
+    "responseTimeTrend": {
+      "title": "Response Time Trend",
+      "description": "Average response time over time",
+      "yAxisLabel": "Response Time"
+    },
+    "errorRateTrend": {
+      "title": "Error Rate Trend",
+      "description": "Error rate percentage over time",
+      "yAxisLabel": "Error Rate"
+    },
+    "activeUsers": {
+      "title": "Active Users",
+      "description": "Active users over time",
+      "yAxisLabel": "Active Users"
+    },
+    "sessionsPerMinute": {
+      "title": "Sessions per Minute",
+      "description": "Session creation rate",
+      "yAxisLabel": "Sessions/min"
+    },
+    "cpuUsageOverTime": {
+      "title": "CPU Usage Over Time",
+      "yAxisLabel": "CPU Usage"
+    },
+    "memoryUsageOverTime": {
+      "title": "Memory Usage Over Time",
+      "yAxisLabel": "Memory Usage"
+    }
+  },
+  "endpoints": {
+    "title": "Top Endpoints Performance",
+    "description": "Most frequently accessed endpoints and their performance",
+    "table": {
+      "endpoint": "Endpoint",
+      "requests": "Requests",
+      "avgResponseTime": "Avg Response Time",
+      "errorRate": "Error Rate",
+      "status": "Status"
+    },
+    "status": {
+      "healthy": "Healthy",
+      "slow": "Slow",
+      "issues": "Issues"
+    }
+  },
+  "errors": {
+    "title": "Recent Errors",
+    "description": "Latest error occurrences in the system",
+    "noErrors": "No recent errors detected",
+    "occurrences": "occurrence",
+    "occurrencesPlural": "occurrences"
+  },
+  "messages": {
+    "refreshSuccess": "Performance data refreshed",
+    "errorLoading": "Error Loading Performance Data",
+    "errorDescription": "Failed to load system performance data. Please try again.",
+    "retry": "Retry"
+  },
+  "units": {
+    "seconds": "s",
+    "milliseconds": "ms",
+    "percentage": "%",
+    "megabytesPerSecond": "MB/s"
+  }
+}

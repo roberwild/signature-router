@@ -1,0 +1,196 @@
+{
+  "title": "Integration Hub",
+  "subtitle": "Connect with CRM systems, email platforms, and marketing tools",
+  "loading": "Loading integrations...",
+  "notImplemented": "Integration components not implemented yet.",
+
+  "categories": {
+    "crm": "CRM",
+    "email": "Email",
+    "marketing": "Marketing",
+    "analytics": "Analytics"
+  },
+
+  "providers": {
+    "salesforce": {
+      "displayName": "Salesforce",
+      "description": "World's #1 CRM platform for managing leads and customer relationships",
+      "capabilities": {
+        "leadExport": "Lead Export",
+        "contactSync": "Contact Sync",
+        "opportunityTracking": "Opportunity Tracking",
+        "customFields": "Custom Fields"
+      }
+    },
+    "hubspot": {
+      "displayName": "HubSpot",
+      "description": "Inbound marketing, sales, and service software that helps companies attract visitors, convert leads, and close customers",
+      "capabilities": {
+        "leadExport": "Lead Export",
+        "contactSync": "Contact Sync",
+        "emailMarketing": "Email Marketing",
+        "analytics": "Analytics"
+      }
+    },
+    "mailchimp": {
+      "displayName": "Mailchimp",
+      "description": "All-in-one marketing platform for small businesses to grow their audience and engage customers",
+      "capabilities": {
+        "emailLists": "Email Lists",
+        "campaignManagement": "Campaign Management",
+        "audienceSegmentation": "Audience Segmentation",
+        "analytics": "Analytics"
+      }
+    },
+    "pipedrive": {
+      "displayName": "Pipedrive",
+      "description": "Sales CRM and pipeline management tool designed to help small sales teams manage intricate or lengthy sales processes",
+      "capabilities": {
+        "leadExport": "Lead Export",
+        "dealTracking": "Deal Tracking",
+        "activityLogging": "Activity Logging",
+        "reporting": "Reporting"
+      }
+    },
+    "sendgrid": {
+      "displayName": "SendGrid",
+      "description": "Cloud-based SMTP provider that allows you to send email without having to maintain email servers",
+      "capabilities": {
+        "transactionalEmail": "Transactional Email",
+        "emailApi": "Email API",
+        "deliveryAnalytics": "Delivery Analytics",
+        "templateManagement": "Template Management"
+      }
+    },
+    "googleAnalytics": {
+      "displayName": "Google Analytics",
+      "description": "Web analytics service that tracks and reports website traffic and user behavior",
+      "capabilities": {
+        "eventTracking": "Event Tracking",
+        "conversionTracking": "Conversion Tracking",
+        "userAnalytics": "User Analytics",
+        "customReports": "Custom Reports"
+      }
+    }
+  },
+
+  "configurations": {
+    "mainSalesforceConnection": "Main Salesforce Connection",
+    "primaryIntegrationDescription": "Primary integration for lead and contact sync",
+    "newsletterSubscribers": "Newsletter Subscribers",
+    "syncLeadsDescription": "Sync qualified leads to newsletter audience"
+  },
+
+  "syncFrequency": {
+    "manual": "Manual",
+    "hourly": "Hourly",
+    "daily": "Daily",
+    "weekly": "Weekly"
+  },
+
+  "syncStatus": {
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning"
+  },
+
+  "connectionStatus": {
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "connecting": "Connecting",
+    "failed": "Failed"
+  },
+
+  "recommendations": {
+    "types": {
+      "setup": "Setup",
+      "optimize": "Optimize",
+      "troubleshoot": "Troubleshoot"
+    },
+    "connectHubspot": {
+      "title": "Connect HubSpot",
+      "description": "HubSpot is a popular CRM choice that could help centralize your lead management"
+    },
+    "mailchimpSyncIssues": {
+      "title": "Mailchimp Sync Issues",
+      "description": "Your Mailchimp integration has a lower success rate and may need attention"
+    },
+    "enableGoogleAnalytics": {
+      "title": "Enable Google Analytics",
+      "description": "Track lead behavior and conversion funnel performance with Google Analytics integration"
+    }
+  },
+
+  "actions": {
+    "connect": "Connect",
+    "disconnect": "Disconnect",
+    "configure": "Configure",
+    "sync": "Sync Now",
+    "view": "View Details",
+    "edit": "Edit",
+    "delete": "Delete",
+    "enable": "Enable",
+    "disable": "Disable",
+    "test": "Test Connection",
+    "retry": "Retry"
+  },
+
+  "settings": {
+    "autoSync": "Auto Sync",
+    "syncFrequency": "Sync Frequency",
+    "lastSync": "Last Sync",
+    "nextSync": "Next Sync",
+    "syncSettings": "Sync Settings",
+    "connectionSettings": "Connection Settings",
+    "advanced": "Advanced Settings"
+  },
+
+  "stats": {
+    "totalIntegrations": "Total Integrations",
+    "activeIntegrations": "Active Integrations",
+    "totalSyncs": "Total Syncs",
+    "successRate": "Success Rate",
+    "lastSyncAt": "Last Sync",
+    "totalSyncsCount": "Total Syncs Count",
+    "lastSuccessfulSync": "Last Successful Sync"
+  },
+
+  "filters": {
+    "all": "All",
+    "connected": "Connected",
+    "available": "Available",
+    "popular": "Popular",
+    "byCategory": "By Category"
+  },
+
+  "messages": {
+    "connectionSuccess": "Integration connected successfully",
+    "connectionFailed": "Failed to connect integration",
+    "disconnectionSuccess": "Integration disconnected successfully",
+    "syncSuccess": "Sync completed successfully",
+    "syncFailed": "Sync failed",
+    "configurationSaved": "Configuration saved successfully",
+    "testConnectionSuccess": "Test connection successful",
+    "testConnectionFailed": "Test connection failed",
+    "confirmDisconnect": "Are you sure you want to disconnect this integration?",
+    "confirmDelete": "Are you sure you want to delete this configuration?",
+    "noIntegrations": "No integrations found",
+    "noConfigurations": "No configurations found"
+  },
+
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh"
+  }
+}

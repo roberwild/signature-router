@@ -1,0 +1,51 @@
+{
+  "title": "Configuración de Organización",
+  "description": "Gestiona la configuración y preferencias de tu organización",
+  "tabs": {
+    "general": "General",
+    "security": "Seguridad",
+    "team": "Equipo",
+    "billing": "Facturación",
+    "integrations": "Integraciones",
+    "notifications": "Notificaciones"
+  },
+  "general": {
+    "organizationName": "Nombre de Organización",
+    "organizationSlug": "Identificador",
+    "industry": "Industria",
+    "size": "Tamaño",
+    "website": "Sitio Web",
+    "description": "Descripción",
+    "logo": "Logo",
+    "timezone": "Zona Horaria",
+    "language": "Idioma"
+  },
+  "security": {
+    "twoFactor": "Autenticación de Dos Factores",
+    "sso": "Inicio de Sesión Único (SSO)",
+    "passwordPolicy": "Política de Contraseñas",
+    "sessionTimeout": "Tiempo de Espera de Sesión",
+    "ipWhitelist": "Lista Blanca de IPs",
+    "auditLog": "Registro de Auditoría"
+  },
+  "team": {
+    "members": "Miembros",
+    "roles": "Roles",
+    "permissions": "Permisos",
+    "invitations": "Invitaciones",
+    "departments": "Departamentos"
+  },
+  "actions": {
+    "save": "Guardar Cambios",
+    "cancel": "Cancelar",
+    "delete": "Eliminar Organización",
+    "export": "Exportar Configuración",
+    "import": "Importar Configuración"
+  },
+  "messages": {
+    "saveSuccess": "Configuración guardada exitosamente",
+    "saveError": "Error al guardar la configuración",
+    "deleteConfirm": "¿Está seguro de que desea eliminar esta organización?",
+    "deleteWarning": "Esta acción no se puede deshacer"
+  }
+}

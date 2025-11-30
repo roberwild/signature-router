@@ -1,0 +1,53 @@
+{
+  "title": "Dashboard",
+  "description": "Overview of your organization's cybersecurity status",
+  "welcome": "Welcome back",
+  "overview": {
+    "title": "Executive Summary",
+    "maturityScore": "Maturity Score",
+    "incidents": "Active Incidents",
+    "vulnerabilities": "Vulnerabilities",
+    "compliance": "Compliance",
+    "lastAssessment": "Last Assessment",
+    "riskLevel": "Risk Level"
+  },
+  "quickActions": {
+    "title": "Quick Actions",
+    "newAssessment": "New Assessment",
+    "reportIncident": "Report Incident",
+    "viewReports": "View Reports",
+    "manageTeam": "Manage Team"
+  },
+  "metrics": {
+    "trending": "Trending",
+    "up": "Up",
+    "down": "Down",
+    "stable": "Stable",
+    "improvement": "Improvement",
+    "decline": "Decline",
+    "noChange": "No change"
+  },
+  "riskLevels": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "minimal": "Minimal"
+  },
+  "recommendations": {
+    "title": "Recommendations",
+    "priority": "Priority",
+    "impact": "Impact",
+    "effort": "Effort",
+    "viewAll": "View All"
+  },
+  "stats": {
+    "totalUsers": "Total Users",
+    "activeIncidents": "Active Incidents",
+    "complianceScore": "Compliance Score",
+    "securityEvents": "Security Events",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "thisYear": "This Year"
+  }
+}

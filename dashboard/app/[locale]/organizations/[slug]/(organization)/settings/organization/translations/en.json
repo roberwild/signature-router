@@ -1,0 +1,642 @@
+{
+  "general": {
+    "title": "General Settings",
+    "description": "Manage your organization's basic information and settings",
+    "organizationDetails": {
+      "title": "Organization Details",
+      "description": "Basic information about your organization",
+      "fields": {
+        "name": "Name",
+        "address": "Address",
+        "phone": "Phone",
+        "email": "Email",
+        "website": "Website",
+        "description": "Description",
+        "industry": "Industry",
+        "size": "Company Size",
+        "founded": "Founded Year",
+        "taxId": "Tax ID"
+      },
+      "actions": {
+        "save": "Save Changes",
+        "cancel": "Cancel"
+      },
+      "messages": {
+        "updateSuccess": "Details updated",
+        "updateError": "Couldn't update details"
+      }
+    },
+    "organizationLogo": {
+      "title": "Organization Logo",
+      "description": "Upload and manage your organization's logo",
+      "fields": {
+        "logo": "Logo",
+        "favicon": "Favicon"
+      },
+      "actions": {
+        "upload": "Upload Logo",
+        "remove": "Remove Logo",
+        "change": "Change Logo"
+      },
+      "messages": {
+        "uploadSuccess": "Logo uploaded successfully",
+        "uploadError": "Couldn't upload logo",
+        "removeSuccess": "Logo removed successfully",
+        "removeError": "Couldn't remove logo",
+        "sizeError": "File size should not exceed {{size}} MB"
+      }
+    },
+    "organizationSlug": {
+      "title": "Organization Identifier",
+      "description": "Unique identifier for your organization URL",
+      "fields": {
+        "slug": "Identifier",
+        "currentSlug": "Current Identifier"
+      },
+      "actions": {
+        "change": "Change Identifier"
+      },
+      "messages": {
+        "changeSuccess": "Identifier changed successfully",
+        "changeError": "Couldn't change identifier",
+        "slugTaken": "This identifier is already taken"
+      }
+    },
+    "businessHours": {
+      "title": "Business Hours",
+      "description": "Set your organization's operating hours",
+      "fields": {
+        "timezone": "Timezone",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday",
+        "closed": "Closed",
+        "open24Hours": "Open 24 Hours",
+        "openTime": "Opening Time",
+        "closeTime": "Closing Time"
+      },
+      "actions": {
+        "save": "Save Hours",
+        "setAllWeekdays": "Apply to All Weekdays",
+        "addTimeSlot": "New time slot",
+        "removeTimeSlot": "Remove time slot",
+        "copyTimes": "Copy times",
+        "copyTimesTo": "Copy times to...",
+        "cancel": "Cancel",
+        "apply": "Apply"
+      },
+      "messages": {
+        "updateSuccess": "Business hours updated",
+        "updateError": "Couldn't update business hours"
+      },
+      "validation": {
+        "endAfterStart": "End time should be after start time.",
+        "timesOverlap": "Times overlap with another set of times."
+      }
+    },
+    "socialMedia": {
+      "title": "Social Media",
+      "description": "Connect your organization's social media accounts",
+      "fields": {
+        "facebook": "Facebook",
+        "twitter": "Twitter",
+        "linkedin": "LinkedIn",
+        "instagram": "Instagram",
+        "youtube": "YouTube",
+        "github": "GitHub"
+      },
+      "actions": {
+        "save": "Save Links",
+        "connect": "Connect",
+        "disconnect": "Disconnect"
+      },
+      "messages": {
+        "updateSuccess": "Social media links updated",
+        "updateError": "Couldn't update social media links"
+      }
+    },
+    "dangerZone": {
+      "title": "Danger Zone",
+      "description": "Irreversible and destructive actions",
+      "deleteOrganization": {
+        "title": "Delete Organization",
+        "description": "Permanently delete this organization and all its data",
+        "button": "Delete Organization",
+        "confirmTitle": "Are you absolutely sure?",
+        "confirmDescription": "This action cannot be undone. This will permanently delete the organization {{name}} and remove all associated data from our servers.",
+        "confirmLabel": "Type {{slug}} to confirm",
+        "confirmButton": "I understand, delete this organization"
+      }
+    }
+  },
+  "members": {
+    "title": "Team Members",
+    "description": "Manage your organization's team members and roles",
+    "team": {
+      "title": "Team Members",
+      "description": "View and manage team members",
+      "table": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "joinedAt": "Joined",
+        "lastActive": "Last Active",
+        "actions": "Actions"
+      },
+      "roles": {
+        "owner": "Owner",
+        "admin": "Admin",
+        "member": "Member",
+        "viewer": "Viewer"
+      },
+      "status": {
+        "active": "Active",
+        "invited": "Invited",
+        "suspended": "Suspended"
+      },
+      "actions": {
+        "edit": "Edit",
+        "remove": "Remove",
+        "suspend": "Suspend",
+        "activate": "Activate",
+        "resendInvite": "Resend Invite",
+        "changeRole": "Change Role"
+      },
+      "messages": {
+        "removeSuccess": "Member removed successfully",
+        "removeError": "Couldn't remove member",
+        "updateSuccess": "Member updated successfully",
+        "updateError": "Couldn't update member"
+      }
+    },
+    "invitations": {
+      "title": "Invitations",
+      "description": "Manage pending invitations",
+      "fields": {
+        "email": "Email Address",
+        "role": "Role",
+        "message": "Personal Message (Optional)"
+      },
+      "table": {
+        "email": "Email",
+        "role": "Role",
+        "invitedBy": "Invited By",
+        "invitedAt": "Invited",
+        "expiresAt": "Expires",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "pending": "Pending",
+        "accepted": "Accepted",
+        "expired": "Expired"
+      },
+      "actions": {
+        "invite": "Send Invitation",
+        "inviteMultiple": "Invite Multiple",
+        "cancel": "Cancel",
+        "resend": "Resend",
+        "copyLink": "Copy Invite Link"
+      },
+      "messages": {
+        "inviteSuccess": "Invitation sent successfully",
+        "inviteError": "Couldn't send invitation",
+        "cancelSuccess": "Invitation cancelled",
+        "cancelError": "Couldn't cancel invitation",
+        "resendSuccess": "Invitation resent",
+        "resendError": "Couldn't resend invitation"
+      }
+    }
+  },
+  "billing": {
+    "title": "Billing & Subscription",
+    "description": "Manage your subscription and billing information",
+    "subscriptionPlan": {
+      "title": "Subscription Plan",
+      "description": "Your current subscription plan and usage",
+      "currentPlan": "Current Plan",
+      "currentPlanMessage": "This organization is currently on the plan:",
+      "plans": {
+        "free": "Free",
+        "starter": "Starter",
+        "professional": "Professional",
+        "enterprise": "Enterprise"
+      },
+      "billing": {
+        "monthly": "Monthly",
+        "yearly": "Yearly",
+        "perUser": "per user",
+        "perMonth": "per month",
+        "perYear": "per year"
+      },
+      "features": {
+        "users": "Users",
+        "storage": "Storage",
+        "apiCalls": "API Calls",
+        "support": "Support",
+        "customDomain": "Custom Domain",
+        "analytics": "Advanced Analytics",
+        "sso": "Single Sign-On"
+      },
+      "status": {
+        "canceled": "Canceled"
+      },
+      "billingCycle": {
+        "current": "Current billing cycle ({{start}} - {{end}})",
+        "daysRemaining": "{{days}} days remaining"
+      },
+      "actions": {
+        "upgrade": "Upgrade Plan",
+        "downgrade": "Downgrade Plan",
+        "cancel": "Cancel Subscription",
+        "reactivate": "Reactivate Subscription",
+        "changeBilling": "Change Billing Period",
+        "upgradeToPro": "Upgrade to Pro",
+        "changeSubscription": "Change subscription"
+      },
+      "messages": {
+        "upgradeSuccess": "Plan upgraded successfully",
+        "upgradeError": "Couldn't upgrade plan",
+        "cancelSuccess": "Subscription cancelled",
+        "cancelError": "Couldn't cancel subscription",
+        "checkoutError": "Failed to create checkout session. Please try again.",
+        "billingPortalError": "Failed to create billing portal session. Please try again.",
+        "unexpectedError": "An unexpected error occurred. Please try again."
+      }
+    },
+    "billingAddress": {
+      "title": "Billing Address",
+      "description": "Address for billing and invoices",
+      "fields": {
+        "companyName": "Company Name",
+        "address": "Street Address",
+        "city": "City",
+        "state": "State/Province",
+        "postalCode": "Postal Code",
+        "country": "Country",
+        "taxId": "Tax ID/VAT Number"
+      },
+      "actions": {
+        "save": "Save Address"
+      },
+      "messages": {
+        "updateSuccess": "Billing address updated",
+        "updateError": "Couldn't update billing address"
+      }
+    },
+    "billingEmail": {
+      "title": "Billing Email",
+      "description": "Email address for billing notifications and invoices",
+      "fields": {
+        "email": "Billing Email",
+        "ccEmails": "CC Emails (comma separated)"
+      },
+      "actions": {
+        "save": "Save Email"
+      },
+      "messages": {
+        "updateSuccess": "Billing email updated",
+        "updateError": "Couldn't update billing email"
+      }
+    },
+    "paymentMethod": {
+      "title": "Payment Method",
+      "description": "Manage your payment methods",
+      "types": {
+        "card": "Credit/Debit Card",
+        "bank": "Bank Account",
+        "paypal": "PayPal"
+      },
+      "card": {
+        "number": "Card Number",
+        "expiry": "Expiry Date",
+        "cvc": "CVC",
+        "name": "Cardholder Name"
+      },
+      "actions": {
+        "add": "Add Payment Method",
+        "remove": "Remove",
+        "setDefault": "Set as Default",
+        "update": "Update"
+      },
+      "messages": {
+        "addSuccess": "Payment method added",
+        "addError": "Couldn't add payment method",
+        "removeSuccess": "Payment method removed",
+        "removeError": "Couldn't remove payment method"
+      }
+    },
+    "invoices": {
+      "title": "Invoices",
+      "description": "View and download your invoices",
+      "table": {
+        "invoice": "Invoice",
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue",
+        "cancelled": "Cancelled"
+      },
+      "actions": {
+        "download": "Download",
+        "view": "View",
+        "pay": "Pay Now",
+        "openMenu": "Open menu"
+      },
+      "empty": {
+        "noInvoices": "No invoices received yet."
+      }
+    },
+    "billingBreakdown": {
+      "title": "Current Usage",
+      "description": "Your current billing period usage",
+      "period": "Billing Period",
+      "table": {
+        "item": "Item",
+        "quantity": "Quantity",
+        "unitPrice": "Unit price",
+        "amount": "Amount"
+      },
+      "status": {
+        "canceled": "Canceled",
+        "trial": "Trial"
+      },
+      "pricing": {
+        "free": "Free"
+      },
+      "taxRateId": "Tax rate ID",
+      "usage": {
+        "users": "Active Users",
+        "storage": "Storage Used",
+        "apiCalls": "API Calls",
+        "bandwidth": "Bandwidth"
+      },
+      "costs": {
+        "subtotal": "Subtotal",
+        "tax": "Tax",
+        "total": "Total",
+        "current": "Current costs",
+        "projected": "Projected costs",
+        "currentDescription": "Costs accumulated from the beginning of the billing cycle up to now.",
+        "projectedDescription": "Projected costs at the end of the billing cycle.",
+        "nextBilling": "Next Billing Date"
+      }
+    }
+  },
+  "developers": {
+    "title": "Developer Settings",
+    "description": "Manage API access and developer tools",
+    "apiKeys": {
+      "title": "API Keys",
+      "description": "Manage your API keys for programmatic access",
+      "table": {
+        "name": "Name",
+        "key": "Key",
+        "created": "Created",
+        "lastUsed": "Last Used",
+        "expires": "Expires",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "expired": "Expired",
+        "revoked": "Revoked",
+        "neverExpires": "Never expires"
+      },
+      "fields": {
+        "name": "Key Name",
+        "description": "Description",
+        "expires": "Expiration Date",
+        "permissions": "Permissions",
+        "pickDate": "Pick a date"
+      },
+      "permissions": {
+        "read": "Read",
+        "write": "Write",
+        "delete": "Delete",
+        "admin": "Admin"
+      },
+      "actions": {
+        "create": "Create New Key",
+        "regenerate": "Regenerate",
+        "revoke": "Revoke",
+        "copy": "Copy",
+        "show": "Show",
+        "hide": "Hide",
+        "edit": "Edit",
+        "openMenu": "Open menu",
+        "cancel": "Cancel",
+        "createButton": "Create"
+      },
+      "messages": {
+        "createSuccess": "API key created successfully",
+        "createError": "Couldn't create API key",
+        "revokeSuccess": "API key revoked",
+        "revokeError": "Couldn't revoke API key",
+        "copySuccess": "API key copied to clipboard",
+        "warning": "Make sure to copy your API key now. You won't be able to see it again!",
+        "noKeysFound": "No API key found.",
+        "createDescription": "Create a new API key by filling out the form below.",
+        "revokeTitle": "Revoke this API key?",
+        "revokeDescription": "The API key {{description}} will be permanently deleted, are you sure you want to continue?",
+        "revokeConfirm": "Yes, revoke"
+      }
+    },
+    "webhooks": {
+      "title": "Webhooks",
+      "description": "Configure webhooks to receive real-time updates",
+      "table": {
+        "url": "URL",
+        "events": "Events",
+        "created": "Created",
+        "lastTriggered": "Last Triggered",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "failed": "Failed"
+      },
+      "fields": {
+        "url": "Webhook URL",
+        "secret": "Secret",
+        "events": "Events to Subscribe",
+        "description": "Description"
+      },
+      "events": {
+        "all": "All Events",
+        "user.created": "User Created",
+        "user.updated": "User Updated",
+        "user.deleted": "User Deleted",
+        "organization.updated": "Organization Updated",
+        "payment.success": "Payment Success",
+        "payment.failed": "Payment Failed"
+      },
+      "actions": {
+        "create": "Create Webhook",
+        "edit": "Edit",
+        "delete": "Delete",
+        "test": "Test",
+        "viewLogs": "View Logs",
+        "regenerateSecret": "Regenerate Secret",
+        "openMenu": "Open menu",
+        "cancel": "Cancel",
+        "createButton": "Create"
+      },
+      "messages": {
+        "createSuccess": "Webhook created successfully",
+        "createError": "Couldn't create webhook",
+        "deleteSuccess": "Webhook deleted",
+        "deleteError": "Couldn't delete webhook",
+        "testSuccess": "Test webhook sent",
+        "testError": "Couldn't send test webhook",
+        "noWebhooksFound": "No webhook found.",
+        "noTriggers": "No trigger configured",
+        "createDescription": "Create a new webhook by filling out the form below."
+      }
+    },
+    "oauth": {
+      "title": "OAuth Applications",
+      "description": "Manage OAuth applications and integrations",
+      "table": {
+        "name": "Application Name",
+        "clientId": "Client ID",
+        "created": "Created",
+        "users": "Users",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "fields": {
+        "name": "Application Name",
+        "description": "Description",
+        "redirectUri": "Redirect URIs",
+        "scopes": "Scopes",
+        "logo": "Application Logo"
+      },
+      "actions": {
+        "create": "Create Application",
+        "edit": "Edit",
+        "delete": "Delete",
+        "regenerateSecret": "Regenerate Secret",
+        "viewSecret": "View Secret"
+      }
+    }
+  },
+  "notifications": {
+    "title": "Notification Preferences",
+    "description": "Manage how and when you receive notifications",
+    "channels": {
+      "title": "Notification Channels",
+      "description": "Choose how you want to receive notifications",
+      "email": {
+        "title": "Email Notifications",
+        "description": "Receive notifications via email"
+      },
+      "push": {
+        "title": "Push Notifications",
+        "description": "Receive browser push notifications"
+      },
+      "sms": {
+        "title": "SMS Notifications",
+        "description": "Receive text message notifications"
+      },
+      "inApp": {
+        "title": "In-App Notifications",
+        "description": "Receive notifications within the application"
+      }
+    },
+    "preferences": {
+      "title": "Notification Types",
+      "description": "Choose which notifications you want to receive",
+      "categories": {
+        "security": {
+          "title": "Security Alerts",
+          "description": "Important security notifications",
+          "events": {
+            "newLogin": "New login from unrecognized device",
+            "passwordChanged": "Password changed",
+            "twoFactorEnabled": "Two-factor authentication changes"
+          }
+        },
+        "billing": {
+          "title": "Billing & Payments",
+          "description": "Billing and payment notifications",
+          "events": {
+            "paymentSuccess": "Payment successful",
+            "paymentFailed": "Payment failed",
+            "subscriptionExpiring": "Subscription expiring soon",
+            "invoiceReady": "New invoice available"
+          }
+        },
+        "team": {
+          "title": "Team Updates",
+          "description": "Team and collaboration notifications",
+          "events": {
+            "memberAdded": "New member added",
+            "memberRemoved": "Member removed",
+            "roleChanged": "Role changed",
+            "invitationSent": "Invitation sent"
+          }
+        },
+        "product": {
+          "title": "Product Updates",
+          "description": "Product news and updates",
+          "events": {
+            "newFeatures": "New features and improvements",
+            "maintenance": "Scheduled maintenance",
+            "newsletter": "Product newsletter"
+          }
+        }
+      }
+    },
+    "schedule": {
+      "title": "Notification Schedule",
+      "description": "Set quiet hours for notifications",
+      "fields": {
+        "enableQuietHours": "Enable Quiet Hours",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "timezone": "Timezone",
+        "weekends": "Include Weekends"
+      }
+    },
+    "digest": {
+      "title": "Email Digest",
+      "description": "Receive summary emails instead of individual notifications",
+      "fields": {
+        "enableDigest": "Enable Email Digest",
+        "frequency": "Frequency",
+        "time": "Delivery Time"
+      },
+      "frequencies": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "biweekly": "Bi-weekly",
+        "monthly": "Monthly"
+      }
+    },
+    "actions": {
+      "save": "Save Preferences",
+      "reset": "Reset to Default",
+      "testNotification": "Send Test Notification"
+    },
+    "messages": {
+      "updateSuccess": "Notification preferences updated",
+      "updateError": "Couldn't update notification preferences",
+      "testSent": "Test notification sent"
+    }
+  }
+}

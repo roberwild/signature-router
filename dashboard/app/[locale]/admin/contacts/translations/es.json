@@ -1,0 +1,106 @@
+{
+  "page": {
+    "title": "Mensajes de Contacto",
+    "description": "Gestionar envíos de formularios de contacto",
+    "detailTitle": "Detalles del Mensaje de Contacto",
+    "detailDescription": "Ver y gestionar mensaje de contacto"
+  },
+  "navigation": {
+    "backToDashboard": "Volver al Panel",
+    "backToMessages": "Volver a Mensajes"
+  },
+  "stats": {
+    "totalMessages": {
+      "title": "Total de Mensajes",
+      "description": "Todo el tiempo"
+    },
+    "unread": {
+      "title": "No leídos",
+      "description": "Pendientes de revisión"
+    },
+    "read": {
+      "title": "Leídos",
+      "description": "Revisados"
+    },
+    "messagesCount": "{{count}} mensajes"
+  },
+  "table": {
+    "headers": {
+      "status": "Estado",
+      "date": "Fecha",
+      "from": "De",
+      "organization": "Organización",
+      "subject": "Asunto",
+      "actions": "Acciones"
+    },
+    "filters": {
+      "searchPlaceholder": "Buscar mensajes...",
+      "allStatus": "Todos los Estados",
+      "unread": "No leídos",
+      "read": "Leídos",
+      "allOrganizations": "Todas las Organizaciones",
+      "organization": "Organización",
+      "selected": "{{count}} seleccionados"
+    },
+    "emptyState": {
+      "title": "Aún no hay mensajes de contacto",
+      "description": "Los mensajes aparecerán aquí cuando se envíen"
+    },
+    "actions": {
+      "bulkActions": "Acciones Masivas",
+      "actions": "Acciones",
+      "markAsRead": "Marcar como Leído",
+      "markAsUnread": "Marcar como No Leído",
+      "archive": "Archivar",
+      "delete": "Eliminar",
+      "viewDetails": "Ver Detalles",
+      "openMenu": "Abrir menú"
+    },
+    "status": {
+      "unread": "No leído",
+      "read": "Leído"
+    }
+  },
+  "detail": {
+    "messageDetails": {
+      "title": "Detalles del Mensaje",
+      "description": "Envío de formulario de contacto",
+      "subject": "Asunto",
+      "message": "Mensaje",
+      "submitted": "Enviado",
+      "status": "Estado"
+    },
+    "contactInfo": {
+      "title": "Información de Contacto",
+      "name": "Nombre",
+      "email": "Correo Electrónico",
+      "phone": "Teléfono",
+      "organization": "Organización"
+    },
+    "statusUpdate": {
+      "title": "Actualizar Estado",
+      "markAsRead": "Marcar como Leído",
+      "alreadyRead": "Ya Leído"
+    },
+    "quickActions": {
+      "title": "Acciones Rápidas",
+      "replyEmail": "Responder por Correo",
+      "contactWhatsApp": "Contactar por WhatsApp",
+      "viewOrganization": "Ver Organización"
+    }
+  },
+  "messages": {
+    "markAsReadSuccess": "Se marcaron {{count}} mensaje(s) como leídos",
+    "markAsReadError": "Error al marcar mensajes como leídos",
+    "markAsUnreadSuccess": "Se marcaron {{count}} mensaje(s) como no leídos",
+    "markAsUnreadError": "Error al marcar mensajes como no leídos",
+    "archiveSuccess": "Se archivaron {{count}} mensaje(s)",
+    "archiveError": "Error al archivar mensajes",
+    "deleteSuccess": "Se eliminaron {{count}} mensaje(s)",
+    "deleteError": "Error al eliminar mensajes",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar {{count}} mensaje(s)?"
+  },
+  "common": {
+    "na": "N/D"
+  }
+}

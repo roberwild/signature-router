@@ -1,0 +1,105 @@
+{
+  "title": "Incident Management",
+  "description": "Manage and track security incidents",
+  "stats": {
+    "totalIncidents": "Total Incidents",
+    "openIncidents": "Open Incidents",
+    "closedIncidents": "Closed Incidents",
+    "criticalIncidents": "Critical Incidents",
+    "averageResolutionTime": "Average Resolution Time",
+    "incidentsThisMonth": "Incidents This Month",
+    "incidentsThisWeek": "Incidents This Week"
+  },
+  "actions": {
+    "newIncident": "New Incident",
+    "reportIncident": "Report Incident",
+    "viewDetails": "View Details",
+    "editIncident": "Edit Incident",
+    "closeIncident": "Close Incident",
+    "assignIncident": "Assign Incident",
+    "escalateIncident": "Escalate Incident",
+    "exportReport": "Export Report",
+    "generateReport": "Generate Report"
+  },
+  "categories": {
+    "malware": "Malware",
+    "phishing": "Phishing",
+    "dataLeak": "Data Leak",
+    "unauthorized": "Unauthorized Access",
+    "dos": "Denial of Service",
+    "ransomware": "Ransomware",
+    "insider": "Insider Threat",
+    "physical": "Physical Security",
+    "social": "Social Engineering",
+    "other": "Other"
+  },
+  "severity": {
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "informational": "Informational"
+  },
+  "status": {
+    "open": "Open",
+    "inProgress": "In Progress",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "pending": "Pending",
+    "investigating": "Investigating",
+    "contained": "Contained",
+    "eradicated": "Eradicated",
+    "recovered": "Recovered"
+  },
+  "timeline": {
+    "created": "Created",
+    "updated": "Updated",
+    "assigned": "Assigned",
+    "escalated": "Escalated",
+    "resolved": "Resolved",
+    "closed": "Closed",
+    "comment": "Comment",
+    "statusChange": "Status Change"
+  },
+  "form": {
+    "title": "Incident Title",
+    "description": "Description",
+    "category": "Category",
+    "severity": "Severity",
+    "status": "Status",
+    "assignee": "Assigned to",
+    "reporter": "Reported by",
+    "detectionDate": "Detection Date",
+    "resolutionDate": "Resolution Date",
+    "affectedSystems": "Affected Systems",
+    "affectedUsers": "Affected Users",
+    "rootCause": "Root Cause",
+    "impact": "Impact",
+    "lessonsLearned": "Lessons Learned"
+  },
+  "messages": {
+    "incidentCreated": "Incident created successfully",
+    "incidentUpdated": "Incident updated",
+    "incidentClosed": "Incident closed",
+    "incidentAssigned": "Incident assigned",
+    "incidentEscalated": "Incident escalated",
+    "reportGenerated": "Report generated",
+    "noIncidents": "No incidents recorded",
+    "loadingIncidents": "Loading incidents...",
+    "errorLoading": "Error loading incidents"
+  },
+  "filters": {
+    "dateRange": "Date Range",
+    "category": "Category",
+    "severity": "Severity",
+    "status": "Status",
+    "assignee": "Assigned to"
+  },
+  "metrics": {
+    "mttr": "MTTR (Mean Time to Resolution)",
+    "mttd": "MTTD (Mean Time to Detection)",
+    "mttc": "MTTC (Mean Time to Containment)",
+    "incidentRate": "Incident Rate",
+    "resolutionRate": "Resolution Rate"
+  }
+}

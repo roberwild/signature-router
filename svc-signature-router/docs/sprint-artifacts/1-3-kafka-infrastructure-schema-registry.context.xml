@@ -1,0 +1,946 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/1-3-kafka-infrastructure-schema-registry" v="1.0">
+  <metadata>
+    <epicId>epic-1</epicId>
+    <storyId>1.3</storyId>
+    <title>Kafka Infrastructure &amp; Schema Registry</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-26</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-3-kafka-infrastructure-schema-registry.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Developer</asA>
+    <iWant>Kafka cluster con Schema Registry configurado para eventos Avro</iWant>
+    <soThat>Puedo publicar domain events con garantía de schema versionado y backward compatibility</soThat>
+    <tasks>
+      - Task 1: Add Kafka Services to Docker Compose (5 subtasks)
+      - Task 2: Add Spring Kafka Dependencies to pom.xml (5 subtasks)
+      - Task 3: Configure Kafka in application-local.yml (5 subtasks)
+      - Task 4: Define Avro Schema for Domain Events (5 subtasks)
+      - Task 5: Configure Kafka Topics (4 subtasks)
+      - Task 6: Configure KafkaTemplate Bean (5 subtasks)
+      - Task 7: Register Schema in Schema Registry (5 subtasks)
+      - Task 8: Configure Kafka Health Check (5 subtasks)
+      - Task 9: Configure Maven Avro Plugin (6 subtasks)
+      - Task 10: Create Integration Test with Embedded Kafka (5 subtasks)
+      - Task 11: Configure Kafka Profiles for Multiple Environments (4 subtasks)
+      - Task 12: Update Documentation (4 subtasks)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1" title="Kafka + Zookeeper + Schema Registry Docker Compose">
+      <given>El proyecto tiene Docker Compose configurado</given>
+      <when>Agrego servicios de Kafka al docker-compose.yml</when>
+      <then>
+        - Servicio zookeeper: confluentinc/cp-zookeeper:7.5.0, puerto 2181
+        - Servicio kafka: confluentinc/cp-kafka:7.5.0, puertos 9092 (external) y 29092 (internal)
+        - Servicio schema-registry: confluentinc/cp-schema-registry:7.5.0, puerto 8081
+        - Healthchecks configurados
+        - docker-compose up -d levanta los 3 servicios exitosamente
+      </then>
+    </criterion>
+
+    <criterion id="AC2" title="Spring Kafka Dependencies">
+      <given>El proyecto tiene Spring Boot 3.2+</given>
+      <when>Agrego dependencias de Kafka</when>
+      <then>
+        - pom.xml incluye: spring-kafka, kafka-avro-serializer (Confluent 7.5.0), avro (1.11+), kafka-streams-test-utils, spring-kafka-test
+      </then>
+    </criterion>
+
+    <criterion id="AC3" title="Kafka Configuration (Spring Boot)">
+      <given>Kafka running en Docker</given>
+      <when>Configuro application-local.yml</when>
+      <then>
+        - Producer config: bootstrap-servers=localhost:9092, acks=all, compression=snappy, max-in-flight=5
+        - Serializers: StringSerializer (key), KafkaAvroSerializer (value)
+        - Schema Registry URL: http://localhost:8081
+        - Admin auto-create: true
+      </then>
+    </criterion>
+
+    <criterion id="AC4" title="Avro Schema Definition">
+      <given>Schema Registry configurado</given>
+      <when>Defino esquema Avro para eventos de dominio</when>
+      <then>
+        - Archivo signature-event.avsc creado
+        - Namespace: com.bank.signature.event
+        - Campos comunes: eventId, eventType, aggregateId, timestamp, traceId
+        - Union type payload con 8 event types
+        - Backward compatibility validada
+      </then>
+    </criterion>
+
+    <criterion id="AC5" title="Kafka Topic Creation">
+      <given>Kafka Admin configurado</given>
+      <when>La aplicación inicia</when>
+      <then>
+        - Topic signature.events: 12 partitions, replication 1 (dev), retention 7 días
+        - Topic signature.events.dlq: 3 partitions, replication 1 (dev), retention 30 días
+      </then>
+    </criterion>
+
+    <criterion id="AC6" title="KafkaTemplate Configuration">
+      <given>Spring Kafka configurado</given>
+      <when>Creo KafkaConfig.java</when>
+      <then>
+        - Bean KafkaTemplate&lt;String, GenericRecord&gt; configurado
+        - ProducerFactory con KafkaAvroSerializer
+        - Idempotence habilitado
+        - Default topic: signature.events
+      </then>
+    </criterion>
+
+    <criterion id="AC7" title="Schema Registration in Schema Registry">
+      <given>Schema Registry running</given>
+      <when>Registro esquema Avro</when>
+      <then>
+        - Subject: signature.events-value
+        - Compatibility mode: BACKWARD
+        - Schema ID asignado
+        - GET /subjects retorna signature.events-value
+      </then>
+    </criterion>
+
+    <criterion id="AC8" title="Kafka Health Check">
+      <given>Kafka configurado</given>
+      <when>Configuro Actuator</when>
+      <then>
+        - Endpoint /actuator/health/kafka retorna UP
+        - Verifica producer está listo
+      </then>
+    </criterion>
+
+    <criterion id="AC9" title="Maven Avro Plugin Configuration">
+      <given>Esquema Avro definido</given>
+      <when>Configuro avro-maven-plugin</when>
+      <then>
+        - Plugin genera clases Java desde .avsc
+        - Output: target/generated-sources/avro
+        - mvnw compile genera SignatureEvent.java
+      </then>
+    </criterion>
+
+    <criterion id="AC10" title="Integration Test with Embedded Kafka">
+      <given>Spring Kafka Test configurado</given>
+      <when>Creo KafkaInfrastructureIntegrationTest.java</when>
+      <then>
+        - @EmbeddedKafka con topics signature.events, signature.events.dlq
+        - Test verifica KafkaTemplate envía GenericRecord
+        - Test pasa en mvn verify
+      </then>
+    </criterion>
+
+    <criterion id="AC11" title="Kafka Configuration Profiles">
+      <given>Múltiples entornos</given>
+      <when>Configuro profiles</when>
+      <then>
+        - application-local.yml: bootstrap-servers localhost:9092
+        - application-uat.yml: placeholder para kafka-uat
+        - application-prod.yml: placeholder para kafka-prod + idempotence
+      </then>
+    </criterion>
+
+    <criterion id="AC12" title="Documentation &amp; README Update">
+      <given>Kafka infrastructure configurado</given>
+      <when>Actualizo documentación</when>
+      <then>
+        - README.md con sección Kafka Setup
+        - docs/development/kafka-messaging.md creado
+        - CHANGELOG.md actualizado
+      </then>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact id="event-catalog" path="docs/architecture/04-event-catalog.md">
+        <section name="Domain Events Catalog" lines="52-66">
+          <purpose>8 event types del dominio Signature Request</purpose>
+          <event_types>
+            - SIGNATURE_REQUEST_CREATED: Request created
+            - CHALLENGE_SENT: Challenge delivered
+            - CHALLENGE_FAILED: Provider rejected
+            - PROVIDER_FAILED: Provider unavailable
+            - SIGNATURE_COMPLETED: User completed
+            - SIGNATURE_EXPIRED: TTL reached
+            - SIGNATURE_ABORTED: User/system aborted
+            - ROUTING_RULE_CHANGED: Admin modified rules
+          </event_types>
+        </section>
+        <section name="Event Schemas (Avro)" lines="69-200">
+          <purpose>Avro schema definitions con BaseEvent, específicos</purpose>
+          <base_fields>eventId (UUIDv7), aggregateId, aggregateType, eventType, timestamp, traceId</base_fields>
+          <compatibility>BACKWARD - permite agregar campos opcionales</compatibility>
+        </section>
+      </artifact>
+
+      <artifact id="tech-spec-epic-1" path="docs/sprint-artifacts/tech-spec-epic-1.md">
+        <section name="Technology Stack" lines="94-95">
+          <kafka_version>3.6 (Confluent)</kafka_version>
+          <schema_registry_version>7.5</schema_registry_version>
+        </section>
+      </artifact>
+
+      <artifact id="epics" path="docs/epics.md">
+        <section name="Story 1.3 Definition" lines="211-241">
+          <topics>signature.events (12 partitions), signature.events.dlq</topics>
+          <producer_config>acks=all, compression=snappy, max-in-flight=5</producer_config>
+        </section>
+      </artifact>
+
+      <artifact id="prd" path="docs/prd.md">
+        <section name="Event Publishing Requirements (FR39-FR46)">
+          <fr39>Persistir eventos en outbox table</fr39>
+          <fr40>Garantizar atomicidad (estado + evento, misma TX)</fr40>
+          <fr41>Publicar eventos a Kafka vía Debezium CDC</fr41>
+          <fr42>Serializar eventos en Avro con schema validation</fr42>
+          <fr43>Particionar eventos por aggregate_id</fr43>
+          <fr44>Incluir trace_id en eventos</fr44>
+          <fr45>Publicar 8 tipos de eventos de dominio</fr45>
+          <fr46>Almacenar hash de transaction context</fr46>
+        </section>
+      </artifact>
+    </docs>
+
+    <code>
+      <artifact id="docker-compose-kafka-services" type="yaml" path="docker-compose.yml">
+        <content><![CDATA[
+  # Zookeeper (Kafka dependency)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: signature-router-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - signature-router-network
+
+  # Kafka Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: signature-router-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+
+  # Confluent Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.5.0
+    container_name: signature-router-schema-registry
+    depends_on:
+      - kafka
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka:29092'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - signature-router-network
+]]></content>
+        <critical_notes>
+          - KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092 para app en host, PLAINTEXT_INTERNAL://kafka:29092 para containers
+          - OFFSETS_TOPIC_REPLICATION_FACTOR: 1 (dev), cambiar a 3 en prod
+          - Healthchecks críticos para evitar race conditions en startup
+        </critical_notes>
+      </artifact>
+
+      <artifact id="avro-schema-signature-event" type="avro" path="src/main/resources/kafka/schemas/signature-event.avsc">
+        <content><![CDATA[
+{
+  "namespace": "com.bank.signature.event",
+  "type": "record",
+  "name": "SignatureEvent",
+  "doc": "Domain event for Signature Request lifecycle",
+  "fields": [
+    {
+      "name": "eventId",
+      "type": "string",
+      "doc": "Unique event ID (UUIDv7)"
+    },
+    {
+      "name": "eventType",
+      "type": {
+        "type": "enum",
+        "name": "EventType",
+        "symbols": [
+          "SIGNATURE_REQUEST_CREATED",
+          "CHALLENGE_SENT",
+          "CHALLENGE_COMPLETED",
+          "CHALLENGE_FAILED",
+          "SIGNATURE_COMPLETED",
+          "SIGNATURE_FAILED",
+          "FALLBACK_TRIGGERED",
+          "PROVIDER_DEGRADED"
+        ]
+      },
+      "doc": "Type of domain event"
+    },
+    {
+      "name": "aggregateId",
+      "type": "string",
+      "doc": "SignatureRequest ID (UUIDv7)"
+    },
+    {
+      "name": "aggregateType",
+      "type": "string",
+      "default": "SignatureRequest",
+      "doc": "Always 'SignatureRequest'"
+    },
+    {
+      "name": "timestamp",
+      "type": "long",
+      "logicalType": "timestamp-millis",
+      "doc": "Event timestamp in milliseconds since epoch"
+    },
+    {
+      "name": "traceId",
+      "type": ["null", "string"],
+      "default": null,
+      "doc": "Distributed tracing ID for correlation"
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "EventPayload",
+        "fields": [
+          {
+            "name": "customerId",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Pseudonimized customer ID"
+          },
+          {
+            "name": "requestStatus",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Current status of signature request"
+          },
+          {
+            "name": "channel",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Channel used (SMS, PUSH, VOICE, BIOMETRIC)"
+          },
+          {
+            "name": "provider",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Provider name (TWILIO, PUSH_SERVICE, etc.)"
+          },
+          {
+            "name": "errorCode",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Error code if event is failure type"
+          },
+          {
+            "name": "errorMessage",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Human-readable error message"
+          }
+        ]
+      },
+      "doc": "Event-specific payload (fields may be null depending on event type)"
+    }
+  ]
+}
+]]></content>
+        <critical_notes>
+          - Backward compatibility: todos los campos nuevos deben tener default values
+          - payload fields son "union null + type" para permitir campos opcionales
+          - timestamp usa logicalType timestamp-millis para conversión automática
+          - EventType enum debe mantenerse ordenado (agregar al final para compatibility)
+        </critical_notes>
+      </artifact>
+
+      <artifact id="kafka-config" type="java" path="src/main/java/com/bank/signature/infrastructure/config/KafkaConfig.java">
+        <content><![CDATA[
+package com.bank.signature.infrastructure.config;
+
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.core.ProducerFactory;
+
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * Kafka configuration for event publishing.
+ * 
+ * Producer configuration:
+ * - Idempotent producer for exactly-once semantics
+ * - acks=all for strong durability
+ * - Snappy compression for network efficiency
+ * - KafkaAvroSerializer for schema-validated messages
+ */
+@Configuration
+public class KafkaConfig {
+
+    @Value("${spring.kafka.bootstrap-servers}")
+    private String bootstrapServers;
+
+    @Value("${spring.kafka.properties.schema.registry.url}")
+    private String schemaRegistryUrl;
+
+    @Bean
+    public ProducerFactory<String, GenericRecord> producerFactory() {
+        Map<String, Object> configProps = new HashMap<>();
+        
+        // Broker configuration
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        
+        // Serializers
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class);
+        
+        // Schema Registry
+        configProps.put("schema.registry.url", schemaRegistryUrl);
+        
+        // Idempotence & Durability (banking-grade)
+        configProps.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true);
+        configProps.put(ProducerConfig.ACKS_CONFIG, "all");
+        
+        // Performance optimization
+        configProps.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "snappy");
+        configProps.put(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, 5);
+        
+        // Retry configuration
+        configProps.put(ProducerConfig.RETRIES_CONFIG, Integer.MAX_VALUE);
+        configProps.put(ProducerConfig.MAX_BLOCK_MS_CONFIG, 30000);
+        
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean
+    public KafkaTemplate<String, GenericRecord> kafkaTemplate() {
+        KafkaTemplate<String, GenericRecord> template = new KafkaTemplate<>(producerFactory());
+        template.setDefaultTopic("signature.events");
+        return template;
+    }
+}
+]]></content>
+        <dependencies>
+          - spring-kafka (Spring Boot managed)
+          - kafka-avro-serializer (Confluent 7.5.0)
+        </dependencies>
+      </artifact>
+
+      <artifact id="kafka-topic-config" type="java" path="src/main/java/com/bank/signature/infrastructure/config/KafkaTopicConfig.java">
+        <content><![CDATA[
+package com.bank.signature.infrastructure.config;
+
+import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.TopicBuilder;
+
+/**
+ * Kafka topic configuration.
+ * 
+ * Topics:
+ * - signature.events: Main event stream (12 partitions for throughput)
+ * - signature.events.dlq: Dead Letter Queue (3 partitions)
+ */
+@Configuration
+public class KafkaTopicConfig {
+
+    @Bean
+    public NewTopic signatureEventsTopic() {
+        return TopicBuilder.name("signature.events")
+                .partitions(12)  // High throughput (parallel consumers)
+                .replicas(1)     // Dev: 1, Prod: 3
+                .config("retention.ms", String.valueOf(7 * 24 * 60 * 60 * 1000L))  // 7 days
+                .config("compression.type", "snappy")
+                .build();
+    }
+
+    @Bean
+    public NewTopic signatureEventsDlqTopic() {
+        return TopicBuilder.name("signature.events.dlq")
+                .partitions(3)
+                .replicas(1)  // Dev: 1, Prod: 3
+                .config("retention.ms", String.valueOf(30 * 24 * 60 * 60 * 1000L))  // 30 days
+                .build();
+    }
+}
+]]></content>
+        <critical_notes>
+          - 12 partitions en signature.events permite hasta 12 consumers paralelos
+          - Retention 7 días para events (balance storage vs replay capability)
+          - DLQ retention 30 días para análisis de mensajes fallidos
+          - replicas=1 en dev, cambiar a 3 en prod para high availability
+        </critical_notes>
+      </artifact>
+
+      <artifact id="kafka-integration-test" type="java" path="src/test/java/com/bank/signature/infrastructure/KafkaInfrastructureIntegrationTest.java">
+        <content><![CDATA[
+package com.bank.signature.infrastructure;
+
+import com.bank.signature.event.EventType;
+import com.bank.signature.event.SignatureEvent;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
+
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Integration test for Kafka infrastructure with Embedded Kafka.
+ * 
+ * Tests verify:
+ * - KafkaTemplate can send GenericRecord (Avro)
+ * - Schema serialization works correctly
+ * - Messages arrive at signature.events topic
+ * - Event fields are correctly populated
+ */
+@SpringBootTest
+@EmbeddedKafka(
+        topics = {"signature.events", "signature.events.dlq"},
+        partitions = 3,
+        brokerProperties = {
+                "listeners=PLAINTEXT://localhost:9093",
+                "port=9093"
+        }
+)
+class KafkaInfrastructureIntegrationTest {
+
+    @Autowired
+    private KafkaTemplate<String, GenericRecord> kafkaTemplate;
+
+    @Autowired
+    private EmbeddedKafkaBroker embeddedKafkaBroker;
+
+    @Test
+    void testKafkaTemplateSendsAvroMessage() throws Exception {
+        // Given: Create SignatureEvent (Avro generated class)
+        String eventId = UUID.randomUUID().toString();
+        String aggregateId = UUID.randomUUID().toString();
+        
+        SignatureEvent event = SignatureEvent.newBuilder()
+                .setEventId(eventId)
+                .setEventType(EventType.SIGNATURE_REQUEST_CREATED)
+                .setAggregateId(aggregateId)
+                .setAggregateType("SignatureRequest")
+                .setTimestamp(Instant.now().toEpochMilli())
+                .setTraceId("test-trace-id")
+                .setPayload(/* ... build payload ... */)
+                .build();
+
+        // When: Send message with KafkaTemplate
+        kafkaTemplate.send("signature.events", aggregateId, event).get(5, TimeUnit.SECONDS);
+
+        // Then: Verify message was sent
+        // (In real test, consume message and verify fields)
+        assertThat(event.getEventId()).isEqualTo(eventId);
+        assertThat(event.getEventType()).isEqualTo(EventType.SIGNATURE_REQUEST_CREATED);
+    }
+
+    @Test
+    void testKafkaTopicsExist() {
+        // Verify topics were auto-created
+        assertThat(embeddedKafkaBroker.getTopics()).contains("signature.events", "signature.events.dlq");
+    }
+}
+]]></content>
+        <dependencies>
+          - spring-kafka-test (test scope)
+          - kafka-streams-test-utils (test scope)
+        </dependencies>
+      </artifact>
+
+      <artifact id="application-local-yml-kafka" type="yaml" path="src/main/resources/application-local.yml">
+        <content><![CDATA[
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+      acks: all
+      compression-type: snappy
+      max-in-flight-requests-per-connection: 5
+    
+    properties:
+      schema.registry.url: http://localhost:8081
+    
+    admin:
+      auto-create: true
+      properties:
+        # Default topic replication factor for dev
+        default.replication.factor: 1
+
+# Actuator health check for Kafka
+management:
+  health:
+    kafka:
+      enabled: true
+]]></content>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <maven>
+        <dependency>
+          <groupId>org.springframework.kafka</groupId>
+          <artifactId>spring-kafka</artifactId>
+          <scope>compile</scope>
+          <version>Spring Boot managed (3.x)</version>
+          <story>1.3</story>
+        </dependency>
+        <dependency>
+          <groupId>io.confluent</groupId>
+          <artifactId>kafka-avro-serializer</artifactId>
+          <scope>compile</scope>
+          <version>7.5.0</version>
+          <story>1.3</story>
+          <repository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+          </repository>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+          <scope>compile</scope>
+          <version>1.11.3</version>
+          <story>1.3</story>
+        </dependency>
+        <dependency>
+          <groupId>org.springframework.kafka</groupId>
+          <artifactId>spring-kafka-test</artifactId>
+          <scope>test</scope>
+          <version>Spring Boot managed</version>
+          <story>1.3</story>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.kafka</groupId>
+          <artifactId>kafka-streams-test-utils</artifactId>
+          <scope>test</scope>
+          <version>Spring Boot managed</version>
+          <story>1.3</story>
+        </dependency>
+      </maven>
+
+      <maven_plugins>
+        <plugin>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro-maven-plugin</artifactId>
+          <version>1.11.3</version>
+          <executions>
+            <execution>
+              <phase>generate-sources</phase>
+              <goals>
+                <goal>schema</goal>
+              </goals>
+              <configuration>
+                <sourceDirectory>${project.basedir}/src/main/resources/kafka/schemas</sourceDirectory>
+                <outputDirectory>${project.basedir}/target/generated-sources/avro</outputDirectory>
+                <stringType>String</stringType>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </maven_plugins>
+
+      <maven_repositories>
+        <repository>
+          <id>confluent</id>
+          <url>https://packages.confluent.io/maven/</url>
+          <note>Required for kafka-avro-serializer dependency</note>
+        </repository>
+      </maven_repositories>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="ARCH-1" type="architectural">
+      <rule>Event-Driven Architecture: Kafka como backbone para eventos de dominio</rule>
+      <validation>Outbox pattern (Story 1.2) + Debezium CDC (Story 1.3 setup ready) garantiza atomicidad</validation>
+    </constraint>
+
+    <constraint id="ARCH-2" type="architectural">
+      <rule>Avro serialization mandatory con Schema Registry</rule>
+      <validation>Schema Registry valida esquemas antes de publicar (fail fast), backward compatibility garantiza evolución segura</validation>
+    </constraint>
+
+    <constraint id="TECH-1" type="technology">
+      <rule>Kafka Advertised Listeners must support both host and container access</rule>
+      <config>
+        - PLAINTEXT://localhost:9092 (app running on host)
+        - PLAINTEXT_INTERNAL://kafka:29092 (app running in container)
+      </config>
+    </constraint>
+
+    <constraint id="TECH-2" type="technology">
+      <rule>Idempotent Producer mandatory for banking-grade reliability</rule>
+      <config>
+        - enable.idempotence=true
+        - acks=all (strong durability)
+        - retries=MAX_VALUE
+      </config>
+    </constraint>
+
+    <constraint id="TECH-3" type="technology">
+      <rule>Avro schema backward compatibility MANDATORY</rule>
+      <validation>
+        - All new fields must have default values
+        - Cannot remove fields without compatibility break
+        - Cannot change field types
+        - Schema Registry compatibility mode: BACKWARD
+      </validation>
+    </constraint>
+
+    <constraint id="PERF-1" type="performance">
+      <rule>Partitioning strategy: aggregateId (signature_request.id) as partition key</rule>
+      <rationale>Garantiza orden por request (todos los eventos de un request en misma partition), permite paralelismo entre requests</rationale>
+    </constraint>
+
+    <constraint id="PERF-2" type="performance">
+      <rule>12 partitions para signature.events topic</rule>
+      <rationale>Permite hasta 12 consumers paralelos para high throughput (banking workload)</rationale>
+    </constraint>
+
+    <constraint id="SEC-1" type="security">
+      <rule>No PII en eventos Kafka (GDPR compliance)</rule>
+      <validation>customerId debe ser pseudonimizado (como en DB), no incluir nombres, emails, teléfonos en payload</validation>
+    </constraint>
+
+    <constraint id="COMP-1" type="compliance">
+      <rule>Event retention policies must comply with banking regulations</rule>
+      <config>
+        - signature.events: 7 días (operational replay)
+        - signature.events.dlq: 30 días (análisis de errores)
+        - Long-term archival via consumer to S3/Data Lake (future)
+      </config>
+    </constraint>
+
+    <constraint id="TEST-1" type="testing">
+      <rule>Integration tests with @EmbeddedKafka mandatory</rule>
+      <validation>KafkaInfrastructureIntegrationTest must verify: KafkaTemplate sends, schema serialization, message arrival</validation>
+    </constraint>
+
+    <constraint id="OPS-1" type="operational">
+      <rule>Kafka healthcheck must verify producer readiness</rule>
+      <validation>/actuator/health/kafka must return UP before app accepts traffic (Kubernetes readiness probe)</validation>
+    </constraint>
+
+    <constraint id="OPS-2" type="operational">
+      <rule>Schema Registry compatibility mode must be BACKWARD</rule>
+      <rationale>Permite agregar campos opcionales (evolución), no permite breaking changes sin versión mayor</rationale>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface id="IFC-1" name="Spring Boot to Kafka Broker">
+      <description>Producer connection for event publishing</description>
+      <protocol>Kafka Producer Protocol (binary)</protocol>
+      <contract>
+        - Bootstrap servers: localhost:9092 (dev), kafka-prod.internal:9092 (prod)
+        - Key serializer: StringSerializer (aggregateId como partition key)
+        - Value serializer: KafkaAvroSerializer (validates schema with Registry)
+        - acks=all garantiza replication a todas las replicas
+      </contract>
+    </interface>
+
+    <interface id="IFC-2" name="Kafka Producer to Schema Registry">
+      <description>Schema validation before message publish</description>
+      <protocol>HTTP REST API</protocol>
+      <contract>
+        - Producer envía schema a Registry antes de primer mensaje
+        - Registry valida backward compatibility
+        - Registry retorna schema ID
+        - Producer incluye schema ID en mensaje (wire format: [magic byte][schema ID][Avro binary])
+      </contract>
+    </interface>
+
+    <interface id="IFC-3" name="Avro Maven Plugin to .avsc files">
+      <description>Code generation from Avro schemas</description>
+      <protocol>Maven build lifecycle</protocol>
+      <contract>
+        - Plugin lee .avsc files en compile phase
+        - Genera clases Java en target/generated-sources/avro
+        - Clases implementan GenericRecord, tienen builders, getters, setters
+        - Classes added to classpath automáticamente
+      </contract>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <standard id="TS-1">Integration tests with @EmbeddedKafka MANDATORY for Kafka infrastructure</standard>
+      <standard id="TS-2">Schema compatibility tests: agregar campo opcional, validar backward compatibility</standard>
+      <standard id="TS-3">Manual tests: docker-compose up, list topics, verify Schema Registry</standard>
+      <standard id="TS-4">Load tests (future): produce 1000 msg/s, verify consumer lag</standard>
+    </standards>
+
+    <locations>
+      <location>src/test/java/com/bank/signature/infrastructure/KafkaInfrastructureIntegrationTest.java</location>
+      <location>src/test/resources/application-test.yml (Embedded Kafka config)</location>
+    </locations>
+
+    <ideas>
+      <test id="TEST-1" maps_to="AC1,AC8">
+        <name>Kafka Health Check Integration Test</name>
+        <approach>@SpringBootTest verifica /actuator/health/kafka retorna UP, detener Kafka container, verificar DOWN</approach>
+      </test>
+
+      <test id="TEST-2" maps_to="AC4,AC9">
+        <name>Avro Code Generation Test</name>
+        <approach>mvn compile genera SignatureEvent.java, test instancia clase, verifica builders/getters</approach>
+      </test>
+
+      <test id="TEST-3" maps_to="AC6,AC10">
+        <name>KafkaTemplate Send Test</name>
+        <approach>@EmbeddedKafka, crear SignatureEvent, send con KafkaTemplate, consume, verify eventId/aggregateId match</approach>
+      </test>
+
+      <test id="TEST-4" maps_to="AC7">
+        <name>Schema Registry Compatibility Test</name>
+        <approach>Register schema v1, modify .avsc (add optional field), register v2, verify BACKWARD compatibility accepted</approach>
+      </test>
+
+      <test id="TEST-5" maps_to="AC5">
+        <name>Topic Auto-Creation Test</name>
+        <approach>@SpringBootTest, verify signature.events and signature.events.dlq topics exist via KafkaAdmin</approach>
+      </test>
+
+      <test id="TEST-6" maps_to="AC3">
+        <name>Producer Idempotence Test</name>
+        <approach>Send same message twice with same eventId, verify Kafka deduplicates (idempotence)</approach>
+      </test>
+
+      <test id="TEST-7" maps_to="AC2">
+        <name>Dependencies Test</name>
+        <approach>Verify spring-kafka, kafka-avro-serializer jars in classpath (mvn dependency:tree)</approach>
+      </test>
+
+      <test id="TEST-8" maps_to="AC11">
+        <name>Profile Configuration Test</name>
+        <approach>@ActiveProfiles("local"), verify bootstrap-servers=localhost:9092, @ActiveProfiles("prod"), verify kafka-prod.internal</approach>
+      </test>
+
+      <test id="TEST-9" maps_to="AC1">
+        <name>Docker Compose Kafka Cluster Test</name>
+        <approach>docker-compose up -d, docker ps verifica 3 containers running (zookeeper, kafka, schema-registry), healthchecks PASS</approach>
+      </test>
+
+      <test id="TEST-10" maps_to="AC12">
+        <name>Documentation Validation</name>
+        <approach>Verify README.md tiene sección Kafka Setup, docs/development/kafka-messaging.md existe, CHANGELOG.md updated</approach>
+      </test>
+    </ideas>
+  </tests>
+
+  <implementation_notes>
+    <priority level="CRITICAL">
+      <note>Kafka Advertised Listeners MUST include both localhost:9092 and kafka:29092 para que app en host y containers puedan conectarse</note>
+      <note>Avro schema backward compatibility: todos los nuevos campos deben tener default values (crítico para evolución sin downtime)</note>
+      <note>Idempotent producer (enable.idempotence=true) + acks=all garantiza exactly-once semantics (no duplicados en retries)</note>
+      <note>Confluent Maven repository debe agregarse a pom.xml para kafka-avro-serializer dependency</note>
+    </priority>
+
+    <priority level="HIGH">
+      <note>Schema Registry healthcheck en docker-compose evita race condition (app intenta registrar schema antes de Registry estar ready)</note>
+      <note>Avro Maven Plugin output directory (target/generated-sources/avro) debe agregarse a classpath (maven-compiler-plugin)</note>
+      <note>12 partitions en signature.events permite escalar hasta 12 consumers paralelos (banking throughput requirements)</note>
+      <note>DLQ topic (signature.events.dlq) crítico para mensajes fallidos (retry exhausted, deserialization errors)</note>
+    </priority>
+
+    <priority level="MEDIUM">
+      <note>README.md documentar comandos Kafka: list topics, consume messages, check Schema Registry schemas</note>
+      <note>docs/development/kafka-messaging.md: schema evolution guidelines, event publishing patterns, troubleshooting</note>
+      <note>application-uat.yml y application-prod.yml crear placeholders con Kafka internal URLs (kafka-uat.internal, kafka-prod.internal)</note>
+    </priority>
+
+    <priority level="LOW">
+      <note>Kafka replication factor 1 en dev (OK), cambiar a 3 en prod para high availability (futuro deployment)</note>
+      <note>Considerar Kafka Streams para event processing en futuro (analytics, fraud detection)</note>
+    </priority>
+  </implementation_notes>
+
+  <definition_of_done>
+    <checklist>
+      <item>Code Complete: 3 servicios agregados a docker-compose.yml (zookeeper, kafka, schema-registry)</item>
+      <item>Code Complete: 5 dependencies agregadas a pom.xml (spring-kafka, kafka-avro-serializer, avro, test utils)</item>
+      <item>Code Complete: Avro schema signature-event.avsc definido con 8 event types</item>
+      <item>Code Complete: KafkaConfig.java y KafkaTopicConfig.java creados</item>
+      <item>Code Complete: KafkaInfrastructureIntegrationTest.java con @EmbeddedKafka</item>
+      <item>Code Complete: Maven Avro Plugin configurado en pom.xml</item>
+      <item>Code Complete: application-local.yml configurado con Kafka properties</item>
+      <item>Tests Passing: Integration test con @EmbeddedKafka pasa en mvn verify</item>
+      <item>Tests Passing: docker-compose up -d levanta Kafka cluster exitosamente</item>
+      <item>Tests Passing: curl http://localhost:8081/subjects lista schemas</item>
+      <item>Tests Passing: /actuator/health/kafka retorna UP</item>
+      <item>Architecture Validated: Avro schema sigue naming conventions (namespace: com.bank.signature.event)</item>
+      <item>Architecture Validated: Topics configurados con partitioning strategy (12 partitions)</item>
+      <item>Architecture Validated: Idempotent producer habilitado (enable.idempotence=true)</item>
+      <item>Architecture Validated: DLQ topic configurado para mensajes fallidos</item>
+      <item>Documentation Updated: README.md con sección Kafka Setup</item>
+      <item>Documentation Updated: docs/development/kafka-messaging.md creado</item>
+      <item>Documentation Updated: KafkaConfig.java con comentarios explicando configuraciones</item>
+      <item>Documentation Updated: CHANGELOG.md actualizado con Story 1.3</item>
+      <item>Code Review Approved: Avro schema es backward compatible</item>
+      <item>Code Review Approved: Kafka advertised listeners correctos</item>
+      <item>Code Review Approved: Idempotence + acks=all para exactly-once</item>
+      <item>Story Marked as Done: Todos los 12 ACs verificados</item>
+      <item>Story Marked as Done: Sprint status actualizado a done</item>
+    </checklist>
+  </definition_of_done>
+</story-context>
