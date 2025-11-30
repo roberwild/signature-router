@@ -160,16 +160,21 @@ public interface SignatureRequestJpaRepository extends JpaRepository<SignatureRe
     /**
      * Count signature requests by channel created between two timestamps.
      * 
+     * TODO: SignatureRequestEntity no tiene campo 'channel' - implementar cuando se agregue
+     * 
      * @param channel Channel (e.g., "SMS", "PUSH", "VOICE", "BIOMETRIC")
      * @param from    Start timestamp (inclusive)
      * @param to      End timestamp (exclusive)
      * @return Count of matching signature requests
      * @since Story 12.1
      */
-    long countByChannelAndCreatedAtBetween(String channel, Instant from, Instant to);
+    // TEMPORALMENTE DESHABILITADO - SignatureRequestEntity no tiene campo 'channel'
+    // long countByChannelAndCreatedAtBetween(String channel, Instant from, Instant to);
     
     /**
      * Count signature requests by channel and status created between two timestamps.
+     * 
+     * TODO: SignatureRequestEntity no tiene campo 'channel' - implementar cuando se agregue
      * 
      * @param channel Channel (e.g., "SMS", "PUSH")
      * @param status  Signature status (e.g., "VALIDATED")
@@ -178,12 +183,13 @@ public interface SignatureRequestJpaRepository extends JpaRepository<SignatureRe
      * @return Count of matching signature requests
      * @since Story 12.1
      */
-    long countByChannelAndStatusAndCreatedAtBetween(
-        String channel,
-        String status,
-        Instant from,
-        Instant to
-    );
+    // TEMPORALMENTE DESHABILITADO - SignatureRequestEntity no tiene campo 'channel'
+    // long countByChannelAndStatusAndCreatedAtBetween(
+    //     String channel,
+    //     String status,
+    //     Instant from,
+    //     Instant to
+    // );
     
     // ========================================
     // Admin Query Methods with Filters
@@ -202,17 +208,28 @@ public interface SignatureRequestJpaRepository extends JpaRepository<SignatureRe
      * @return Page of signature requests matching filters
      * @since Story 12.2
      */
+    /**
+     * Find all signature requests with filters (WITHOUT channel filter).
+     * 
+     * TODO: SignatureRequestEntity no tiene campo 'channel'
+     * El filtro por channel se aplicará cuando se agregue el campo a la entidad.
+     * Por ahora, el adapter ignora el parámetro channel.
+     * 
+     * @param status    Optional status filter
+     * @param dateFrom  Optional start date filter
+     * @param dateTo    Optional end date filter
+     * @param pageable  Pagination configuration
+     * @return Page of signature requests
+     */
     @Query("""
         SELECT sr FROM SignatureRequestEntity sr
         WHERE (:status IS NULL OR sr.status = :status)
-        AND (:channel IS NULL OR sr.channel = :channel)
         AND (:dateFrom IS NULL OR sr.createdAt >= :dateFrom)
         AND (:dateTo IS NULL OR sr.createdAt < :dateTo)
         """)
     @EntityGraph(attributePaths = {"challenges"})
-    Page<SignatureRequestEntity> findAllWithFilters(
+    Page<SignatureRequestEntity> findAllWithFiltersWithoutChannel(
         @Param("status") String status,
-        @Param("channel") String channel,
         @Param("dateFrom") Instant dateFrom,
         @Param("dateTo") Instant dateTo,
         Pageable pageable

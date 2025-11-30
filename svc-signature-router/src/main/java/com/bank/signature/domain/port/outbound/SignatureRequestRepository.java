@@ -148,10 +148,13 @@ public interface SignatureRequestRepository {
      * @return Count of matching signature requests
      * @since Story 12.1
      */
-    long countByChannelAndCreatedAtBetween(Channel channel, Instant from, Instant to);
+    // TEMPORALMENTE DESHABILITADO - SignatureRequestEntity no tiene campo 'channel'
+    // long countByChannelAndCreatedAtBetween(Channel channel, Instant from, Instant to);
     
     /**
      * Count signature requests by channel and status created between two timestamps.
+     * 
+     * TODO: Implementar cuando SignatureRequestEntity tenga campo 'channel'
      * 
      * @param channel Channel to filter by
      * @param status  Signature status to filter by
@@ -160,12 +163,13 @@ public interface SignatureRequestRepository {
      * @return Count of matching signature requests
      * @since Story 12.1
      */
-    long countByChannelAndStatusAndCreatedAtBetween(
-        Channel channel, 
-        SignatureStatus status, 
-        Instant from, 
-        Instant to
-    );
+    // TEMPORALMENTE DESHABILITADO - SignatureRequestEntity no tiene campo 'channel'
+    // long countByChannelAndStatusAndCreatedAtBetween(
+    //     Channel channel, 
+    //     SignatureStatus status, 
+    //     Instant from, 
+    //     Instant to
+    // );
     
     // ========================================
     // Admin Query Methods with Filters

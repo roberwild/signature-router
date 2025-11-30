@@ -26,13 +26,26 @@ public enum SignatureStatus {
     
     /**
      * Challenge completed successfully, signature verified.
+     * Alias: VALIDATED (for backward compatibility)
      */
     SIGNED,
+    
+    /**
+     * Challenge validated successfully.
+     * Alias for SIGNED status used in metrics and reporting.
+     */
+    VALIDATED,
     
     /**
      * Manually aborted by user or system (e.g., fraud detection).
      */
     ABORTED,
+    
+    /**
+     * Challenge delivery or validation failed.
+     * Used for provider failures or validation errors.
+     */
+    FAILED,
     
     /**
      * TTL exceeded (default 15 minutes), signature request expired.

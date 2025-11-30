@@ -39,6 +39,12 @@ spring:
         enabled: false # Managed by application, not Spring Cloud Vault
       connection-timeout: 5000
       read-timeout: 15000
+  
+  # Distributed Tracing - Sleuth Baggage
+  sleuth:
+    baggage:
+      remote-fields: customerId,signatureId,requestId  # Propagate these fields in trace context
+      correlation-fields: customerId,signatureId,requestId  # Include in MDC for logs
 
 server:
   port: 8080
@@ -83,11 +89,15 @@ management:
       prometheus:
         enabled: true
         step: 10s  # Scrape interval (Prometheus default)
-        descriptions: true  # Include HELP text in metrics
-    tags:
-      application: ${spring.application.name}
-      environment: ${spring.profiles.active:local}
-      region: ${REGION:local}
+  
+  # Distributed Tracing Configuration (Story 9.4)
+  tracing:
+    enabled: true
+    sampling:
+      probability: 1.0  # 100% sampling in local/dev (overridden in prod)
+  zipkin:
+    tracing:
+      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}  # Jaeger Zipkin endpoint
     distribution:
       # Enable percentiles histogram for key metrics
       percentiles-histogram:
@@ -347,22 +357,7 @@ observability:
         cron: "0 0 9 1 * *"  # 1st day of month at 9:00 AM
 
 # Spring Cloud Sleuth - Distributed Tracing (Story 9.4)
-management:
-  tracing:
-    enabled: true
-    sampling:
-      probability: 1.0  # 100% sampling in local/dev (overridden in prod)
-  zipkin:
-    tracing:
-      endpoint: ${ZIPKIN_ENDPOINT:http://localhost:9411/api/v2/spans}  # Jaeger Zipkin endpoint
-
 # Sleuth Baggage Propagation (carry business IDs across traces)
-spring:
-  sleuth:
-    baggage:
-      remote-fields: customerId,signatureId,requestId  # Propagate these fields in trace context
-      correlation-fields: customerId,signatureId,requestId  # Include in MDC for logs
-
 # Epic 12: Admin Portal Configuration
 admin:
   portal:

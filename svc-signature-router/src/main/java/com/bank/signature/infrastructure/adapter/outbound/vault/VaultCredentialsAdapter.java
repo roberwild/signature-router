@@ -47,7 +47,8 @@ public class VaultCredentialsAdapter implements VaultCredentialsPort {
         log.debug("Retrieving credentials from Vault: path={}", path);
         
         try {
-            VaultResponseSupport<Map<String, Object>> response = vaultTemplate.read(path, Map.class);
+            @SuppressWarnings("unchecked")
+            VaultResponseSupport<Map<String, Object>> response = (VaultResponseSupport<Map<String, Object>>) vaultTemplate.read(path);
             
             if (response == null || response.getData() == null) {
                 log.warn("No credentials found in Vault: path={}", path);

@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "signature-router-002",
 		"name": "Signature Router API (With Keycloak)",
-		"description": "Colección completa con autenticación OAuth2/Keycloak para el Signature Router",
+		"description": "Colección completa con autenticación OAuth2/Keycloak para el Signature Router\n\n**Epic 13: Provider Management CRUD** ✅\n**Última actualización:** 2025-11-30",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -195,25 +195,6 @@
 					}
 				},
 				{
-					"name": "Provider Health (Admin)",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{admin_token}}",
-								"description": "Requiere rol ADMIN"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/admin/providers/health",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "admin", "providers", "health"]
-						},
-						"description": "Verifica el estado de todos los providers. **Requiere rol ADMIN**"
-					}
-				},
-				{
 					"name": "Prometheus Metrics",
 					"request": {
 						"method": "GET",
@@ -338,16 +319,16 @@
 									"        const challenge = response.activeChallenge;",
 									"        pm.environment.set('challenge_id', challenge.id);",
 									"        ",
-									"        console.log('Challenge ID guardado:', challenge.id);",
+									"        console.log('✅ Challenge ID guardado:', challenge.id);",
 									"        console.log('   Channel:', challenge.channelType);",
 									"        console.log('   Status:', challenge.status);",
 									"        console.log('');",
-									"        console.log('Para completar la firma, ejecuta en PowerShell:');",
-									"        console.log('.\\\\scripts\\\\get-challenge-code.ps1');",
+									"        console.log('📋 Para completar la firma, ejecuta en PowerShell:');",
+									"        console.log(`docker exec -it signature-router-postgres psql -U siguser -d signature_router -c \"SELECT challenge_code FROM signature_challenge WHERE id = '${challenge.id}';\"`);",
 									"        console.log('');",
 									"        console.log('Luego actualiza la variable challenge_code en el entorno de Postman');",
 									"    } else {",
-									"        console.log('No hay challenge activo en esta solicitud');",
+									"        console.log('⚠️ No hay challenge activo en esta solicitud');",
 									"    }",
 									"}"
 								],
@@ -360,7 +341,7 @@
 						"header": [
 							{
 								"key": "Authorization",
-								"value": "Bearer {{user_token}}"
+								"value": "Bearer {{admin_token}}"
 							}
 						],
 						"url": {
@@ -370,14 +351,177 @@
 						},
 						"description": "Obtiene el detalle de una solicitud por ID y extrae el challenge_id"
 					}
+				},
+				{
+					"name": "Verify Challenge",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Challenge verificado exitosamente');",
+									"    console.log('   Status:', response.status);",
+									"    console.log('   Signature ID:', response.id);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"challengeId\": \"{{challenge_id}}\",\n  \"code\": \"{{challenge_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/signatures/{{signature_request_id}}/complete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "signatures", "{{signature_request_id}}", "complete"]
+						},
+						"description": "Verifica el código del challenge y completa la firma"
+					}
 				}
 			]
 		},
 		{
-			"name": "3. Challenge Verification",
+			"name": "3. Provider Management (Epic 13)",
 			"item": [
 				{
-					"name": "Verify Challenge",
+					"name": "List All Providers",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log('✅ Providers:', response.totalCount);",
+									"    ",
+									"    if (response.providers && response.providers.length > 0) {",
+									"        pm.environment.set('provider_id', response.providers[0].id);",
+									"        console.log('   First provider ID guardado:', response.providers[0].id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers"]
+						},
+						"description": "Lista todos los providers configurados. **Requiere rol ADMIN o SUPPORT**"
+					}
+				},
+				{
+					"name": "List Providers by Type",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers?type=SMS",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers"],
+							"query": [
+								{
+									"key": "type",
+									"value": "SMS",
+									"description": "SMS, PUSH, VOICE, BIOMETRIC"
+								}
+							]
+						},
+						"description": "Lista providers filtrados por tipo"
+					}
+				},
+				{
+					"name": "List Providers by Enabled Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers?enabled=true",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers"],
+							"query": [
+								{
+									"key": "enabled",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Lista solo providers habilitados o deshabilitados"
+					}
+				},
+				{
+					"name": "Get Provider by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers/{{provider_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers", "{{provider_id}}"]
+						},
+						"description": "Obtiene un provider por su ID"
+					}
+				},
+				{
+					"name": "Create Provider - SMS (Twilio)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.environment.set('provider_id', response.id);",
+									"    console.log('✅ Provider creado:', response.id);",
+									"    console.log('   Code:', response.providerCode);",
+									"    console.log('   Type:', response.type);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [
@@ -387,22 +531,203 @@
 							},
 							{
 								"key": "Authorization",
-								"value": "Bearer {{user_token}}"
+								"value": "Bearer {{admin_token}}"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"userResponse\": \"123456\"\n}"
+							"raw": "{\n  \"providerCode\": \"TWILIO_SMS_{{$timestamp}}\",\n  \"type\": \"SMS\",\n  \"displayName\": \"Twilio SMS Provider\",\n  \"description\": \"Proveedor de SMS usando Twilio API\",\n  \"enabled\": true,\n  \"priority\": 1,\n  \"config\": {\n    \"accountSid\": \"ACxxxxxxxxxxxxxxxxxxxxx\",\n    \"authToken\": \"your-auth-token-here\",\n    \"fromNumber\": \"+34900123456\",\n    \"maxRetries\": 3,\n    \"timeoutMs\": 5000\n  },\n  \"healthCheckConfig\": {\n    \"enabled\": true,\n    \"intervalSeconds\": 60,\n    \"timeoutMs\": 3000,\n    \"failureThreshold\": 3\n  }\n}"
 						},
 						"url": {
-							"raw": "{{base_url}}/api/v1/signatures/{{signature_request_id}}/challenges/{{challenge_id}}/verify",
+							"raw": "{{base_url}}/api/v1/admin/providers",
 							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "signatures", "{{signature_request_id}}", "challenges", "{{challenge_id}}", "verify"]
+							"path": ["api", "v1", "admin", "providers"]
 						},
-						"description": "Verifica el código del challenge"
+						"description": "Crea un nuevo provider de tipo SMS (Twilio). **Requiere rol ADMIN**"
+					}
+				},
+				{
+					"name": "Create Provider - PUSH (Firebase)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"providerCode\": \"FCM_PUSH_{{$timestamp}}\",\n  \"type\": \"PUSH\",\n  \"displayName\": \"Firebase Cloud Messaging\",\n  \"description\": \"Proveedor de notificaciones push usando FCM\",\n  \"enabled\": true,\n  \"priority\": 1,\n  \"config\": {\n    \"projectId\": \"my-project-id\",\n    \"serviceAccountPath\": \"/path/to/service-account.json\",\n    \"timeoutMs\": 5000\n  },\n  \"healthCheckConfig\": {\n    \"enabled\": true,\n    \"intervalSeconds\": 120,\n    \"timeoutMs\": 5000,\n    \"failureThreshold\": 3\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers"]
+						},
+						"description": "Crea un nuevo provider de tipo PUSH (Firebase)"
+					}
+				},
+				{
+					"name": "Update Provider",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"displayName\": \"Twilio SMS Provider (Updated)\",\n  \"description\": \"Provider actualizado con nueva configuración\",\n  \"enabled\": true,\n  \"priority\": 2,\n  \"config\": {\n    \"accountSid\": \"ACxxxxxxxxxxxxxxxxxxxxx\",\n    \"authToken\": \"new-auth-token-here\",\n    \"fromNumber\": \"+34900999888\",\n    \"maxRetries\": 5,\n    \"timeoutMs\": 8000\n  },\n  \"healthCheckConfig\": {\n    \"enabled\": true,\n    \"intervalSeconds\": 30,\n    \"timeoutMs\": 2000,\n    \"failureThreshold\": 2\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers/{{provider_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers", "{{provider_id}}"]
+						},
+						"description": "Actualiza la configuración de un provider existente. **Requiere rol ADMIN**"
+					}
+				},
+				{
+					"name": "Delete Provider (Soft Delete)",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers/{{provider_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers", "{{provider_id}}"]
+						},
+						"description": "Elimina (deshabilita) un provider. **Requiere rol ADMIN**"
+					}
+				},
+				{
+					"name": "Test Provider Connectivity",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"testPhoneNumber\": \"+34600000000\",\n  \"testMessage\": \"Test message from Signature Router\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers/{{provider_id}}/test",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers", "{{provider_id}}", "test"]
+						},
+						"description": "Prueba la conectividad de un provider. **Requiere rol ADMIN**"
 					}
 				}
-			]
+			],
+			"description": "**Epic 13: Provider Management CRUD**\n\nGestión completa de providers de firma digital"
+		},
+		{
+			"name": "4. Provider Registry (Epic 13)",
+			"item": [
+				{
+					"name": "Get Registry Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/registry/stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "registry", "stats"]
+						},
+						"description": "Obtiene estadísticas del registro de providers en memoria"
+					}
+				},
+				{
+					"name": "Reload Provider Registry",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/registry/reload",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "registry", "reload"]
+						},
+						"description": "Fuerza la recarga del registro de providers desde la base de datos. **Requiere rol ADMIN**"
+					}
+				}
+			],
+			"description": "**Story 13.6: Hot Reload Provider Registry**\n\nGestión y estadísticas del registro en memoria"
+		},
+		{
+			"name": "5. Provider Health (Epic 13)",
+			"item": [
+				{
+					"name": "Get All Providers Health Status",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers", "health"]
+						},
+						"description": "Obtiene el estado de salud de todos los providers configurados"
+					}
+				},
+				{
+					"name": "Get Provider Health by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{admin_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/admin/providers/{{provider_id}}/health",
+							"host": ["{{base_url}}"],
+							"path": ["api", "v1", "admin", "providers", "{{provider_id}}", "health"]
+						},
+						"description": "Obtiene el estado de salud de un provider específico"
+					}
+				}
+			],
+			"description": "**Story 13.5: Provider Health Monitoring**\n\nMonitoreo del estado de salud de providers"
 		}
 	],
 	"event": [
@@ -434,4 +759,3 @@
 		}
 	]
 }
-

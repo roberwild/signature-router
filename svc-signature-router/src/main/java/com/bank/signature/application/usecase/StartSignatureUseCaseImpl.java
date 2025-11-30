@@ -66,7 +66,6 @@ public class StartSignatureUseCaseImpl implements StartSignatureUseCase {
         // Story 9.4: Create custom observation span for signature creation
         return Observation.createNotStarted("signature.request.create", observationRegistry)
             .lowCardinalityKeyValue("customerId", request.customerId())
-            .lowCardinalityKeyValue("preferredChannel", request.preferredChannel() != null ? request.preferredChannel().name() : "AUTO")
             .observe(() -> {
                 log.info("Starting signature request for customer: {}", request.customerId());
                 

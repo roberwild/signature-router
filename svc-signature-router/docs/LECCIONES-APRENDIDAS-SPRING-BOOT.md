@@ -292,6 +292,84 @@ docker-compose down -v  # Eliminar volúmenes
 docker-compose up -d    # Recrear con BD limpia
 ```
 
+### 7. "bind: address already in use" (Puerto 5432)
+
+**Causa:** Supabase u otro PostgreSQL local está usando el puerto 5432
+
+**Síntomas:**
+- Docker Compose no puede iniciar el contenedor `postgres`
+- Error: `Error starting userland proxy: listen tcp4 0.0.0.0:5432: bind: address already in use`
+- Backend conecta a la BD equivocada (ej: tabla `plugins` en lugar del schema esperado)
+- Error: "Unable to determine Dialect without JDBC metadata"
+
+**Solución:**
+
+```powershell
+# Verificar qué está usando el puerto 5432
+netstat -ano | findstr :5432
+
+# Opción A: Detener Supabase
+supabase stop
+
+# Opción B: Detener PostgreSQL local (Windows)
+Stop-Service -Name postgresql-x64-15
+
+# Opción C: Matar proceso específico
+# 1. Identificar PID: netstat -ano | findstr :5432
+# 2. Matar proceso: taskkill /PID <numero> /F
+
+# Verificar que el puerto quedó libre
+netstat -ano | findstr :5432
+
+# Reiniciar Docker Compose con volúmenes limpios
+docker-compose down -v
+docker-compose up -d
+```
+
+**Prevención:** Usar el script `check-and-start.ps1` que verifica y libera el puerto automáticamente.
+
+### 8. Backend arranca pero se conecta a la BD equivocada
+
+**Síntomas:**
+- Backend arranca sin errores de conexión
+- Al inspeccionar la BD, se ven tablas diferentes (ej: solo tabla `plugins`)
+- El schema no corresponde al proyecto
+
+**Causa:** Hay múltiples instancias de PostgreSQL corriendo y Spring Boot se conecta a la incorrecta.
+
+**Diagnóstico:**
+```powershell
+# Listar todos los procesos de PostgreSQL
+Get-Process | Where-Object { $_.ProcessName -like "*postgres*" }
+
+# Verificar contenedores Docker
+docker ps | Select-String "postgres"
+
+# Verificar servicios de Windows
+Get-Service | Where-Object { $_.Name -like "*postgres*" }
+```
+
+**Solución:**
+1. Detener TODAS las instancias de PostgreSQL excepto la de Docker Compose
+2. Verificar la configuración en `application-local.yml`:
+   ```yaml
+   spring:
+     datasource:
+       url: jdbc:postgresql://localhost:5432/signature_router
+       username: siguser
+       password: sigpass
+   ```
+3. Limpiar volúmenes y reiniciar:
+   ```powershell
+   docker-compose down -v
+   docker-compose up -d
+   ```
+4. Verificar la conexión correcta:
+   ```powershell
+   docker exec -it signature-router-postgres psql -U siguser -d signature_router -c "\dt"
+   # Debe mostrar las tablas del proyecto, NO solo "plugins"
+   ```
+
 ---
 
 ## ✅ Checklist de Setup Inicial
@@ -434,7 +512,7 @@ Si usas `@Validated`, asegura que `spring-boot-starter-validation` esté en el P
 
 ## 🔄 Mantenimiento de este Documento
 
-**Última actualización:** 2025-11-27
+**Última actualización:** 2025-11-30
 
 Agregar nuevas lecciones aprendidas a medida que surjan durante el desarrollo del proyecto.
 

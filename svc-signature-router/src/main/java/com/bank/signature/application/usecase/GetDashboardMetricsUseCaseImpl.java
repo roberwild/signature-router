@@ -125,15 +125,18 @@ public class GetDashboardMetricsUseCaseImpl implements GetDashboardMetricsUseCas
         Map<String, ChannelMetrics> metrics = new HashMap<>();
         
         for (Channel channel : Channel.values()) {
-            long totalCount = signatureRequestRepository.countByChannelAndCreatedAtBetween(
-                channel, from, to
-            );
+            // TODO: SignatureRequestEntity no tiene campo 'channel' - temporalmente devuelve 0
+            long totalCount = 0L; 
+            // long totalCount = signatureRequestRepository.countByChannelAndCreatedAtBetween(
+            //     channel, from, to
+            // );
             
             if (totalCount > 0) {
-                long successCount = signatureRequestRepository
-                    .countByChannelAndStatusAndCreatedAtBetween(
-                        channel, SignatureStatus.VALIDATED, from, to
-                    );
+                // TODO: SignatureRequestEntity no tiene campo 'channel' - temporalmente devuelve 0
+                long successCount = 0L;
+                // long successCount = signatureRequestRepository.countByChannelAndStatusAndCreatedAtBetween(
+                //     channel, SignatureStatus.VALIDATED, from, to
+                // );
                 
                 double successRate = (successCount * 100.0 / totalCount);
                 

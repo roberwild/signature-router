@@ -62,14 +62,19 @@ public class SecretRotationScheduler {
         log.info("⏰ Scheduled secret rotation verification started at {}", Instant.now());
         
         try {
-            boolean isHealthy = secretRotationService.verifyRotation();
+            // Check if rotation is due
+            boolean isDue = secretRotationService.isRotationDue();
             
-            if (isHealthy) {
-                log.info("✅ Secret rotation verification passed");
-            } else {
-                log.error("❌ Secret rotation verification failed - secrets may be stale or missing");
+            if (isDue) {
+                log.warn("⚠️ Secret rotation is DUE - consider rotating soon");
                 // TODO: Send alert to monitoring system
+            } else {
+                log.info("✅ Secret rotation not due yet");
             }
+            
+            // Verify current key version exists
+            int currentVersion = secretRotationService.getCurrentKeyVersion();
+            log.info("✅ Current secret key version: {}", currentVersion);
             
         } catch (Exception e) {
             log.error("❌ Secret rotation verification error: {}", e.getMessage(), e);

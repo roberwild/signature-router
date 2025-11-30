@@ -230,14 +230,17 @@ public class SignatureRequestRepositoryAdapter implements SignatureRequestReposi
      * @return Count of matching signature requests
      * @since Story 12.1
      */
-    @Override
-    @Transactional(readOnly = true)
-    public long countByChannelAndCreatedAtBetween(Channel channel, Instant from, Instant to) {
-        return jpaRepository.countByChannelAndCreatedAtBetween(channel.name(), from, to);
-    }
+    // TEMPORALMENTE DESHABILITADO - SignatureRequestEntity no tiene campo 'channel'
+    // @Override
+    // @Transactional(readOnly = true)
+    // public long countByChannelAndCreatedAtBetween(Channel channel, Instant from, Instant to) {
+    //     return jpaRepository.countByChannelAndCreatedAtBetween(channel.name(), from, to);
+    // }
     
     /**
      * Count signature requests by channel and status created between two timestamps.
+     * 
+     * TODO: Implementar cuando SignatureRequestEntity tenga campo 'channel'
      * 
      * @param channel Channel to filter by
      * @param status  Signature status to filter by
@@ -246,21 +249,22 @@ public class SignatureRequestRepositoryAdapter implements SignatureRequestReposi
      * @return Count of matching signature requests
      * @since Story 12.1
      */
-    @Override
-    @Transactional(readOnly = true)
-    public long countByChannelAndStatusAndCreatedAtBetween(
-        Channel channel,
-        SignatureStatus status,
-        Instant from,
-        Instant to
-    ) {
-        return jpaRepository.countByChannelAndStatusAndCreatedAtBetween(
-            channel.name(),
-            status.name(),
-            from,
-            to
-        );
-    }
+    // TEMPORALMENTE DESHABILITADO - SignatureRequestEntity no tiene campo 'channel'
+    // @Override
+    // @Transactional(readOnly = true)
+    // public long countByChannelAndStatusAndCreatedAtBetween(
+    //     Channel channel,
+    //     SignatureStatus status,
+    //     Instant from,
+    //     Instant to
+    // ) {
+    //     return jpaRepository.countByChannelAndStatusAndCreatedAtBetween(
+    //         channel.name(),
+    //         status.name(),
+    //         from,
+    //         to
+    //     );
+    // }
     
     // ========================================
     // Admin Query Methods with Filters
@@ -287,9 +291,10 @@ public class SignatureRequestRepositoryAdapter implements SignatureRequestReposi
         Instant dateTo,
         Pageable pageable
     ) {
-        Page<SignatureRequestEntity> entityPage = jpaRepository.findAllWithFilters(
+        // TODO: El parámetro 'channel' se ignora temporalmente porque SignatureRequestEntity no tiene ese campo
+        // Cuando se agregue el campo 'channel' a la entidad, crear método findAllWithFilters que lo incluya
+        Page<SignatureRequestEntity> entityPage = jpaRepository.findAllWithFiltersWithoutChannel(
             status != null ? status.name() : null,
-            channel != null ? channel.name() : null,
             dateFrom,
             dateTo,
             pageable

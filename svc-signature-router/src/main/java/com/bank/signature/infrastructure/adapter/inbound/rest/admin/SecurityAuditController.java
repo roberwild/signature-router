@@ -42,7 +42,7 @@ import java.util.List;
  * 
  * @since Story 12.6
  */
-@RestController
+@RestController("adminSecurityAuditController")
 @RequestMapping("/api/v1/admin/security")
 @RequiredArgsConstructor
 @Slf4j

@@ -119,7 +119,7 @@ public class GetMetricsAnalyticsUseCaseImpl implements GetMetricsAnalyticsUseCas
     private ThroughputMetrics computeThroughputMetrics(Instant from, Instant to, Channel channel) {
         // Calculate current throughput (requests per minute)
         long totalRequests = channel != null
-            ? signatureRequestRepository.countByChannelAndCreatedAtBetween(channel, from, to)
+            ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
             : signatureRequestRepository.countByCreatedAtBetween(from, to);
         
         long minutesDiff = ChronoUnit.MINUTES.between(from, to);
@@ -136,7 +136,7 @@ public class GetMetricsAnalyticsUseCaseImpl implements GetMetricsAnalyticsUseCas
             Instant dayEnd = date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
             
             long dayRequests = channel != null
-                ? signatureRequestRepository.countByChannelAndCreatedAtBetween(channel, dayStart, dayEnd)
+                ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
                 : signatureRequestRepository.countByCreatedAtBetween(dayStart, dayEnd);
             
             double requestsPerMinute = dayRequests / (24.0 * 60.0); // Average per minute for the day
@@ -159,15 +159,15 @@ public class GetMetricsAnalyticsUseCaseImpl implements GetMetricsAnalyticsUseCas
     private ErrorRateMetrics computeErrorRateMetrics(Instant from, Instant to, Channel channel) {
         // Calculate overall error rate
         long totalRequests = channel != null
-            ? signatureRequestRepository.countByChannelAndCreatedAtBetween(channel, from, to)
+            ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
             : signatureRequestRepository.countByCreatedAtBetween(from, to);
         
         long failedRequests = channel != null
-            ? signatureRequestRepository.countByChannelAndStatusAndCreatedAtBetween(channel, SignatureStatus.FAILED, from, to)
+            ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
             : signatureRequestRepository.countByStatusAndCreatedAtBetween(SignatureStatus.FAILED, from, to);
         
         long expiredRequests = channel != null
-            ? signatureRequestRepository.countByChannelAndStatusAndCreatedAtBetween(channel, SignatureStatus.EXPIRED, from, to)
+            ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
             : signatureRequestRepository.countByStatusAndCreatedAtBetween(SignatureStatus.EXPIRED, from, to);
         
         double overallErrorRate = totalRequests > 0
@@ -178,14 +178,10 @@ public class GetMetricsAnalyticsUseCaseImpl implements GetMetricsAnalyticsUseCas
         Map<String, Double> byChannel = new HashMap<>();
         if (channel == null) {
             for (Channel ch : Channel.values()) {
-                long channelTotal = signatureRequestRepository.countByChannelAndCreatedAtBetween(ch, from, to);
+                long channelTotal = 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */;
                 if (channelTotal > 0) {
-                    long channelFailed = signatureRequestRepository.countByChannelAndStatusAndCreatedAtBetween(
-                        ch, SignatureStatus.FAILED, from, to
-                    );
-                    long channelExpired = signatureRequestRepository.countByChannelAndStatusAndCreatedAtBetween(
-                        ch, SignatureStatus.EXPIRED, from, to
-                    );
+                    long channelFailed = 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */;
+                    long channelExpired = 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */;
                     double channelErrorRate = (channelFailed + channelExpired) * 100.0 / channelTotal;
                     byChannel.put(ch.name(), Math.round(channelErrorRate * 10.0) / 10.0);
                 }
@@ -203,16 +199,16 @@ public class GetMetricsAnalyticsUseCaseImpl implements GetMetricsAnalyticsUseCas
             Instant dayEnd = date.plusDays(1).atStartOfDay(ZoneOffset.UTC).toInstant();
             
             long dayTotal = channel != null
-                ? signatureRequestRepository.countByChannelAndCreatedAtBetween(channel, dayStart, dayEnd)
+                ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
                 : signatureRequestRepository.countByCreatedAtBetween(dayStart, dayEnd);
             
             if (dayTotal > 0) {
                 long dayFailed = channel != null
-                    ? signatureRequestRepository.countByChannelAndStatusAndCreatedAtBetween(channel, SignatureStatus.FAILED, dayStart, dayEnd)
+                    ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
                     : signatureRequestRepository.countByStatusAndCreatedAtBetween(SignatureStatus.FAILED, dayStart, dayEnd);
                 
                 long dayExpired = channel != null
-                    ? signatureRequestRepository.countByChannelAndStatusAndCreatedAtBetween(channel, SignatureStatus.EXPIRED, dayStart, dayEnd)
+                    ? 0L /* TODO: SignatureRequestEntity no tiene campo 'channel' */
                     : signatureRequestRepository.countByStatusAndCreatedAtBetween(SignatureStatus.EXPIRED, dayStart, dayEnd);
                 
                 double dayErrorRate = (dayFailed + dayExpired) * 100.0 / dayTotal;

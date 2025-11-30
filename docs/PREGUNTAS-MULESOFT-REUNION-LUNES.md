@@ -7,6 +7,71 @@
 
 ---
 
+## 📌 RESUMEN EJECUTIVO - PUNTOS CRÍTICOS DE LA REUNIÓN
+
+### **🔴 TOP 3 PREGUNTAS MÁS IMPORTANTES** (preguntar PRIMERO)
+
+1. **¿Qué canales tienen YA implementados?** (SMS, PUSH, VOICE, BIOMETRIC)
+   - Esto define el 100% del alcance de Epic 11
+   - Si un canal NO está, NO estará disponible en Signature Router
+
+2. **⭐ ¿Los interfaces pueden incluir metadata del provider real?** (NUEVO - CRÍTICO)
+   - Necesitamos saber qué provider usó MuleSoft (Twilio, Firebase, etc.)
+   - Necesitamos latencia específica del provider (sin overhead de MuleSoft)
+   - Necesitamos errores específicos del provider para troubleshooting
+   - **Si NO está disponible, solicitamos formalmente que se amplíen los interfaces**
+   - Ver sección **9.1** para detalles completos y justificación de negocio
+
+3. **¿Cuándo podemos empezar a integrar?** (timeline, credenciales, sandbox)
+   - Necesitamos fecha concreta de inicio
+   - Acceso a ambiente de desarrollo/sandbox
+
+### **📊 Impacto de NO tener Metadata de Providers**
+
+| Funcionalidad Afectada | Impacto | Severidad |
+|------------------------|---------|-----------|
+| Dashboard de performance por provider | Pérdida total de visibilidad | 🔴 CRÍTICO |
+| Troubleshooting de errores | 10x más lento (escalaciones a MuleSoft) | 🔴 CRÍTICO |
+| Cumplimiento de SLAs (P99 < 500ms) | No podemos medir/optimizar | 🔴 CRÍTICO |
+| Optimización de costos | Ahorro potencial 40% perdido | 🟡 ALTO |
+| A/B testing de providers | Imposible hacer testing | 🟡 ALTO |
+| Alertas específicas por provider | Solo alertas genéricas | 🟡 ALTO |
+| Auditoría y compliance | Trazabilidad insuficiente | 🟡 ALTO |
+
+**Conclusión:** Sin metadata, el sistema funciona pero **pierde 80% de su valor analítico y observabilidad**.
+
+### **✅ Checklist de Preparación PRE-Reunión**
+
+Antes de la reunión, asegúrate de tener:
+- [ ] Este documento impreso o en segunda pantalla
+- [ ] Laptop con acceso a:
+  - [ ] Postman (para probar endpoints en vivo)
+  - [ ] Terminal/PowerShell (para curl commands)
+  - [ ] Editor de texto (para copiar specs)
+- [ ] Ejemplos concretos preparados:
+  - [ ] Ejemplo de request SMS que quieres enviar
+  - [ ] Ejemplo de dashboard que necesitas poblar
+  - [ ] Ejemplo de error que necesitas debuggear
+- [ ] Contactos clave:
+  - [ ] Email del contacto técnico de MuleSoft (para seguimiento)
+  - [ ] Slack/Teams channel para dudas rápidas
+
+### **🎤 Estrategia de Comunicación en la Reunión**
+
+1. **Primeros 5 minutos:** Contextualizar proyecto Signature Router
+2. **Siguientes 10 minutos:** Preguntar por canales disponibles (**pregunta crítica #1**)
+3. **Siguientes 15 minutos:** Discutir metadata de providers (**pregunta crítica #2**)
+   - Mostrar ejemplo de dashboard que necesitas
+   - Explicar impacto de no tenerlo (usar tabla de impacto arriba)
+   - **Enfatizar:** "Los interfaces NO son inmutables, podemos solicitar ampliación"
+4. **Siguientes 20 minutos:** Detalles técnicos (auth, endpoints, errores)
+5. **Últimos 10 minutos:** Timeline, entregables, próximos pasos
+
+**Frase clave para metadata:**
+> "Entendemos que MuleSoft gestiona la complejidad de providers, pero necesitamos visibilidad para cumplir nuestros SLAs con clientes. ¿Los interfaces actuales pueden incluir metadata del provider real, o podemos solicitar que se amplíen?"
+
+---
+
 ## 🎯 Contexto Rápido
 
 El **Signature Router** debe integrarse **obligatoriamente** con **MuleSoft API Gateway** como **única** capa de comunicación con providers externos (normativa corporativa).
@@ -226,6 +291,149 @@ Preguntas:
 - [ ] ¿Podemos **configurar preferencias** de provider en MuleSoft?
 
 > 🔒 **Nota:** Signature Router **NO** se comunicará directamente con providers (Twilio, Firebase). Solo con MuleSoft.
+
+---
+
+### 9.1. 📊 **CRÍTICO: Observabilidad y Metadata de Providers** ⭐ NUEVO
+
+**Contexto:** Signature Router tiene un dashboard de métricas y analítica (Epic 9) que muestra:
+- Performance por proveedor real (Twilio, Firebase, Vonage, etc.)
+- Latencia específica de cada proveedor
+- Tasa de éxito/error por proveedor
+- Costos por proveedor (si disponible)
+- A/B testing entre providers
+- Alertas de degradación de provider específico
+
+**PROBLEMA:** Si MuleSoft actúa como gateway opaco, **perdemos toda esta visibilidad**.
+
+#### **Requerimiento CRÍTICO: Metadata Enriquecida en Responses**
+
+**¿MuleSoft puede incluir metadata del provider real en cada response?**
+
+Ejemplo del response que necesitamos:
+
+```json
+{
+  "transactionId": "SM123abc456",
+  "status": "success",
+  "message": "SMS sent successfully",
+  
+  // ⭐ METADATA CRÍTICA (esto es lo que NECESITAMOS)
+  "metadata": {
+    "actualProvider": "TWILIO_US",           // ← Provider real usado
+    "providerType": "SMS",                    // ← Tipo de canal
+    "providerLatencyMs": 95,                  // ← Latencia solo del provider externo
+    "mulesoftLatencyMs": 25,                  // ← Overhead de MuleSoft (opcional pero útil)
+    "totalLatencyMs": 120,                    // ← Latencia total
+    "providerCost": 0.05,                     // ← Coste del envío (si disponible)
+    "fallbackUsed": false,                    // ← Si hubo fallback interno en MuleSoft
+    "attemptNumber": 1,                       // ← Número de intento
+    "timestamp": "2025-11-30T23:00:00Z"
+  }
+}
+```
+
+#### **Preguntas Específicas:**
+
+- [ ] ¿Los **interfaces actuales de MuleSoft ya incluyen** esta metadata?
+- [ ] Si **NO**, ¿es posible **ampliar los interfaces** para incluirla?
+  - **Nota:** Entendemos que los interfaces **NO son inmutables** y pueden modificarse.
+  - Si necesitamos esta funcionalidad, **la vamos a solicitar formalmente**.
+
+- [ ] ¿Qué información del provider real pueden exponer?
+  - [ ] Nombre/ID del provider usado (ej: "TWILIO_US", "FIREBASE_FCM")
+  - [ ] Latencia específica del provider (sin incluir overhead de MuleSoft)
+  - [ ] Código de error original del provider (si falló)
+  - [ ] Mensaje de error original del provider
+  - [ ] Coste del envío (si MuleSoft tiene esta información)
+  - [ ] Si hubo fallback automático en el lado de MuleSoft
+
+#### **Errores Específicos del Provider**
+
+Cuando un envío **falla**, necesitamos saber:
+
+```json
+{
+  "status": "error",
+  "errorCode": "PROVIDER_ERROR",              // ← Código general
+  "errorMessage": "Failed to send SMS",
+  
+  // ⭐ METADATA DE ERROR (CRÍTICA para troubleshooting)
+  "metadata": {
+    "errorSource": "TWILIO_US",               // ← Qué provider falló
+    "providerErrorCode": "21211",             // ← Código original de Twilio
+    "providerErrorMessage": "The 'To' number +341234 is not a valid phone number.",
+    "providerResponseTime": 45,
+    "attemptsMade": 2,
+    "fallbackAttempted": true,
+    "fallbackProvider": "VONAGE_EU",
+    "fallbackResult": "ALSO_FAILED"
+  }
+}
+```
+
+#### **Impacto en Funcionalidades si NO hay Metadata:**
+
+| Funcionalidad | Con Metadata | Sin Metadata | Impacto |
+|---------------|--------------|--------------|---------|
+| **Dashboard de Providers** | ✅ Twilio: 95%, Firebase: 88% | ❌ Solo "MuleSoft": 90% | ⚠️ ALTO - Pérdida de visibilidad |
+| **Alertas por Provider** | ✅ "Twilio degradado (80%)" | ❌ "MuleSoft degradado" | ⚠️ ALTO - Alertas genéricas |
+| **Optimización de Costos** | ✅ Comparar costos por provider | ❌ Coste total opaco | ⚠️ MEDIO - No hay optimización |
+| **A/B Testing** | ✅ 50% Twilio, 50% Vonage | ❌ No posible | ⚠️ ALTO - No hay testing |
+| **Troubleshooting** | ✅ "Twilio error: Invalid phone" | ❌ "MuleSoft error genérico" | ⚠️ CRÍTICO - Dificulta debugging |
+| **SLA Tracking** | ✅ Latencia por provider | ❌ Latencia total (MuleSoft + Provider) | ⚠️ MEDIO - SLAs imprecisos |
+
+#### **Propuesta de Solución:**
+
+Si los interfaces actuales **NO incluyen** esta metadata:
+
+1. **Opción A (PREFERIDA):** Ampliar los interfaces de MuleSoft para incluir campo `metadata` en responses
+   - Backward compatible (campo opcional)
+   - Habilitado por feature flag o header (ej: `X-Include-Provider-Metadata: true`)
+   - Implementación incremental por canal
+
+2. **Opción B:** Headers HTTP con metadata
+   ```
+   X-Provider-Name: TWILIO_US
+   X-Provider-Latency: 95
+   X-Provider-Cost: 0.05
+   ```
+
+3. **Opción C:** Endpoint separado para métricas
+   ```
+   GET /api/v1/transactions/{transactionId}/metrics
+   ```
+
+#### **Health Check de Providers**
+
+- [ ] ¿MuleSoft expone el **estado de salud de cada provider** subyacente?
+  
+Endpoint ideal:
+```
+GET /api/v1/providers/health
+
+Response:
+{
+  "overall": "HEALTHY",
+  "providers": [
+    {
+      "providerId": "TWILIO_US",
+      "type": "SMS",
+      "status": "UP",
+      "latencyMs": 45,
+      "successRate": 0.95,
+      "lastCheckAt": "2025-11-30T23:00:00Z"
+    },
+    {
+      "providerId": "FIREBASE_FCM",
+      "type": "PUSH",
+      "status": "DOWN",
+      "error": "Authentication failed",
+      "lastCheckAt": "2025-11-30T23:00:00Z"
+    }
+  ]
+}
+```
 
 ---
 
@@ -479,7 +687,127 @@ Crear: `docs/architecture/mulesoft-canales-disponibles.md`
 
 ---
 
+## 📌 ANEXO: Justificación de Negocio para Metadata de Providers
+
+### **¿Por qué es CRÍTICO tener visibilidad del provider real?**
+
+#### **1. Cumplimiento de SLAs Contractuales** 🎯
+- Nuestro contrato con clientes **garantiza P99 < 500ms** para envío de SMS
+- Si MuleSoft + Twilio tardan 600ms, necesitamos saber:
+  - ¿Es Twilio lento (500ms)? → Cambiar de provider
+  - ¿Es MuleSoft lento (400ms)? → Optimizar integración
+- **Sin metadata, no podemos optimizar ni cumplir SLAs**
+
+#### **2. Optimización de Costos** 💰
+- Twilio US: $0.05 por SMS
+- Vonage EU: $0.03 por SMS
+- **Ahorro potencial: 40%** si cambiamos de provider para ciertos destinos
+- **Sin metadata de costos, perdemos oportunidad de ahorro**
+
+#### **3. Troubleshooting y Soporte** 🔧
+- Cliente reporta: "No recibí el SMS"
+- **Con metadata:** "Twilio error 21211: Número inválido" → Solución inmediata
+- **Sin metadata:** "Error de MuleSoft" → Escalamos a MuleSoft → Ellos escalan a Twilio → **+24h de resolución**
+- **Impacto:** Experiencia de usuario degradada, SLA de soporte incumplido
+
+#### **4. Capacidad de Reacción ante Incidentes** 🚨
+- Si Twilio tiene un outage regional (ocurre ~2 veces/año)
+- **Con metadata:** Detectamos inmediatamente "Twilio US: 0% success" → Activamos fallback a Vonage
+- **Sin metadata:** Solo vemos "MuleSoft: 50% success" → No sabemos qué provider tiene problema
+- **Impacto:** Tiempo de reacción 10x más lento (minutos vs. segundos)
+
+#### **5. Mejora Continua y A/B Testing** 📊
+- Queremos probar: "¿Vonage es más rápido que Twilio para destinos EU?"
+- **Con metadata:** A/B test con 50% tráfico a cada uno → Medimos latencias reales
+- **Sin metadata:** Imposible hacer testing → Quedamos con provider subóptimo
+- **Impacto:** No podemos mejorar performance ni costos
+
+#### **6. Auditoría y Compliance** 📋
+- Regulación bancaria requiere trazabilidad completa de transacciones críticas
+- **Con metadata:** "SMS enviado vía Twilio US, SID: SM123, latencia: 95ms, coste: $0.05"
+- **Sin metadata:** "SMS enviado vía MuleSoft" (insuficiente para auditoría)
+- **Impacto:** Posible incumplimiento regulatorio
+
+#### **7. Análisis Predictivo y ML** 🤖
+- Queremos predecir: "¿Qué provider tendrá mejor tasa de entrega para este destino?"
+- **Requiere:** Datos históricos granulares por provider
+- **Sin metadata:** Dataset incompleto → Modelos de ML imposibles
+- **Impacto:** No podemos implementar smart routing predictivo
+
+---
+
+### **Contraargumento Esperado de MuleSoft**
+
+> "Ustedes no deberían preocuparse por los providers internos, ese es nuestro problema"
+
+#### **Nuestra Respuesta:**
+
+✅ **Entendemos y valoramos** que MuleSoft gestione la complejidad de providers  
+✅ **No queremos** gestionar credenciales, certificados, ni integraciones directas  
+✅ **Pero SÍ necesitamos** visibilidad para cumplir **nuestros SLAs con clientes finales**  
+
+**La metadata NO rompe la abstracción**, solo la hace **observable**.
+
+**Analogía:** Un CDN (Cloudflare, Akamai) abstrae la complejidad de edge servers, pero **SÍ expone** qué datacenter sirvió cada request (header `X-Edge-Location`). Esto permite optimizaciones sin romper la abstracción.
+
+---
+
+### **Propuesta WIN-WIN** 🤝
+
+**Para MuleSoft:**
+- ✅ Siguen siendo **la única** capa de integración (cumple normativa)
+- ✅ No tienen que cambiar lógica interna, solo **exponer metadata existente**
+- ✅ Mejora la **calidad de servicio percibida** por clientes internos
+- ✅ Reduce escalaciones de soporte (nosotros debugging más rápido)
+
+**Para Signature Router:**
+- ✅ Mantenemos **observabilidad completa** del sistema
+- ✅ Cumplimos **SLAs contractuales** con clientes
+- ✅ Optimizamos **costos** basados en datos reales
+- ✅ Troubleshooting **10x más rápido**
+
+---
+
+### **Implementación Sugerida (Mínima Fricción)**
+
+#### **Fase 1: Metadata Básica (MVP)** - 1 sprint
+```json
+{
+  "transactionId": "...",
+  "status": "success",
+  "metadata": {
+    "actualProvider": "TWILIO_US",     // Solo el nombre
+    "providerLatencyMs": 95             // Solo la latencia
+  }
+}
+```
+
+#### **Fase 2: Metadata Completa** - 2 sprints
+```json
+{
+  "metadata": {
+    "actualProvider": "TWILIO_US",
+    "providerLatencyMs": 95,
+    "mulesoftLatencyMs": 25,
+    "providerCost": 0.05,
+    "fallbackUsed": false
+  }
+}
+```
+
+#### **Fase 3: Health Endpoint** - 1 sprint
+```
+GET /api/v1/providers/health
+```
+
+**Timeline total:** 4 sprints (~2 meses)  
+**Esfuerzo estimado:** Bajo (metadata ya existe internamente, solo exponer)
+
+---
+
 **¡Buena suerte en la reunión! 🚀**
 
-> 💡 **Recuerda:** La pregunta de canales disponibles define TODO el alcance de Epic 11. ¡Es la MÁS importante!
+> 💡 **Recuerda:** 
+> 1. La pregunta de canales disponibles define TODO el alcance de Epic 11. ¡Es la MÁS importante!
+> 2. La metadata de providers es CRÍTICA para observabilidad. **No es negociable si queremos un sistema production-ready**.
 

@@ -67,9 +67,11 @@ public class MetricsConfig {
         String region = System.getenv().getOrDefault("REGION", environment);
         
         return MeterFilter.commonTags(
-            "application", appName,
-            "environment", environment,
-            "region", region
+            java.util.Arrays.asList(
+                io.micrometer.core.instrument.Tag.of("application", appName),
+                io.micrometer.core.instrument.Tag.of("environment", environment),
+                io.micrometer.core.instrument.Tag.of("region", region)
+            )
         );
     }
 
