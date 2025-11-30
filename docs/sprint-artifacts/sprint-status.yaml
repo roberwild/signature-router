@@ -30,7 +30,7 @@
 # - SM typically drafts next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-11-29
+generated: 2025-11-30
 project: svc-signature-router-java
 project_key: signature-router
 tracking_system: file-system
@@ -221,3 +221,33 @@ development_status:
   # - ArchUnit Tests ✅ Implementados en Epic 1
   # - Testcontainers Integration ✅ Implementados en Epic 1
   # Epic 10 v1 intentó mejorarlos pero rompió todo. Epic 10 v2 enfoque: cobertura + calidad, NO features nuevas.
+
+  # Epic 11: MuleSoft Integration (TBD) ⏳ PENDIENTE ESPECIFICACIONES
+  # Pendiente de reunión DevOps (2025-12-02) para obtener:
+  # - OpenAPI spec de MuleSoft API Gateway
+  # - Canales disponibles (SMS, PUSH, VOICE, BIOMETRIC)
+  # - Credenciales y URLs de ambientes
+  # Epic será creada después de reunión con specs reales
+  epic-11: backlog # ⏳ Waiting for MuleSoft specs
+
+  # Epic 12: Admin Panel Frontend-Backend Integration (8 stories) 📋 BACKLOG
+  # Ver: docs/epics/epic-12-admin-panel-integration.md
+  # Objetivo: Implementar endpoints backend para Admin Panel (Epic 6 & 7) + Sistema Mock/Real toggle
+  epic-12: backlog # 📋 Ready for Sprint Planning
+  12-8-mock-backend-toggle-system: backlog # ⚡ CRÍTICO - Debe hacerse PRIMERO (Fase 0, 1 semana)
+  12-1-dashboard-metrics-endpoint: backlog # Fase 1 - Quick Win (4-6h)
+  12-2-admin-signatures-filters: backlog # Fase 1 - Quick Win (2-3h)
+  12-3-providers-readonly-endpoint: backlog # Fase 1 - Quick Win (1-2h)
+  12-4-metrics-analytics-endpoint: backlog # Fase 2 - Integraciones (1 semana)
+  12-5-keycloak-users-proxy: backlog # Fase 2 - Integraciones (1 semana)
+  12-6-keycloak-security-audit: backlog # Fase 2 - Integraciones (3-4 días)
+  12-7-prometheus-alertmanager-integration: backlog # Fase 2 - Integraciones (2 días)
+  epic-12-retrospective: optional
+
+  # Epic 12 Summary:
+  # - Status: 📋 Backlog (0/8 stories started)
+  # - Goal: Admin Panel 100% funcional con backend real (actualmente 40% cobertura)
+  # - Effort: Fase 0 (1 semana) + Fase 1 (1-2 días) + Fase 2 (3 semanas) = ~5 semanas total
+  # - MVP: Solo Fase 0 + Fase 1 = ~2 semanas para 3 pantallas funcionando
+  # - Dependencies: Epic 6 & 7 (UI ya completa), Keycloak, Prometheus AlertManager
+  # - Documentation: docs/epics/epic-12-admin-panel-integration.md, docs/frontend/ANALISIS-COBERTURA-BACKEND-FRONTEND.md

@@ -29,13 +29,16 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E3** | Multi-Provider Integration | Sistema envía challenges por múltiples canales con fallback | 10 stories | FR20-FR28, FR29-FR38 |
 | **E4** | Resilience & Circuit Breaking | Sistema maneja fallos gracefully con degraded mode | 8 stories | FR29-FR38, NFR-A4-A7 |
 | **E5** | Event-Driven Architecture | Eventos de dominio publicados a Kafka para consumers | 7 stories | FR39-FR46 |
-| **E6** | Admin Portal - Rule Management | Admins gestionan routing rules con SpEL visualmente | 10 stories | FR47-FR56 |
-| **E7** | Admin Portal - Monitoring & Ops | Admins monitorean providers y visualizan routing timelines | 9 stories | FR57-FR72 |
+| **E6** | Admin Portal - Rule Management (Frontend UI) | Admins gestionan routing rules con SpEL visualmente | 10 stories | FR47-FR56 |
+| **E7** | Admin Portal - Monitoring & Ops (Frontend UI) | Admins monitorean providers y visualizan routing timelines | 9 stories | FR57-FR72 |
 | **E8** | Security & Compliance | Cumplir compliance bancario (PCI-DSS, GDPR, SOC 2) | 8 stories | FR73-FR90, NFR-S1-S16 |
 | **E9** | Observability & SLO Tracking | Métricas, logs, traces para SLO ≥99.9% y P99 <300ms | 6 stories | NFR-O1-O14, NFR-P1-P10 |
 | **E10** | Quality & Testing Excellence (v2) | Testing coverage 75%+, exception handling, MDC logging, documentation | 4 stories | Epic v1 descartada 29-Nov-2025 |
+| **E12** | Admin Panel Frontend-Backend Integration | Implementar endpoints backend para Admin Panel + Mock/Real toggle | 8 stories | Soporta E6, E7 |
 
-**Total**: 10 Epics, ~93 Stories
+**Total**: 11 Epics, ~101 Stories
+
+**Note:** Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)
 
 ---
 
