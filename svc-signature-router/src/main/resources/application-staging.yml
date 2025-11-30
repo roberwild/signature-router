@@ -1,0 +1,39 @@
+# Staging Profile Configuration
+# Profile: staging
+# Use: java -jar signature-router.jar --spring.profiles.active=staging
+
+spring:
+  profiles:
+    active: staging
+
+# Epic 12: Admin Portal - Staging Mode
+admin:
+  portal:
+    user-management:
+      # Option 1: Test with LOCAL Keycloak users (full CRUD)
+      mode: LOCAL
+      
+      # Option 2: Test with ACTIVE_DIRECTORY federation (read-only)
+      # mode: ACTIVE_DIRECTORY
+      
+      # Option 3: Demo with MOCK data
+      # mode: MOCK
+    
+    alerts:
+      # Staging can use mock or real AlertManager
+      mock: false  # Set to true if AlertManager not available
+
+# Keycloak (for LOCAL or ACTIVE_DIRECTORY modes)
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:https://keycloak-staging.singularbank.com/realms/signature-router}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:https://keycloak-staging.singularbank.com/realms/signature-router/protocol/openid-connect/certs}
+
+logging:
+  level:
+    root: INFO
+    com.bank.signature: INFO
+

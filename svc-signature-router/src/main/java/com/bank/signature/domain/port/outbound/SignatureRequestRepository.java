@@ -1,6 +1,7 @@
 package com.bank.signature.domain.port.outbound;
 
 import com.bank.signature.domain.model.aggregate.SignatureRequest;
+import com.bank.signature.domain.model.valueobject.Channel;
 import com.bank.signature.domain.model.valueobject.SignatureStatus;
 import org.springframework.data.domain.Pageable;
 
@@ -111,5 +112,85 @@ public interface SignatureRequestRepository {
      * @since Story 4.3
      */
     List<SignatureRequest> findByStatus(SignatureStatus status, Pageable pageable);
+    
+    // ========================================
+    // Dashboard Metrics Methods
+    // Story 12.1: Dashboard Metrics Endpoint
+    // ========================================
+    
+    /**
+     * Count signature requests created between two timestamps.
+     * 
+     * @param from  Start timestamp (inclusive)
+     * @param to    End timestamp (exclusive)
+     * @return Count of signature requests in the time range
+     * @since Story 12.1
+     */
+    long countByCreatedAtBetween(Instant from, Instant to);
+    
+    /**
+     * Count signature requests by status created between two timestamps.
+     * 
+     * @param status Signature status to filter by
+     * @param from   Start timestamp (inclusive)
+     * @param to     End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    long countByStatusAndCreatedAtBetween(SignatureStatus status, Instant from, Instant to);
+    
+    /**
+     * Count signature requests by channel created between two timestamps.
+     * 
+     * @param channel Channel to filter by
+     * @param from    Start timestamp (inclusive)
+     * @param to      End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    long countByChannelAndCreatedAtBetween(Channel channel, Instant from, Instant to);
+    
+    /**
+     * Count signature requests by channel and status created between two timestamps.
+     * 
+     * @param channel Channel to filter by
+     * @param status  Signature status to filter by
+     * @param from    Start timestamp (inclusive)
+     * @param to      End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    long countByChannelAndStatusAndCreatedAtBetween(
+        Channel channel, 
+        SignatureStatus status, 
+        Instant from, 
+        Instant to
+    );
+    
+    // ========================================
+    // Admin Query Methods with Filters
+    // Story 12.2: Admin Signatures Endpoint con Filtros
+    // ========================================
+    
+    /**
+     * Find all signature requests with optional filters and pagination.
+     * 
+     * All filter parameters are optional (null = no filter applied).
+     * 
+     * @param status    Optional status filter
+     * @param channel   Optional channel filter
+     * @param dateFrom  Optional start date filter (inclusive)
+     * @param dateTo    Optional end date filter (exclusive)
+     * @param pageable  Pagination and sorting configuration
+     * @return Page of signature requests matching filters
+     * @since Story 12.2
+     */
+    org.springframework.data.domain.Page<SignatureRequest> findAllWithFilters(
+        SignatureStatus status,
+        Channel channel,
+        Instant dateFrom,
+        Instant dateTo,
+        Pageable pageable
+    );
 }
 

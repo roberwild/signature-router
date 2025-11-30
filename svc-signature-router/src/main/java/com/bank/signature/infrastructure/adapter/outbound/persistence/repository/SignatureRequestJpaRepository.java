@@ -1,6 +1,7 @@
 package com.bank.signature.infrastructure.adapter.outbound.persistence.repository;
 
 import com.bank.signature.infrastructure.adapter.outbound.persistence.entity.SignatureRequestEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -129,5 +130,92 @@ public interface SignatureRequestJpaRepository extends JpaRepository<SignatureRe
      */
     @EntityGraph(attributePaths = {"challenges"})
     List<SignatureRequestEntity> findByStatus(String status, Pageable pageable);
+    
+    // ========================================
+    // Dashboard Metrics Counting Methods
+    // Story 12.1: Dashboard Metrics Endpoint
+    // ========================================
+    
+    /**
+     * Count signature requests created between two timestamps.
+     * 
+     * @param from Start timestamp (inclusive)
+     * @param to   End timestamp (exclusive)
+     * @return Count of signature requests in the time range
+     * @since Story 12.1
+     */
+    long countByCreatedAtBetween(Instant from, Instant to);
+    
+    /**
+     * Count signature requests by status created between two timestamps.
+     * 
+     * @param status Signature status (e.g., "VALIDATED", "FAILED")
+     * @param from   Start timestamp (inclusive)
+     * @param to     End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    long countByStatusAndCreatedAtBetween(String status, Instant from, Instant to);
+    
+    /**
+     * Count signature requests by channel created between two timestamps.
+     * 
+     * @param channel Channel (e.g., "SMS", "PUSH", "VOICE", "BIOMETRIC")
+     * @param from    Start timestamp (inclusive)
+     * @param to      End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    long countByChannelAndCreatedAtBetween(String channel, Instant from, Instant to);
+    
+    /**
+     * Count signature requests by channel and status created between two timestamps.
+     * 
+     * @param channel Channel (e.g., "SMS", "PUSH")
+     * @param status  Signature status (e.g., "VALIDATED")
+     * @param from    Start timestamp (inclusive)
+     * @param to      End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    long countByChannelAndStatusAndCreatedAtBetween(
+        String channel,
+        String status,
+        Instant from,
+        Instant to
+    );
+    
+    // ========================================
+    // Admin Query Methods with Filters
+    // Story 12.2: Admin Signatures Endpoint con Filtros
+    // ========================================
+    
+    /**
+     * Find all signature requests with optional filters and pagination.
+     * Uses dynamic query with optional filters.
+     * 
+     * @param status    Optional status filter (null = no filter)
+     * @param channel   Optional channel filter (null = no filter)
+     * @param dateFrom  Optional start date filter (null = no filter)
+     * @param dateTo    Optional end date filter (null = no filter)
+     * @param pageable  Pagination and sorting configuration
+     * @return Page of signature requests matching filters
+     * @since Story 12.2
+     */
+    @Query("""
+        SELECT sr FROM SignatureRequestEntity sr
+        WHERE (:status IS NULL OR sr.status = :status)
+        AND (:channel IS NULL OR sr.channel = :channel)
+        AND (:dateFrom IS NULL OR sr.createdAt >= :dateFrom)
+        AND (:dateTo IS NULL OR sr.createdAt < :dateTo)
+        """)
+    @EntityGraph(attributePaths = {"challenges"})
+    Page<SignatureRequestEntity> findAllWithFilters(
+        @Param("status") String status,
+        @Param("channel") String channel,
+        @Param("dateFrom") Instant dateFrom,
+        @Param("dateTo") Instant dateTo,
+        Pageable pageable
+    );
 }
 

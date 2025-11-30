@@ -1,0 +1,24 @@
+# Development Profile Configuration
+# Profile: dev
+# Use: ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+
+spring:
+  profiles:
+    active: dev
+
+# Epic 12: Admin Portal - Development Mode
+admin:
+  portal:
+    user-management:
+      # Development uses MOCK mode - no real Keycloak needed
+      mode: MOCK
+    alerts:
+      # Development uses mock alerts - no AlertManager needed
+      mock: true
+
+logging:
+  level:
+    root: INFO
+    com.bank.signature: DEBUG  # Debug level for development
+    org.springframework.security: DEBUG  # Debug security issues
+

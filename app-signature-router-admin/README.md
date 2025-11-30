@@ -27,41 +27,65 @@ Panel de administración moderna para el sistema Signature Router con diseño in
 ```bash
 # Instalar dependencias
 npm install
-
-# Instalar @radix-ui/react-switch (si es necesario)
-npm install @radix-ui/react-switch
 ```
 
 ## 🛠️ Desarrollo
 
+### 🔄 Mock Data vs Backend Real
+
+El admin panel puede funcionar en **dos modos**:
+
+#### Modo Mock 🎭 (Sin Backend)
 ```bash
-# Iniciar servidor de desarrollo
+npm run dev:mock
+```
+- ✅ No requiere backend Spring Boot
+- ✅ Ideal para demos y desarrollo frontend
+- ✅ Datos simulados realistas
+
+#### Modo Real 🌐 (Con Backend)
+```bash
+npm run dev:real
+```
+- ✅ Conecta con backend Spring Boot
+- ✅ Datos reales del sistema
+- ⚠️ Requiere backend levantado en `localhost:8080`
+
+#### Modo Default
+```bash
 npm run dev
 ```
-
-Abre [http://localhost:3001](http://localhost:3001) en tu navegador.
+Usa el valor configurado en `.env.local`
 
 ### Variables de Entorno
 
-Crea un archivo `.env.local` con las siguientes variables:
+Crea un archivo `.env.local`:
 
 ```env
-# API Configuration
-NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+# Mock Data Toggle (true = sin backend, false = con backend)
+NEXT_PUBLIC_USE_MOCK_DATA=true
 
-# Authentication (NextAuth)
-NEXTAUTH_URL=http://localhost:3001
-NEXTAUTH_SECRET=your-super-secret-key-change-this-in-production
+# API Configuration (cuando use backend real)
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080/api/v1
+NEXT_PUBLIC_API_TIMEOUT=10000
 
-# Environment
-NODE_ENV=development
+# Mock Configuration
+NEXT_PUBLIC_MOCK_DELAY=500
+
+# Debug
+NEXT_PUBLIC_DEBUG=true
 ```
+
+📖 **Guía Completa:** Ver [MOCK-VS-REAL-GUIDE.md](./MOCK-VS-REAL-GUIDE.md)
 
 ## 🏗️ Construir para Producción
 
 ```bash
-# Construir la aplicación
-npm run build
+# Build con mock data (para demos)
+npm run build:mock
+
+# Build con backend real (para producción)
+npm run build:real
 
 # Iniciar en modo producción
 npm run start
@@ -91,7 +115,10 @@ app-signature-router-admin/
 │   │   ├── rules/             # Gestión de reglas
 │   │   ├── signatures/        # Monitoreo de firmas
 │   │   ├── providers/         # Gestión de proveedores
-│   │   └── metrics/           # Métricas avanzadas
+│   │   ├── metrics/           # Métricas avanzadas
+│   │   ├── security/          # Seguridad y auditoría
+│   │   ├── alerts/            # Alertas del sistema
+│   │   └── users/             # Gestión de usuarios
 │   ├── layout.tsx             # Root layout
 │   ├── page.tsx               # Página principal (redirige a /admin)
 │   └── globals.css            # Estilos globales + tema Singular Bank
@@ -106,11 +133,18 @@ app-signature-router-admin/
 │       ├── badge.tsx
 │       ├── input.tsx
 │       ├── table.tsx
-│       ├── switch.tsx
 │       └── ...
 ├── lib/
-│   ├── api.ts                 # Cliente API para backend Spring Boot
+│   ├── config.ts              # Configuración (feature flags)
+│   ├── api/
+│   │   ├── types.ts           # IApiClient interface + tipos
+│   │   ├── mock-client.ts     # Mock API (datos simulados)
+│   │   ├── real-client.ts     # Real API (backend Spring Boot)
+│   │   ├── client.ts          # Factory (selección mock/real)
+│   │   └── mock-data.ts       # Fixtures de datos mock
+│   ├── api.ts                 # Cliente API legacy (deprecated)
 │   └── utils.ts               # Utilidades (cn, etc.)
+├── MOCK-VS-REAL-GUIDE.md      # Guía Mock vs Real
 ├── package.json
 ├── tailwind.config.ts         # Configuración de Tailwind + colores Singular
 ├── tsconfig.json
@@ -158,9 +192,18 @@ El diseño sigue la identidad visual de Singular Bank:
 ## 🚀 Scripts Disponibles
 
 ```bash
-npm run dev          # Desarrollo (puerto 3001)
-npm run build        # Build para producción
+# Desarrollo
+npm run dev          # Modo default (según .env.local)
+npm run dev:mock     # Modo mock (sin backend)
+npm run dev:real     # Modo real (con backend)
+
+# Producción
+npm run build        # Build default
+npm run build:mock   # Build con mock data
+npm run build:real   # Build con backend real
 npm run start        # Iniciar en producción
+
+# Calidad de Código
 npm run lint         # Linter
 npm run lint:fix     # Fix automático de linting
 npm run typecheck    # Verificación de tipos TypeScript
@@ -168,24 +211,33 @@ npm run format       # Formatear código con Prettier
 npm run format:fix   # Fix automático de formato
 ```
 
-## 📝 Próximos Pasos
+## 📝 Estado del Proyecto
 
-### Epic 6 - Rule Management (Pendiente)
+### ✅ Epic 6 & 7 - Frontend Completo
+- ✅ 8 páginas del admin panel implementadas
+- ✅ Componentes UI con diseño Singular Bank
+- ✅ Mock data para desarrollo
 
-- [ ] Integración real con API de reglas
-- [ ] Editor SpEL con syntax highlighting
-- [ ] Validador SpEL en tiempo real
-- [ ] Drag & drop para reordenar prioridades
-- [ ] Historial de auditoría de cambios
+### ✅ Epic 12 - Story 12.8: Mock/Backend Toggle
+- ✅ Sistema de alternancia Mock/Real implementado
+- ✅ Scripts npm para cambiar de modo
+- ✅ Interfaz `IApiClient` para abstracción
+- ✅ `MockApiClient` con datos realistas
+- ✅ `RealApiClient` para conexión con backend
+- ✅ Factory pattern para selección automática
 
-### Epic 7 - Monitoring & Ops (Pendiente)
+### 🚧 Epic 12 - Integración Backend (Pendiente)
 
-- [ ] Gráficos interactivos con Recharts
-- [ ] WebSocket para actualizaciones en tiempo real
-- [ ] Integración con Grafana (embed dashboards)
-- [ ] Búsqueda avanzada de firmas
-- [ ] Exportación de datos (CSV, Excel)
-- [ ] Sistema de alertas configurables
+**Fase 1 - Endpoints Prioritarios (1-2 días):**
+- [ ] Story 12.1: Dashboard Metrics Endpoint
+- [ ] Story 12.2: Admin Signatures con Filtros
+- [ ] Story 12.3: Providers Read-Only Endpoint
+
+**Fase 2 - Integraciones Avanzadas (3 semanas):**
+- [ ] Story 12.4: Metrics Analytics Endpoint
+- [ ] Story 12.5: Keycloak Users Proxy
+- [ ] Story 12.6: Keycloak Security Audit
+- [ ] Story 12.7: Prometheus AlertManager Integration
 
 ## 📖 Documentación Adicional
 
@@ -200,6 +252,11 @@ Este proyecto es parte del sistema Signature Router de Singular Bank.
 
 ---
 
-**Versión:** 1.0.0  
-**Última Actualización:** 29 de Noviembre 2025  
-**Status:** ✅ Frontend Base Implementado | ⏳ Integración con Backend Pendiente
+**Versión:** 1.1.0  
+**Última Actualización:** 30 de Noviembre 2025  
+**Status:** ✅ Frontend Completo | ✅ Mock/Real Toggle | ⏳ Backend Endpoints Pendientes
+
+**Epic 12 Progress:**
+- ✅ Story 12.8: Mock/Backend Toggle System (COMPLETO)
+- 🚧 Story 12.1-12.3: Endpoints Básicos (Pendiente)
+- 🚧 Story 12.4-12.7: Integraciones Avanzadas (Pendiente)

@@ -25,7 +25,7 @@ spring:
           issuer-uri: ${KEYCLOAK_ISSUER_URI}
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
   
-  # Spring Cloud Vault (Story 8.5)
+  # Spring Cloud Vault (Story 8.5, Epic 13)
   cloud:
     vault:
       enabled: ${VAULT_ENABLED:false}
@@ -363,6 +363,30 @@ spring:
       remote-fields: customerId,signatureId,requestId  # Propagate these fields in trace context
       correlation-fields: customerId,signatureId,requestId  # Include in MDC for logs
 
+# Epic 12: Admin Portal Configuration
+admin:
+  portal:
+    user-management:
+      # User source mode - determines where users come from and access level
+      # 
+      # Options:
+      #   LOCAL: Users in Keycloak database - Full CRUD
+      #   ACTIVE_DIRECTORY: Users from AD - Read-only (GET only)
+      #   MOCK: Mock users in memory - Full CRUD (development only)
+      #
+      # Examples by environment:
+      #   Development:  mode: MOCK
+      #   Staging:      mode: LOCAL  (or ACTIVE_DIRECTORY if testing AD)
+      #   Production:   mode: ACTIVE_DIRECTORY  (or LOCAL if standalone)
+      #
+      mode: MOCK  # Change to LOCAL or ACTIVE_DIRECTORY as needed
+    
+    alerts:
+      # Mock mode for AlertManager integration
+      # true: Uses mock alerts (development)
+      # false: Connects to real Prometheus AlertManager (production)
+      mock: true  # Set to false in production
+
 # Story 1.1: Basic configuration ✅
 # Story 1.2: PostgreSQL datasource, LiquidBase ✅
 # Story 1.3: Kafka producer/consumer, Schema Registry ✅
@@ -375,4 +399,5 @@ spring:
 # Story 4.3: Degraded Mode Manager ✅
 # Story 9.4: Distributed Tracing (Jaeger) ✅
 # Story 9.6: SLO Compliance Reporting ✅
+# Epic 12: Admin Portal Integration ✅
 

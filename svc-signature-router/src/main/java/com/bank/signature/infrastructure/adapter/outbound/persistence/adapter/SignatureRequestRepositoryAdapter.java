@@ -1,11 +1,13 @@
 package com.bank.signature.infrastructure.adapter.outbound.persistence.adapter;
 
 import com.bank.signature.domain.model.aggregate.SignatureRequest;
+import com.bank.signature.domain.model.valueobject.Channel;
 import com.bank.signature.domain.model.valueobject.SignatureStatus;
 import com.bank.signature.domain.port.outbound.SignatureRequestRepository;
 import com.bank.signature.infrastructure.adapter.outbound.persistence.entity.SignatureRequestEntity;
 import com.bank.signature.infrastructure.adapter.outbound.persistence.mapper.SignatureRequestEntityMapper;
 import com.bank.signature.infrastructure.adapter.outbound.persistence.repository.SignatureRequestJpaRepository;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -183,6 +185,117 @@ public class SignatureRequestRepositoryAdapter implements SignatureRequestReposi
         return jpaRepository.findByStatus(status.name(), pageable).stream()
             .map(mapper::toDomain)
             .collect(Collectors.toList());
+    }
+    
+    // ========================================
+    // Dashboard Metrics Methods
+    // Story 12.1: Dashboard Metrics Endpoint
+    // ========================================
+    
+    /**
+     * Count signature requests created between two timestamps.
+     * 
+     * @param from Start timestamp (inclusive)
+     * @param to   End timestamp (exclusive)
+     * @return Count of signature requests in the time range
+     * @since Story 12.1
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public long countByCreatedAtBetween(Instant from, Instant to) {
+        return jpaRepository.countByCreatedAtBetween(from, to);
+    }
+    
+    /**
+     * Count signature requests by status created between two timestamps.
+     * 
+     * @param status Signature status to filter by
+     * @param from   Start timestamp (inclusive)
+     * @param to     End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public long countByStatusAndCreatedAtBetween(SignatureStatus status, Instant from, Instant to) {
+        return jpaRepository.countByStatusAndCreatedAtBetween(status.name(), from, to);
+    }
+    
+    /**
+     * Count signature requests by channel created between two timestamps.
+     * 
+     * @param channel Channel to filter by
+     * @param from    Start timestamp (inclusive)
+     * @param to      End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public long countByChannelAndCreatedAtBetween(Channel channel, Instant from, Instant to) {
+        return jpaRepository.countByChannelAndCreatedAtBetween(channel.name(), from, to);
+    }
+    
+    /**
+     * Count signature requests by channel and status created between two timestamps.
+     * 
+     * @param channel Channel to filter by
+     * @param status  Signature status to filter by
+     * @param from    Start timestamp (inclusive)
+     * @param to      End timestamp (exclusive)
+     * @return Count of matching signature requests
+     * @since Story 12.1
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public long countByChannelAndStatusAndCreatedAtBetween(
+        Channel channel,
+        SignatureStatus status,
+        Instant from,
+        Instant to
+    ) {
+        return jpaRepository.countByChannelAndStatusAndCreatedAtBetween(
+            channel.name(),
+            status.name(),
+            from,
+            to
+        );
+    }
+    
+    // ========================================
+    // Admin Query Methods with Filters
+    // Story 12.2: Admin Signatures Endpoint con Filtros
+    // ========================================
+    
+    /**
+     * Find all signature requests with optional filters and pagination.
+     * 
+     * @param status    Optional status filter
+     * @param channel   Optional channel filter
+     * @param dateFrom  Optional start date filter
+     * @param dateTo    Optional end date filter
+     * @param pageable  Pagination and sorting configuration
+     * @return Page of signature requests matching filters
+     * @since Story 12.2
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<SignatureRequest> findAllWithFilters(
+        SignatureStatus status,
+        Channel channel,
+        Instant dateFrom,
+        Instant dateTo,
+        Pageable pageable
+    ) {
+        Page<SignatureRequestEntity> entityPage = jpaRepository.findAllWithFilters(
+            status != null ? status.name() : null,
+            channel != null ? channel.name() : null,
+            dateFrom,
+            dateTo,
+            pageable
+        );
+        
+        return entityPage.map(mapper::toDomain);
     }
 }
 
