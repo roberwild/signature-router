@@ -4,8 +4,8 @@
  */
 
 export const config = {
-  // Mock Data Toggle
-  useMockData: process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true',
+  // Mock Data Toggle - Por defecto TRUE para desarrollo sin backend
+  useMockData: process.env.NEXT_PUBLIC_USE_MOCK_DATA !== 'false',
   
   // API Configuration
   apiBaseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1',

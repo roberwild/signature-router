@@ -35,6 +35,8 @@ import {
   mockAlerts,
   mockUsers,
   mockRules,
+  mockProvidersData,
+  mockProviderTemplates,
 } from './mock-data';
 
 /**
@@ -359,6 +361,123 @@ export class MockApiClient implements IApiClient {
     return this.delay({
       valid: true,
     });
+  }
+
+  // ============================================
+  // Providers (Epic 13)
+  // ============================================
+
+  async getProviders(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }> {
+    this.log('GET', '/api/v1/admin/providers', params);
+    
+    let providers = (mockProvidersData || []);
+
+    if (params?.type) {
+      providers = providers.filter((p: any) => p.provider_type === params.type);
+    }
+    if (params?.enabled !== undefined) {
+      providers = providers.filter((p: any) => p.enabled === params.enabled);
+    }
+
+    return this.delay({
+      providers,
+      total_count: providers.length,
+    });
+  }
+
+  async getProvider(id: string): Promise<any> {
+    this.log('GET', `/api/v1/admin/providers/${id}`);
+    
+    const provider = (mockProvidersData || []).find((p: any) => p.id === id);
+    if (!provider) {
+      throw new Error(`Provider not found: ${id}`);
+    }
+
+    return this.delay(provider);
+  }
+
+  async createProvider(data: any): Promise<any> {
+    this.log('POST', '/api/v1/admin/providers', data);
+    
+    const newProvider = {
+      id: `provider-${Date.now()}`,
+      ...data,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      created_by: 'admin@bank.com',
+      updated_by: 'admin@bank.com',
+    };
+
+    if (mockProvidersData) {
+      (mockProvidersData as any[]).push(newProvider);
+    }
+    
+    return this.delay(newProvider);
+  }
+
+  async updateProvider(id: string, data: any): Promise<any> {
+    this.log('PUT', `/api/v1/admin/providers/${id}`, data);
+    
+    const index = (mockProvidersData || []).findIndex((p: any) => p.id === id);
+    if (index === -1) {
+      throw new Error(`Provider not found: ${id}`);
+    }
+
+    if (mockProvidersData) {
+      (mockProvidersData as any[])[index] = {
+        ...(mockProvidersData as any[])[index],
+        ...data,
+        updated_at: new Date().toISOString(),
+        updated_by: 'admin@bank.com',
+      };
+      return this.delay((mockProvidersData as any[])[index]);
+    }
+
+    throw new Error('Mock providers data not available');
+  }
+
+  async deleteProvider(id: string): Promise<void> {
+    this.log('DELETE', `/api/v1/admin/providers/${id}`);
+    
+    const provider = (mockProvidersData || []).find((p: any) => p.id === id);
+    if (provider) {
+      provider.enabled = false; // Soft delete
+      provider.updated_at = new Date().toISOString();
+    }
+
+    return this.delay(undefined);
+  }
+
+  async testProvider(id: string, data: { test_destination: string; test_message?: string }): Promise<any> {
+    this.log('POST', `/api/v1/admin/providers/${id}/test`, data);
+    
+    const provider = (mockProvidersData || []).find((p: any) => p.id === id);
+    if (!provider) {
+      throw new Error(`Provider not found: ${id}`);
+    }
+
+    // Simulate test result
+    const success = provider.enabled && Math.random() > 0.2; // 80% success rate for enabled providers
+    
+    return this.delay({
+      success,
+      message: success ? 'Provider test successful' : 'Provider test failed',
+      response_time_ms: Math.floor(Math.random() * 500) + 100,
+      tested_at: new Date().toISOString(),
+      error_details: success ? undefined : 'Simulated connection timeout',
+    });
+  }
+
+  async getProviderTemplates(type?: string): Promise<any[]> {
+    this.log('GET', '/api/v1/admin/providers/templates', { type });
+    
+    const templates = mockProviderTemplates || [];
+    
+    if (type) {
+      return this.delay(templates.filter((t: any) => t.provider_type === type));
+    }
+
+    return this.delay(templates);
   }
 }
 

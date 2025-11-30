@@ -29,6 +29,14 @@ export function createApiClient(): IApiClient {
 export const apiClient = createApiClient();
 
 /**
+ * Hook/función para obtener el cliente API
+ * Mantiene compatibilidad con el patrón getApiClient()
+ */
+export function getApiClient(): IApiClient {
+  return apiClient;
+}
+
+/**
  * Re-exportar tipos para conveniencia
  */
 export type * from './types';

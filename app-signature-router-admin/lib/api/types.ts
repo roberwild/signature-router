@@ -242,10 +242,6 @@ export interface IApiClient {
   // Dashboard
   getDashboardMetrics(): Promise<DashboardMetrics>;
 
-  // Providers
-  getProviders(): Promise<Provider[]>;
-  getProvider(id: string): Promise<Provider>;
-
   // Signatures
   getSignatures(filters?: SignatureFilters): Promise<PaginatedSignatures>;
   getSignature(id: string): Promise<Signature>;
@@ -278,5 +274,14 @@ export interface IApiClient {
   deleteRule(id: string): Promise<void>;
   toggleRule(id: string, enabled: boolean): Promise<RoutingRule>;
   validateSpel(expression: string): Promise<{ valid: boolean; message?: string }>;
+
+  // Providers (Epic 13 - CRUD Management)
+  getProviders(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }>;
+  getProvider(id: string): Promise<any>;
+  createProvider(data: any): Promise<any>;
+  updateProvider(id: string, data: any): Promise<any>;
+  deleteProvider(id: string): Promise<void>;
+  testProvider(id: string, data: { test_destination: string; test_message?: string }): Promise<any>;
+  getProviderTemplates(type?: string): Promise<any[]>;
 }
 

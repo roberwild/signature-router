@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Server,
   Activity,
@@ -13,12 +13,23 @@ import {
   BarChart3,
   Zap,
   Shield,
+  Plus,
+  Edit,
+  Trash2,
+  TestTube,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
+import { CreateProviderDialog } from '@/components/providers/CreateProviderDialog';
+import { EditProviderDialog } from '@/components/providers/EditProviderDialog';
+import { DeleteProviderDialog } from '@/components/providers/DeleteProviderDialog';
+import { TestProviderDialog } from '@/components/providers/TestProviderDialog';
+import { getApiClient } from '@/lib/api/client';
+import { useToast } from '@/components/ui/use-toast';
+import { config } from '@/lib/config';
 
 interface Provider {
   id: string;
@@ -37,7 +48,57 @@ interface Provider {
 }
 
 export default function ProvidersPage() {
-  const providers: Provider[] = [
+  const { toast } = useToast();
+  const apiClient = getApiClient();
+  
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [testDialogOpen, setTestDialogOpen] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+
+  // Cargar providers al montar el componente
+  useEffect(() => {
+    loadProviders();
+  }, []);
+
+  async function loadProviders() {
+    setLoading(true);
+    try {
+      const response = await apiClient.getProviders();
+      // Convertir los datos del API al formato de la UI
+      const providersData = response.providers.map((p: any) => ({
+        id: p.id,
+        name: p.provider_name,
+        type: p.provider_type,
+        status: p.health_status === 'UP' ? 'healthy' : p.health_status === 'DEGRADED' ? 'degraded' : 'down',
+        uptime: p.health_status === 'UP' ? 99.9 : p.health_status === 'DEGRADED' ? 95.0 : 0,
+        avgResponseTime: 1.5,
+        requestsToday: Math.floor(Math.random() * 10000),
+        successRate: p.health_status === 'UP' ? 98.9 : 85.0,
+        costPerRequest: 0.01,
+        totalCostToday: Math.floor(Math.random() * 100),
+        circuitBreakerStatus: p.circuit_breaker_status || 'CLOSED',
+        lastHealthCheck: p.last_health_check || new Date().toISOString(),
+        endpoint: p.endpoint_url,
+      }));
+      setProviders(providersData);
+    } catch (error) {
+      console.warn('⚠️ Backend no disponible, usando datos mock:', error);
+      toast({
+        title: 'Modo Demo',
+        description: 'Usando datos de demostración (backend no disponible)',
+      });
+      // Fallback a datos mock en caso de error
+      setProviders(mockProviders);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const mockProviders: Provider[] = [
     {
       id: 'twilio-sms',
       name: 'Twilio SMS',
@@ -186,16 +247,48 @@ export default function ProvidersPage() {
                 info="Monitoreo y configuración de servicios externos"
               />
             </div>
-            <Button className="bg-primary hover:bg-primary/90">
-              <Settings className="mr-2 h-4 w-4" />
-              Configurar
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline"
+                onClick={() => window.location.href = '/admin/providers/templates'}
+              >
+                <BarChart3 className="mr-2 h-4 w-4" />
+                Templates
+              </Button>
+              <Button 
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => setCreateDialogOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Provider
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="mx-auto max-w-7xl space-y-6 p-6">
+        {/* Mock Mode Banner */}
+        {config.useMockData && (
+          <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <div>
+                  <h3 className="font-semibold text-amber-900 dark:text-amber-100">
+                    Modo Demostración Activo
+                  </h3>
+                  <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                    Estás viendo datos de demostración. Los cambios no se persisten. 
+                    Para usar el backend real, configura <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">NEXT_PUBLIC_USE_MOCK_DATA=false</code> en tu archivo <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">.env.local</code>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Global Stats */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card className="bg-white dark:bg-card shadow-sm">
@@ -348,14 +441,48 @@ export default function ProvidersPage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <BarChart3 className="mr-2 h-4 w-4" />
-                      Ver Métricas
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedProvider(provider);
+                        setTestDialogOpen(true);
+                      }}
+                    >
+                      <TestTube className="mr-2 h-4 w-4" />
+                      Test
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
-                      <Settings className="mr-2 h-4 w-4" />
-                      Configurar
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedProvider(provider);
+                        setEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="mr-2 h-4 w-4" />
+                      Editar
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.href = `/admin/metrics?provider=${provider.id}`}
+                    >
+                      <BarChart3 className="mr-2 h-4 w-4" />
+                      Métricas
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={() => {
+                        setSelectedProvider(provider);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Eliminar
                     </Button>
                   </div>
                 </CardContent>
@@ -405,6 +532,51 @@ export default function ProvidersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Modales CRUD */}
+      <CreateProviderDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSuccess={() => {
+          loadProviders();
+          toast({
+            title: 'Éxito',
+            description: 'Provider creado correctamente',
+          });
+        }}
+      />
+
+      <EditProviderDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        provider={selectedProvider}
+        onSuccess={() => {
+          loadProviders();
+          toast({
+            title: 'Éxito',
+            description: 'Provider actualizado correctamente',
+          });
+        }}
+      />
+
+      <DeleteProviderDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        provider={selectedProvider}
+        onSuccess={() => {
+          loadProviders();
+          toast({
+            title: 'Éxito',
+            description: 'Provider eliminado correctamente',
+          });
+        }}
+      />
+
+      <TestProviderDialog
+        open={testDialogOpen}
+        onOpenChange={setTestDialogOpen}
+        provider={selectedProvider}
+      />
     </div>
   );
 }

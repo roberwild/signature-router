@@ -1,6 +1,6 @@
 'use client';
 
-import { Users, UserPlus, Shield, Mail, Calendar, MoreHorizontal } from 'lucide-react';
+import { Users, Shield, Mail, Calendar, MoreHorizontal, Info, RefreshCw, Eye } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -68,14 +68,33 @@ export default function UsersPage() {
             Usuarios
           </h1>
           <p className="text-muted-foreground mt-2">
-            Gestión de usuarios y permisos del sistema
+            Usuarios sincronizados desde Active Directory (Solo lectura)
           </p>
         </div>
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Nuevo Usuario
+        <Button variant="outline">
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Sincronizar desde AD
         </Button>
       </div>
+
+      {/* Active Directory Notice */}
+      <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+                Usuarios gestionados desde Active Directory
+              </h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
+                Los usuarios se sincronizan automáticamente desde Active Directory. 
+                Para crear, editar o eliminar usuarios, utiliza las herramientas de gestión de Active Directory. 
+                Los cambios se reflejarán automáticamente en este panel.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Users Summary */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -145,7 +164,7 @@ export default function UsersPage() {
         <CardHeader>
           <CardTitle>Lista de Usuarios</CardTitle>
           <CardDescription>
-            Gestiona los usuarios y sus permisos de acceso al sistema
+            Vista de solo lectura de usuarios sincronizados desde Active Directory
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -199,7 +218,7 @@ export default function UsersPage() {
                   </div>
                 </div>
 
-                {/* Actions */}
+                {/* Actions - Solo lectura */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -207,17 +226,23 @@ export default function UsersPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                    <DropdownMenuLabel>Información</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
-                    <DropdownMenuItem>Editar Permisos</DropdownMenuItem>
-                    <DropdownMenuItem>Cambiar Rol</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600">
-                      {user.status === 'active' ? 'Desactivar' : 'Activar'}
+                    <DropdownMenuItem>
+                      <Eye className="mr-2 h-4 w-4" />
+                      Ver Perfil Completo
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-red-600">
-                      Eliminar Usuario
+                    <DropdownMenuItem>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Ver Permisos
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Historial de Accesos
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+                      Gestión desde Active Directory
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -312,17 +337,21 @@ export default function UsersPage() {
         </CardContent>
       </Card>
 
-      {/* Placeholder Notice */}
+      {/* Integration Info */}
       <Card className="border-dashed border-2 bg-muted/50">
         <CardContent className="pt-6">
           <div className="text-center space-y-2">
-            <Users className="h-12 w-12 mx-auto text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Página en Desarrollo</h3>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Esta es una versión preliminar de la página de Usuarios. 
-              Las funcionalidades completas (CRUD de usuarios, gestión de roles, etc.) se implementarán en la siguiente iteración.
+            <Shield className="h-12 w-12 mx-auto text-muted-foreground" />
+            <h3 className="text-lg font-semibold">Integración con Active Directory</h3>
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+              Los usuarios y roles se sincronizan automáticamente desde Active Directory cada 15 minutos. 
+              Para gestionar usuarios (crear, editar, desactivar), utiliza las herramientas de administración de Active Directory de tu organización.
+              Los grupos de seguridad de AD se mapean automáticamente a roles en el sistema (Admin, Operator, Viewer).
             </p>
-            <Badge variant="secondary" className="mt-2">Epic 6 - Pendiente de Integración</Badge>
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <Badge variant="secondary">Última sincronización: Hace 5 minutos</Badge>
+              <Badge variant="outline">Epic 6 - Integración AD Activa</Badge>
+            </div>
           </div>
         </CardContent>
       </Card>

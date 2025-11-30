@@ -252,5 +252,53 @@ export class RealApiClient implements IApiClient {
       body: JSON.stringify({ expression }),
     });
   }
+
+  // ============================================
+  // Providers (Epic 13)
+  // ============================================
+
+  async getProviders(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }> {
+    const query = new URLSearchParams();
+    if (params?.type) query.append('type', params.type);
+    if (params?.enabled !== undefined) query.append('enabled', params.enabled.toString());
+
+    return this.fetch(`/admin/providers${query.toString() ? '?' + query.toString() : ''}`);
+  }
+
+  async getProvider(id: string): Promise<any> {
+    return this.fetch(`/admin/providers/${id}`);
+  }
+
+  async createProvider(data: any): Promise<any> {
+    return this.fetch('/admin/providers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateProvider(id: string, data: any): Promise<any> {
+    return this.fetch(`/admin/providers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteProvider(id: string): Promise<void> {
+    return this.fetch(`/admin/providers/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async testProvider(id: string, data: { test_destination: string; test_message?: string }): Promise<any> {
+    return this.fetch(`/admin/providers/${id}/test`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getProviderTemplates(type?: string): Promise<any[]> {
+    const query = type ? `?type=${type}` : '';
+    return this.fetch(`/admin/providers/templates${query}`);
+  }
 }
 
