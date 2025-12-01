@@ -135,13 +135,16 @@ public class SignatureRequest {
     public void completeSignature(SignatureChallenge challenge) {
         // Validate: challenge belongs to this aggregate
         if (!this.challenges.contains(challenge)) {
-            throw new ChallengeNotBelongsException(this.id, challenge.getId());
+            throw new IllegalArgumentException(
+                String.format("Challenge %s does not belong to SignatureRequest %s", 
+                    challenge.getId(), this.id)
+            );
         }
         
         // Validate: challenge is COMPLETED
         if (challenge.getStatus() != ChallengeStatus.COMPLETED) {
             throw new InvalidStateTransitionException(
-                "Cannot complete signature, challenge not completed",
+                "Challenge must be in COMPLETED state to complete signature",
                 this.status,
                 SignatureStatus.SIGNED
             );
@@ -180,7 +183,7 @@ public class SignatureRequest {
         // Validate: can only abort PENDING signatures
         if (this.status != SignatureStatus.PENDING) {
             throw new InvalidStateTransitionException(
-                "Cannot abort signature, status is not PENDING. Current status: " + this.status,
+                "Cannot abort signature with status: " + this.status,
                 this.status,
                 SignatureStatus.ABORTED
             );
@@ -212,6 +215,14 @@ public class SignatureRequest {
     }
     
     /**
+     * Abort signature with simple reason (backward compatibility).
+     * Story 2.12: Abort Signature Request
+     */
+    public void abortSignature(com.bank.signature.domain.model.valueobject.AbortReason reason) {
+        abort(reason, null);
+    }
+    
+    /**
      * Expire the signature request (TTL exceeded).
      * 
      * <p><b>Business Rule:</b> TTL must be exceeded (current time > expiresAt).</p>
@@ -235,6 +246,38 @@ public class SignatureRequest {
             null,
             "TTL_EXCEEDED"
         ));
+    }
+    
+    /**
+     * Mark signature as expired (convenience method for scheduler).
+     */
+    public void markAsExpired() {
+        this.status = SignatureStatus.EXPIRED;
+        this.routingTimeline.add(new RoutingEvent(
+            Instant.now(),
+            "SIGNATURE_EXPIRED",
+            null,
+            null,
+            "Marked as expired by scheduler"
+        ));
+    }
+    
+    /**
+     * Check if signature request has expired.
+     * 
+     * @return true if current time is after expiresAt
+     */
+    public boolean isExpired() {
+        return Instant.now().isAfter(this.expiresAt);
+    }
+    
+    /**
+     * Calculate remaining TTL (time to live).
+     * 
+     * @return Duration until expiration (negative if already expired)
+     */
+    public java.time.Duration getRemainingTTL() {
+        return java.time.Duration.between(Instant.now(), this.expiresAt);
     }
 }
 

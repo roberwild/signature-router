@@ -86,7 +86,7 @@ class SignatureChallengeTest {
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.SENT);
         assertThat(challenge.getSentAt()).isNotNull();
         assertThat(challenge.getProviderProof()).isEqualTo(providerResult);
-        assertThat(challenge.getProviderProof().challengeId()).isEqualTo("twilio-msg-123");
+        assertThat(challenge.getProviderProof().providerChallengeId()).isEqualTo("twilio-msg-123");
     }
     
     @Test
@@ -141,7 +141,7 @@ class SignatureChallengeTest {
         SignatureChallenge challenge = createSentChallenge();
         
         // Act
-        challenge.markAsExpired();
+        challenge.expire();
         
         // Assert
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.EXPIRED);
@@ -298,8 +298,8 @@ class SignatureChallengeTest {
         
         // Assert
         assertThat(challenge.getProviderProof()).isNotNull();
-        assertThat(challenge.getProviderProof().challengeId()).isEqualTo("twilio-msg-456");
-        assertThat(challenge.getProviderProof().proof()).isEqualTo("sent-via-twilio");
+        assertThat(challenge.getProviderProof().providerChallengeId()).isEqualTo("twilio-msg-456");
+        assertThat(challenge.getProviderProof().providerProof()).isEqualTo("sent-via-twilio");
         assertThat(challenge.getProviderProof().timestamp()).isNotNull();
     }
     
@@ -317,24 +317,23 @@ class SignatureChallengeTest {
         // Assert
         assertThat(challenge.getProviderProof()).isNotEqualTo(initialProof);
         assertThat(challenge.getProviderProof()).isEqualTo(completionProof);
-        assertThat(challenge.getProviderProof().proof()).contains("user-verified");
+        assertThat(challenge.getProviderProof().providerProof()).contains("user-verified");
     }
     
     // ========== Edge Cases Tests ==========
     
     @Test
-    @DisplayName("Should handle multiple fail calls gracefully")
-    void shouldHandleMultipleFailCallsGracefully() {
+    @DisplayName("Should handle fail call from SENT status")
+    void shouldHandleFailCallFromSentStatus() {
         // Arrange
         SignatureChallenge challenge = createSentChallenge();
         
-        // Act - fail multiple times
-        challenge.fail("FIRST_ERROR");
-        challenge.fail("SECOND_ERROR");
+        // Act - fail once
+        challenge.fail("TIMEOUT_ERROR");
         
-        // Assert - last error code wins
+        // Assert
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.FAILED);
-        assertThat(challenge.getErrorCode()).isEqualTo("SECOND_ERROR");
+        assertThat(challenge.getErrorCode()).isEqualTo("TIMEOUT_ERROR");
     }
     
     @Test

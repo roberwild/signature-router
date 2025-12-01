@@ -11,19 +11,30 @@
 
 ### **🔴 TOP 3 PREGUNTAS MÁS IMPORTANTES** (preguntar PRIMERO)
 
-1. **¿Qué canales tienen YA implementados?** (SMS, PUSH, VOICE, BIOMETRIC)
-   - Esto define el 100% del alcance de Epic 11
-   - Si un canal NO está, NO estará disponible en Signature Router
+1. **✅ CONFIRMADO: Canales Disponibles - Alcance Definitivo**
+   - ✅ SMS - Disponible → **IMPLEMENTAR**
+   - ✅ PUSH - Disponible → **IMPLEMENTAR**
+   - ✅ EMAIL - Disponible (bonus, no planeado originalmente)
+   - ❌ VOICE - NO disponible → **FUERA DE ALCANCE** (no se implementará)
+   - ❌ BIOMETRIC - NO disponible → **FUERA DE ALCANCE** (no se implementará)
+   
+   **ALCANCE FINAL Epic 11:** Solo SMS + PUSH (VOICE y BIOMETRIC quedan fuera)
 
-2. **⭐ ¿Los interfaces pueden incluir metadata del provider real?** (NUEVO - CRÍTICO)
+2. **🔴 CRÍTICO: ¿Qué es el campo "practice": "monkey"?**
+   - Visto en ejemplo de request SMS
+   - ¿Es obligatorio? ¿Valores posibles?
+   - ¿Afecta al routing o procesamiento?
+
+3. **⭐ ¿Los interfaces pueden incluir metadata del provider real?** (NUEVO - CRÍTICO)
+   - **CONFIRMADO:** Response actual NO incluye metadata de providers
    - Necesitamos saber qué provider usó MuleSoft (Twilio, Firebase, etc.)
    - Necesitamos latencia específica del provider (sin overhead de MuleSoft)
    - Necesitamos errores específicos del provider para troubleshooting
-   - **Si NO está disponible, solicitamos formalmente que se amplíen los interfaces**
-   - Ver sección **9.1** para detalles completos y justificación de negocio
-
-3. **¿Cuándo podemos empezar a integrar?** (timeline, credenciales, sandbox)
+   - **Solicitamos formalmente ampliación de interfaces** (ver sección 9.1)
+   
+4. **¿Cuándo podemos empezar a integrar?** (timeline, credenciales, sandbox)
    - Necesitamos fecha concreta de inicio
+   - Client ID + Client Secret para DEV/UAT/PROD
    - Acceso a ambiente de desarrollo/sandbox
 
 ### **📊 Impacto de NO tener Metadata de Providers**
@@ -76,6 +87,13 @@ Antes de la reunión, asegúrate de tener:
 
 El **Signature Router** debe integrarse **obligatoriamente** con **MuleSoft API Gateway** como **única** capa de comunicación con providers externos (normativa corporativa).
 
+**✅ API CONFIRMADA:** **Singular Bank - Communication Services API (v1)**
+- **API ID:** 2611145
+- **Asset Version:** 1.0.3
+- **Implementation URI:** https://api.selfbank.es/system/commu... (verificar URL completa)
+- **Status:** Active
+- **Mule Version:** 4.10.0
+
 **Canales potenciales:**
 - 📱 **SMS** (actualmente Twilio)
 - 📞 **Voice/Call** (actualmente Twilio Voice)
@@ -124,45 +142,179 @@ Esta es la pregunta **MÁS IMPORTANTE** porque determina qué funcionalidades te
 
 ---
 
+## 📄 HALLAZGOS DE LA DOCUMENTACIÓN (PDF Exchange)
+
+### ✅ **Información Confirmada:**
+
+**API Identificada:**
+- Nombre: Singular Bank - Communication Services API
+- Versión: v1 (Asset version: 1.0.16)
+- Tipo: REST API (RAML 1.0)
+- Estado: Stable
+- Conformance: Not Validated ⚠️
+- Owner: Borja Esteban
+- Engagement score: 0.15%
+
+**Canales Disponibles:**
+- ✅ SMS - `POST /communication-execution/sms-notification/execute`
+- ✅ PUSH - `POST /communication-execution/push-notification/execute`  
+- ✅ EMAIL - `POST /communication-execution/email-notification/execute`
+- ❌ VOICE - No mencionado
+- ❌ BIOMETRIC - No mencionado
+
+**Monitoreo:**
+- ✅ Health Check - `GET /health/retrieve`
+- ✅ Métricas - `GET /metrics/retrieve`
+
+**Arquitectura BIAN v12.0:**
+- Basado en "Communication Execution" domain
+- Integración con: Customer Communications, Customer Authentication
+- Pattern: Ejecución inmediata (síncrona)
+
+### ⚠️ **Puntos CRÍTICOS Detectados:**
+
+1. **Campo misterioso "practice": "monkey"** 🤔
+   - Aparece en ejemplo de request SMS
+   - No hay explicación en documentación
+   - **PREGUNTAR QUÉ ES Y SI ES OBLIGATORIO**
+
+2. **NO hay metadata de providers en responses**
+   - Response solo incluye: notificationId, status, submittedAt, channel
+   - **NO incluye:** provider real, latencia, coste, fallback usado
+   - **SOLICITAR ampliación de interfaces (sección 9.1)**
+
+3. **"Not Validated" conformance status**
+   - La API NO está validando conformidad con RAML
+   - Posibles diferencias entre spec y realidad
+   - **PREGUNTAR sobre discrepancias conocidas**
+
+### 📊 **Response Actual vs. Response Necesario:**
+
+**Lo que devuelven ahora:**
+```json
+{
+  "notificationId": "COMM-EXEC-20241209-001234",
+  "status": "SENT",
+  "submittedAt": "2024-12-09T15:30:25.123Z",
+  "channel": "SMS",
+  "communicationExecutionId": "BIAN-COMM-EXEC-UUID-12345"
+}
+```
+
+**Lo que necesitamos (para cumplir Epic 9 - Analytics):**
+```json
+{
+  "notificationId": "COMM-EXEC-20241209-001234",
+  "status": "SENT",
+  "submittedAt": "2024-12-09T15:30:25.123Z",
+  "channel": "SMS",
+  "communicationExecutionId": "BIAN-COMM-EXEC-UUID-12345",
+  
+  // ⭐ METADATA CRÍTICA (SOLICITAR)
+  "providerMetadata": {
+    "actualProvider": "TWILIO_US",
+    "providerLatencyMs": 95,
+    "mulesoftLatencyMs": 25,
+    "totalLatencyMs": 120,
+    "providerCost": 0.05,
+    "fallbackUsed": false
+  }
+}
+```
+
+---
+
 ## 📋 PREGUNTAS TÉCNICAS DETALLADAS
 
 ### 1. 📄 Documentación API
 
-**¿Dónde está la documentación técnica completa?**
-- [ ] ¿Tienen **OpenAPI 3.0 Specification** (Swagger)? → Necesito el archivo `.yaml` o `.json`
-- [ ] ¿Dónde puedo acceder a la **documentación de endpoints**?
-- [ ] ¿Tienen **Postman Collection** con ejemplos de requests?
-- [ ] ¿Hay algún **portal de desarrolladores** con guías?
+**✅ API Encontrada:** Singular Bank - Communication Services API (ID: 2611145)
+
+**Acceso a Documentación:**
+- [ ] **Anypoint Exchange URL completa:** ¿Cuál es el link directo para compartir con el equipo?
+- [ ] **Implementation URI completa:** `https://api.selfbank.es/system/commu...` (está truncada, necesito la URL completa)
+- [ ] **Especificación RAML 1.0:** ¿Puedo descargar el archivo completo?
+- [ ] **OpenAPI 3.0:** ¿Está disponible en formato OpenAPI/Swagger?
+- [ ] **Postman Collection:** ¿Tienen collection generada para importar?
+
+**Conformidad de la API:**
+- [ ] ⚠️ **Instance Conformance: Not Validated** → ¿Los responses reales cumplen 100% con el schema RAML?
+- [ ] ¿Hay diferencias conocidas entre la especificación y la implementación real?
+- [ ] ¿Están planeando validar la conformidad?
 
 ---
 
-### 2. 🔌 Endpoints Disponibles (SOLO para canales confirmados)
+### 2. 🔌 Endpoints Disponibles ✅ CONFIRMADOS
 
-**Para cada canal que SÍ tienen implementado, necesito:**
+**Información obtenida de la documentación:**
 
-#### SMS (si está disponible):
-- [ ] **Endpoint:** `POST /api/v1/???` (¿cuál es la ruta exacta?)
-- [ ] **Request schema:** ¿Qué campos envío? (phoneNumber, message, from, etc.)
-- [ ] **Response schema:** ¿Qué campos recibo? (messageId, status, timestamp)
-- [ ] **Provider subyacente:** ¿Usan Twilio, Nexmo, otro?
+#### ✅ SMS (DISPONIBLE):
+- [x] **Endpoint:** `POST /communication-execution/sms-notification/execute`
+- [x] **Request schema:** Ver ejemplo completo en documentación
+  ```json
+  {
+    "customerId": "CUST12345678",
+    "practice": "monkey",  // ❓ PREGUNTAR QUÉ ES ESTO
+    "channel": "SMS",
+    "recipient": {
+      "phoneNumber": "+34653093774",
+      "countryCode": "ES"
+    },
+    "content": {
+      "message": "Texto del mensaje",
+      "encoding": "UTF8"
+    },
+    "smsOptions": {
+      "senderId": "SELFBANK",
+      "validityPeriod": 60,
+      "deliveryReport": true
+    },
+    "metadata": {
+      "campaignId": "...",
+      "correlationId": "..."
+    }
+  }
+  ```
+- [x] **Response schema:**
+  ```json
+  {
+    "notificationId": "COMM-EXEC-20241209-001234",
+    "status": "SENT",
+    "submittedAt": "2024-12-09T15:30:25.123Z",
+    "channel": "SMS",
+    "communicationExecutionId": "BIAN-COMM-EXEC-UUID-12345"
+  }
+  ```
+- [ ] **Provider subyacente:** ¿Usan Twilio, Nexmo, otro? → **PREGUNTAR**
+- [ ] **Encoding:** ¿Soportan emojis? ¿Límite de caracteres?
+- [ ] **SenderId:** ¿"SELFBANK" es el único permitido o puedo personalizarlo?
 
-#### Voice/Call (si está disponible):
-- [ ] **Endpoint:** `POST /api/v1/???`
-- [ ] **Request schema:** ¿Campos necesarios?
-- [ ] **Response schema:** ¿Qué devuelve?
-- [ ] **Provider subyacente:** ¿Usan Twilio Voice, otro?
+#### ✅ PUSH (DISPONIBLE):
+- [x] **Endpoint:** `POST /communication-execution/push-notification/execute`
+- [ ] **Request schema:** ¿Igual que SMS? ¿Campos específicos para Push?
+- [ ] **deviceToken:** ¿Cómo se especifica?
+- [ ] **Provider subyacente:** ¿Firebase FCM, otro? → **PREGUNTAR**
 
-#### Push Notifications (si está disponible):
-- [ ] **Endpoint:** `POST /api/v1/???`
-- [ ] **Request schema:** ¿Cómo envío deviceToken, message, etc.?
-- [ ] **Response schema:** ¿Qué devuelve?
-- [ ] **Provider subyacente:** ¿Usan Firebase FCM, otro?
+#### ✅ EMAIL (DISPONIBLE - BONUS):
+- [x] **Endpoint:** `POST /communication-execution/email-notification/execute`
+- [x] **Provider:** Microsoft Outlook 365 (Graph API)
+- [ ] **Autenticación:** ¿Necesitamos configurar algo en nuestro lado?
 
-#### Biometric (si está disponible):
-- [ ] **Endpoint:** `POST /api/v1/???`
-- [ ] **Request schema:** ¿Qué campos necesarios?
-- [ ] **Response schema:** ¿Qué devuelve?
-- [ ] **Provider subyacente:** ¿Cuál usan?
+#### ❌ VOICE (NO DISPONIBLE - FUERA DE ALCANCE):
+- [x] **DECISIÓN:** No se implementará en Epic 11
+- [ ] Solo informativo: ¿Está en roadmap de MuleSoft para futuro?
+
+#### ❌ BIOMETRIC (NO DISPONIBLE - FUERA DE ALCANCE):
+- [x] **DECISIÓN:** No se implementará en Epic 11
+- [ ] Solo informativo: ¿Está en roadmap de MuleSoft para futuro?
+
+#### ✅ MONITOREO (DISPONIBLE):
+- [x] **Health Check:** `GET /health/retrieve`
+- [x] **Métricas:** `GET /metrics/retrieve`
+- [ ] **Pregunta:** ¿Qué información devuelven estos endpoints?
+  - ¿Estado por provider? (Twilio UP/DOWN, Firebase UP/DOWN)
+  - ¿Latencias por provider?
+  - ¿Métricas de uso?
 
 ---
 
@@ -569,15 +721,30 @@ curl -X POST https://mulesoft.company.com/api/v1/sms \
 
 Al final de la reunión, por favor solicita:
 
-1. ✅ **Lista de canales disponibles** (SMS, PUSH, VOICE, BIOMETRIC) con status (disponible/roadmap/no planificado)
-2. ✅ **OpenAPI 3.0 Spec** (archivo `.yaml` o `.json`) de los canales disponibles
-3. ✅ **Postman Collection** con ejemplos de request/response
-4. ✅ **Credenciales de DEV/Sandbox** para empezar pruebas
-5. ✅ **URLs de ambientes** (DEV, UAT, PROD)
-6. ✅ **Contacto técnico principal** (email, Slack, Teams)
-7. ✅ **Documentación completa** (link al portal de developers)
-8. ✅ **Timeline de migración** (cuándo podemos empezar, cuándo go-live)
-9. ✅ **Roadmap de canales futuros** (si aplica)
+1. ✅ ~~**Lista de canales disponibles**~~ **CONFIRMADO:** SMS, PUSH, EMAIL
+   - [x] **VOICE y BIOMETRIC:** Fuera de alcance (no se implementarán)
+2. ✅ ~~**Documentación**~~ **OBTENIDA:** Tengo PDF de Exchange
+   - [ ] **Solicitar:** Archivo RAML completo descargable
+   - [ ] **Solicitar:** OpenAPI 3.0 (si disponible)
+3. ✅ **Postman Collection** - **PENDIENTE:** Solicitar collection con ejemplos
+4. 🔴 **Credenciales de DEV/Sandbox** - **CRÍTICO:** Client ID + Client Secret
+   - [ ] DEV environment
+   - [ ] UAT environment  
+   - [ ] PROD environment (para futura migración)
+5. 🔴 **URLs completas de ambientes** - **PENDIENTE:**
+   - [ ] DEV: `https://???/communication-execution/...`
+   - [ ] UAT: `https://???/communication-execution/...`
+   - [ ] PROD: `https://???/communication-execution/...`
+6. ✅ **Contacto técnico principal** (email, Slack, Teams) - **PENDIENTE**
+7. 🔴 **Explicación del campo "practice": "monkey"** - **CRÍTICO**
+8. 🔴 **Providers reales usados** - **CRÍTICO:**
+   - [ ] SMS: ¿Twilio? ¿Nexmo? ¿Otro?
+   - [ ] PUSH: ¿Firebase? ¿OneSignal? ¿Otro?
+9. ✅ **Timeline de migración** (cuándo podemos empezar, cuándo go-live) - **PENDIENTE**
+10. 🆕 **Especificaciones de endpoints /health y /metrics** - **NUEVO:**
+    - [ ] ¿Qué información devuelve `/health/retrieve`?
+    - [ ] ¿Qué métricas incluye `/metrics/retrieve`?
+    - [ ] ¿Incluyen info por provider?
 
 ---
 
@@ -659,31 +826,27 @@ Crear: `docs/architecture/mulesoft-canales-disponibles.md`
 
 ## ⚠️ ESCENARIOS ESPERADOS
 
-### Escenario A: Solo SMS disponible (30% probabilidad)
-**Impacto:** Signature Router solo soportará SMS  
-**Acción:** Epic 11 minimalista (solo SMS), postponer PUSH/VOICE/BIOMETRIC
-
-### Escenario B: SMS + PUSH disponibles (50% probabilidad) ✅ ESPERADO
+### ✅ Escenario CONFIRMADO: SMS + PUSH disponibles
 **Impacto:** Signature Router soportará SMS y PUSH  
-**Acción:** Epic 11 con SMS y PUSH, postponer VOICE/BIOMETRIC
+**Acción:** Epic 11 con SMS y PUSH únicamente  
+**Canales fuera de alcance:** VOICE y BIOMETRIC no se implementarán
 
-### Escenario C: SMS + PUSH + VOICE disponibles (15% probabilidad)
-**Impacto:** Signature Router soportará 3 canales principales  
-**Acción:** Epic 11 completa (sin BIOMETRIC)
-
-### Escenario D: Todos los canales disponibles (5% probabilidad)
-**Impacto:** Signature Router con funcionalidad completa  
-**Acción:** Epic 11 completa (4 canales)
+### ~~Escenarios alternativos~~ (DESCARTADOS)
+- ~~Escenario A: Solo SMS~~ 
+- ~~Escenario C: SMS + PUSH + VOICE~~
+- ~~Escenario D: Todos los canales~~
 
 ---
 
 ## 🎯 Objetivo de la Reunión
 
 **Salir con claridad absoluta de:**
-1. ✅ Qué canales **SÍ** puedo implementar
-2. ❌ Qué canales **NO** están disponibles
-3. ⏳ Qué canales están en **roadmap** (y cuándo)
-4. 📅 Timeline realista para **empezar desarrollo**
+1. ✅ ~~Qué canales SÍ puedo implementar~~ **CONFIRMADO:** SMS + PUSH
+2. ✅ ~~Qué canales NO están disponibles~~ **CONFIRMADO:** VOICE + BIOMETRIC (fuera de alcance)
+3. 🔴 **CRÍTICO:** Obtener credenciales y URLs para empezar desarrollo
+4. 🔴 **CRÍTICO:** Aclarar campo "practice": "monkey"
+5. 🔴 **CRÍTICO:** Schema completo de PUSH
+6. 📅 Timeline realista para **empezar desarrollo**
 
 ---
 

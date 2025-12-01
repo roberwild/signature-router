@@ -282,7 +282,7 @@ class SignatureRequestMetricsTest {
             "MERCHANT123",
             "ORDER456",
             "Test transaction",
-            "test-hash-123"
+            "a".repeat(64) // Valid SHA256 hash (64 hex chars)
         );
     }
 }

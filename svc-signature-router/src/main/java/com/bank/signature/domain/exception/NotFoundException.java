@@ -7,10 +7,10 @@ package com.bank.signature.domain.exception;
 public class NotFoundException extends DomainException {
     
     public NotFoundException(String entityType, Object identifier) {
-        super("NOT_FOUND", String.format("%s not found with id: %s", entityType, identifier));
+        super(String.format("%s not found with id: %s", entityType, identifier), "NOT_FOUND");
     }
     
     public NotFoundException(String message) {
-        super("NOT_FOUND", message);
+        super(message, "NOT_FOUND");
     }
 }

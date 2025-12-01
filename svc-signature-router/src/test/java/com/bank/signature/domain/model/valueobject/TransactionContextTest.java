@@ -43,7 +43,7 @@ class TransactionContextTest {
         assertThat(context.merchantId()).isEqualTo(merchantId);
         assertThat(context.orderId()).isEqualTo(orderId);
         assertThat(context.description()).isEqualTo(description);
-        assertThat(context.transactionHash()).isEqualTo(transactionHash);
+        assertThat(context.hash()).isEqualTo(transactionHash);
     }
     
     @Test
@@ -143,7 +143,7 @@ class TransactionContextTest {
         assertThat(context.merchantId()).isEqualTo("MERCHANT_1");
         assertThat(context.orderId()).isEqualTo("ORDER_1");
         assertThat(context.description()).isEqualTo("Original description");
-        assertThat(context.transactionHash()).isEqualTo(hash);
+        assertThat(context.hash()).isEqualTo(hash);
     }
     
     @Test
@@ -204,8 +204,8 @@ class TransactionContextTest {
         );
         
         // Assert
-        assertThat(context.transactionHash()).isEqualTo(hash);
-        assertThat(context.transactionHash()).hasSize(64); // 64 hex chars
+        assertThat(context.hash()).isEqualTo(hash);
+        assertThat(context.hash()).hasSize(64); // 64 hex chars
     }
     
     // ========== Validation Tests ==========

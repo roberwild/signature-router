@@ -54,7 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Testcontainers
 @ActiveProfiles("test")
 @DisplayName("SignatureRequestRepositoryAdapter Integration Tests")
-class SignatureRequestRepositoryAdapterTest {
+class SignatureRequestRepositoryAdapterIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15-alpine")

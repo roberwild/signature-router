@@ -51,18 +51,5 @@ public interface VaultCredentialsPort {
      * @return true if credentials exist
      */
     boolean credentialsExist(String path);
-    
-    /**
-     * Vault Exception
-     */
-    class VaultException extends RuntimeException {
-        public VaultException(String message) {
-            super(message);
-        }
-        
-        public VaultException(String message, Throwable cause) {
-            super(message, cause);
-        }
-    }
 }
 

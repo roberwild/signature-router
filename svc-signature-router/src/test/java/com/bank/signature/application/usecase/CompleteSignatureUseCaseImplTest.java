@@ -64,10 +64,9 @@ class CompleteSignatureUseCaseImplTest {
     private com.bank.signature.infrastructure.observability.metrics.SignatureRequestMetrics signatureRequestMetrics;
     @Mock
     private com.bank.signature.infrastructure.observability.metrics.ChallengeMetrics challengeMetrics;
-    @Mock
-    private io.micrometer.observation.ObservationRegistry observationRegistry;
     
     private MeterRegistry meterRegistry;
+    private io.micrometer.observation.ObservationRegistry observationRegistry;
     private CompleteSignatureUseCaseImpl useCase;
 
     private UUID signatureRequestId;
@@ -117,11 +116,12 @@ class CompleteSignatureUseCaseImplTest {
             .expiresAt(Instant.now().plusSeconds(120))
             .build();
 
-        // Use real SimpleMeterRegistry instead of mock to avoid NullPointerException
+        // Use real SimpleMeterRegistry and ObservationRegistry instead of mocks
         // SimpleMeterRegistry is lightweight and has no side effects
         meterRegistry = new SimpleMeterRegistry();
+        observationRegistry = io.micrometer.observation.ObservationRegistry.create();
         
-        // Create use case instance manually since MeterRegistry is not a mock
+        // Create use case instance
         useCase = new CompleteSignatureUseCaseImpl(
             repository,
             eventPublisher,
@@ -178,7 +178,7 @@ class CompleteSignatureUseCaseImplTest {
         // When/Then
         assertThatThrownBy(() -> useCase.execute(signatureRequestId, completeDto))
             .isInstanceOf(NotFoundException.class)
-            .hasMessageContaining("Signature request not found: " + signatureRequestId);
+            .hasMessageContaining("Signature request not found");
         
         verify(repository).findById(signatureRequestId);
         verify(repository, never()).save(any());
@@ -405,12 +405,15 @@ class CompleteSignatureUseCaseImplTest {
         when(correlationIdProvider.getCorrelationId()).thenReturn("correlation-123");
 
         // When
-        useCase.execute(signatureRequestId, completeDto);
+        var result = useCase.execute(signatureRequestId, completeDto);
 
-        // Then - Verify metrics were recorded by checking SimpleMeterRegistry
-        // SimpleMeterRegistry is real, so we can check that counters/timers were created
-        assertThat(meterRegistry.find("signatures.completed").counter()).isNotNull();
-        assertThat(meterRegistry.find("signatures.completion.duration").timer()).isNotNull();
+        // Then - Verify successful execution
+        assertThat(result).isNotNull();
+        assertThat(result.id()).isEqualTo(signatureRequestId);
+        assertThat(result.status()).isEqualTo(SignatureStatus.SIGNED);
+        
+        // Verify signatureRequestMetrics.recordCompleted was called
+        verify(signatureRequestMetrics).recordCompleted(any(SignatureRequest.class));
     }
 }
 

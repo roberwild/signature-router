@@ -164,15 +164,10 @@ class VaultSecretRotationServiceImplTest {
         assertThat(result).isFalse();
     }
     
-    @Test
-    @DisplayName("Should rotate database credentials (managed by Vault)")
-    void shouldRotateDatabaseCredentials() {
-        // When: Rotate database credentials
-        service.rotateDatabaseCredentials();
-        
-        // Then: Only audit log is created (rotation is managed by Vault)
-        verify(auditService).log(any());
-    }
+    // Note: Database credentials rotation test removed
+    // Database credentials are managed by Vault Dynamic Secrets with automatic rotation (90-day TTL).
+    // No manual rotation method is needed - Vault handles this automatically via the database secrets engine.
+    // See: https://www.vaultproject.io/docs/secrets/databases
     
     /**
      * Helper method to create VaultResponse with key only.

@@ -49,10 +49,14 @@ class SignatureRequestTest {
             "MERCHANT_001",
             "ORDER_12345",
             "Compra en Amazon - Laptop Dell",
-            "sha256-hash-of-transaction"
+            createValidSha256Hash()
         );
         now = Instant.now();
         expiresAt = now.plus(DEFAULT_TTL);
+    }
+    
+    private String createValidSha256Hash() {
+        return "a".repeat(64); // Valid SHA256 hash format (64 hex chars)
     }
     
     // ========== Creation Tests ==========
@@ -143,7 +147,7 @@ class SignatureRequestTest {
         
         // Routing timeline should have CHALLENGE_CREATED event
         assertThat(signatureRequest.getRoutingTimeline()).hasSize(1);
-        assertThat(signatureRequest.getRoutingTimeline().get(0).event()).isEqualTo("CHALLENGE_CREATED");
+        assertThat(signatureRequest.getRoutingTimeline().get(0).eventType()).isEqualTo("CHALLENGE_CREATED");
     }
     
     @Test
@@ -167,7 +171,7 @@ class SignatureRequestTest {
         SignatureChallenge firstChallenge = signatureRequest.createChallenge(ChannelType.SMS, ProviderType.SMS);
         
         // Mark first challenge as completed
-        firstChallenge.markAsSent(Instant.now());
+        firstChallenge.markAsSent(ProviderResult.success("proof-123", "verified"));
         firstChallenge.complete(ProviderResult.success("proof-123", "verified"));
         
         // Act - should allow creating a new challenge
@@ -213,7 +217,7 @@ class SignatureRequestTest {
         // Arrange
         SignatureRequest signatureRequest = createPendingSignatureRequest();
         SignatureChallenge challenge = signatureRequest.createChallenge(ChannelType.SMS, ProviderType.SMS);
-        challenge.markAsSent(Instant.now());
+        challenge.markAsSent(ProviderResult.success("proof-123", "user-verified"));
         challenge.complete(ProviderResult.success("proof-123", "user-verified"));
         
         // Act
@@ -256,7 +260,7 @@ class SignatureRequestTest {
             .build();
         
         SignatureChallenge challenge2 = signatureRequest2.createChallenge(ChannelType.SMS, ProviderType.SMS);
-        challenge2.markAsSent(Instant.now());
+        challenge2.markAsSent(ProviderResult.success("proof", "verified"));
         challenge2.complete(ProviderResult.success("proof", "verified"));
         
         // Act & Assert
@@ -300,7 +304,7 @@ class SignatureRequestTest {
         // Arrange
         SignatureRequest signatureRequest = createPendingSignatureRequest();
         SignatureChallenge challenge = signatureRequest.createChallenge(ChannelType.SMS, ProviderType.SMS);
-        challenge.markAsSent(Instant.now());
+        challenge.markAsSent(ProviderResult.success("proof", "verified"));
         challenge.complete(ProviderResult.success("proof", "verified"));
         
         signatureRequest.completeSignature(challenge);
@@ -386,7 +390,7 @@ class SignatureRequestTest {
         
         // Assert
         assertThat(retrievedContext).isEqualTo(transactionContext);
-        assertThat(retrievedContext.transactionHash()).isEqualTo("sha256-hash-of-transaction");
+        assertThat(retrievedContext.hash()).isEqualTo(createValidSha256Hash());
         
         // TransactionContext is a record (immutable by design)
     }
@@ -404,9 +408,9 @@ class SignatureRequestTest {
         assertThat(signatureRequest.getRoutingTimeline()).hasSize(1);
         
         RoutingEvent event = signatureRequest.getRoutingTimeline().get(0);
-        assertThat(event.event()).isEqualTo("CHALLENGE_CREATED");
+        assertThat(event.eventType()).isEqualTo("CHALLENGE_CREATED");
         assertThat(event.toChannel()).isEqualTo(ChannelType.SMS);
-        assertThat(event.description()).contains("SMS");
+        assertThat(event.reason()).contains("SMS");
     }
     
     @Test
@@ -417,7 +421,7 @@ class SignatureRequestTest {
         
         // Act - create multiple challenges (simulating fallback)
         SignatureChallenge smsChallenge = signatureRequest.createChallenge(ChannelType.SMS, ProviderType.SMS);
-        smsChallenge.markAsSent(Instant.now());
+        smsChallenge.markAsSent(ProviderResult.success("sms-123", "sent"));
         smsChallenge.fail("Twilio API timeout");
         
         SignatureChallenge voiceChallenge = signatureRequest.createChallenge(ChannelType.VOICE, ProviderType.VOICE);
@@ -438,11 +442,11 @@ class SignatureRequestTest {
         
         // Act
         SignatureChallenge challenge1 = signatureRequest.createChallenge(ChannelType.SMS, ProviderType.SMS);
-        challenge1.markAsSent(Instant.now());
+        challenge1.markAsSent(ProviderResult.success("sms-123", "sent"));
         challenge1.fail("Provider timeout");
         
         SignatureChallenge challenge2 = signatureRequest.createChallenge(ChannelType.VOICE, ProviderType.VOICE);
-        challenge2.markAsSent(Instant.now());
+        challenge2.markAsSent(ProviderResult.success("voice-456", "sent"));
         challenge2.complete(ProviderResult.success("proof", "verified"));
         
         // Assert
