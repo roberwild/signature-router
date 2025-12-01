@@ -32,6 +32,19 @@ import { SignatureRequest } from '@/lib/api/types';
 import { apiClient } from '@/lib/api';
 import { formatDistanceToNow, parseISO, differenceInSeconds } from 'date-fns';
 import { es } from 'date-fns/locale';
+import {
+  exportSignatureRequestsToCSV,
+  exportSignatureRequestsWithTimeline,
+  exportChallenges,
+} from '@/lib/utils/export';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function SignaturesPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -147,10 +160,30 @@ export default function SignaturesPage() {
                 <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Actualizar
               </Button>
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Exportar
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" disabled={signatures.length === 0}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Exportar
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>Formato de Exportación</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => exportSignatureRequestsToCSV(filteredSignatures)}>
+                    <Download className="mr-2 h-4 w-4" />
+                    CSV - Firmas ({filteredSignatures.length})
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportSignatureRequestsWithTimeline(filteredSignatures)}>
+                    <Download className="mr-2 h-4 w-4" />
+                    CSV - Con Timeline
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => exportChallenges(filteredSignatures)}>
+                    <Download className="mr-2 h-4 w-4" />
+                    CSV - Desafíos
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </div>
