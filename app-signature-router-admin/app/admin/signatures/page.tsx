@@ -49,26 +49,54 @@ import {
 export default function SignaturesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [channelFilter, setChannelFilter] = useState<string>('ALL');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [signatures, setSignatures] = useState<SignatureRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSignature, setSelectedSignature] = useState<SignatureRequest | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     loadSignatures();
-  }, [statusFilter]);
+  }, [statusFilter, channelFilter, dateFrom, dateTo]);
 
   const loadSignatures = async () => {
     setLoading(true);
     try {
-      const filters = statusFilter !== 'ALL' ? { status: statusFilter as any } : undefined;
-      const result = await apiClient.getSignatureRequests(filters);
+      const filters: any = {};
+
+      if (statusFilter !== 'ALL') {
+        filters.status = statusFilter;
+      }
+      if (channelFilter !== 'ALL') {
+        filters.channel = channelFilter;
+      }
+      if (dateFrom) {
+        filters.dateFrom = new Date(dateFrom).toISOString();
+      }
+      if (dateTo) {
+        const endDate = new Date(dateTo);
+        endDate.setHours(23, 59, 59, 999); // End of day
+        filters.dateTo = endDate.toISOString();
+      }
+
+      const result = await apiClient.getSignatureRequests(Object.keys(filters).length > 0 ? filters : undefined);
       setSignatures(result.content);
     } catch (error) {
       console.error('Error loading signatures:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const clearFilters = () => {
+    setStatusFilter('ALL');
+    setChannelFilter('ALL');
+    setDateFrom('');
+    setDateTo('');
+    setSearchTerm('');
   };
 
   const handleViewDetails = async (signature: SignatureRequest) => {
@@ -249,59 +277,161 @@ export default function SignaturesPage() {
         {/* Filters */}
         <Card className="bg-white dark:bg-card shadow-sm">
           <CardContent className="pt-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar por ID o Cliente..."
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
+            <div className="space-y-4">
+              {/* Search and Status Filters */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar por ID o Cliente..."
+                      className="pl-9"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  <Button
+                    variant={statusFilter === 'ALL' ? 'default' : 'outline'}
+                    onClick={() => setStatusFilter('ALL')}
+                    size="sm"
+                  >
+                    Todas
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'SIGNED' ? 'default' : 'outline'}
+                    onClick={() => setStatusFilter('SIGNED')}
+                    size="sm"
+                    className={statusFilter === 'SIGNED' ? 'bg-green-600 hover:bg-green-700' : ''}
+                  >
+                    Firmadas
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'SENT' ? 'default' : 'outline'}
+                    onClick={() => setStatusFilter('SENT')}
+                    size="sm"
+                    className={statusFilter === 'SENT' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                  >
+                    Enviadas
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'PENDING' ? 'default' : 'outline'}
+                    onClick={() => setStatusFilter('PENDING')}
+                    size="sm"
+                    className={statusFilter === 'PENDING' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
+                  >
+                    Pendientes
+                  </Button>
+                  <Button
+                    variant={statusFilter === 'FAILED' ? 'default' : 'outline'}
+                    onClick={() => setStatusFilter('FAILED')}
+                    size="sm"
+                    className={statusFilter === 'FAILED' ? 'bg-red-600 hover:bg-red-700' : ''}
+                  >
+                    Fallidas
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                  >
+                    <Filter className="mr-2 h-4 w-4" />
+                    {showAdvancedFilters ? 'Ocultar' : 'Más Filtros'}
+                  </Button>
                 </div>
               </div>
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant={statusFilter === 'ALL' ? 'default' : 'outline'}
-                  onClick={() => setStatusFilter('ALL')}
-                  size="sm"
-                >
-                  Todas
-                </Button>
-                <Button
-                  variant={statusFilter === 'SIGNED' ? 'default' : 'outline'}
-                  onClick={() => setStatusFilter('SIGNED')}
-                  size="sm"
-                  className={statusFilter === 'SIGNED' ? 'bg-green-600 hover:bg-green-700' : ''}
-                >
-                  Firmadas
-                </Button>
-                <Button
-                  variant={statusFilter === 'SENT' ? 'default' : 'outline'}
-                  onClick={() => setStatusFilter('SENT')}
-                  size="sm"
-                  className={statusFilter === 'SENT' ? 'bg-blue-600 hover:bg-blue-700' : ''}
-                >
-                  Enviadas
-                </Button>
-                <Button
-                  variant={statusFilter === 'PENDING' ? 'default' : 'outline'}
-                  onClick={() => setStatusFilter('PENDING')}
-                  size="sm"
-                  className={statusFilter === 'PENDING' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
-                >
-                  Pendientes
-                </Button>
-                <Button
-                  variant={statusFilter === 'FAILED' ? 'default' : 'outline'}
-                  onClick={() => setStatusFilter('FAILED')}
-                  size="sm"
-                  className={statusFilter === 'FAILED' ? 'bg-red-600 hover:bg-red-700' : ''}
-                >
-                  Fallidas
-                </Button>
-              </div>
+
+              {/* Advanced Filters */}
+              {showAdvancedFilters && (
+                <div className="pt-4 border-t space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Channel Filter */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Canal</label>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={channelFilter === 'ALL' ? 'default' : 'outline'}
+                          onClick={() => setChannelFilter('ALL')}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          Todos
+                        </Button>
+                        <Button
+                          variant={channelFilter === 'SMS' ? 'default' : 'outline'}
+                          onClick={() => setChannelFilter('SMS')}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          SMS
+                        </Button>
+                        <Button
+                          variant={channelFilter === 'PUSH' ? 'default' : 'outline'}
+                          onClick={() => setChannelFilter('PUSH')}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          PUSH
+                        </Button>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={channelFilter === 'VOICE' ? 'default' : 'outline'}
+                          onClick={() => setChannelFilter('VOICE')}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          VOICE
+                        </Button>
+                        <Button
+                          variant={channelFilter === 'BIOMETRIC' ? 'default' : 'outline'}
+                          onClick={() => setChannelFilter('BIOMETRIC')}
+                          size="sm"
+                          className="flex-1"
+                        >
+                          BIOMETRIC
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Date From */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Desde</label>
+                      <Input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        max={dateTo || undefined}
+                      />
+                    </div>
+
+                    {/* Date To */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Hasta</label>
+                      <Input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        min={dateFrom || undefined}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Clear Filters Button */}
+                  <div className="flex justify-end">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                      disabled={statusFilter === 'ALL' && channelFilter === 'ALL' && !dateFrom && !dateTo && !searchTerm}
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Limpiar Filtros
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
