@@ -6,17 +6,22 @@ import { Badge } from '@/components/ui/badge';
 
 export default function SecurityPage() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <Shield className="h-8 w-8" />
-          Seguridad
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Gestión de seguridad, autenticación y control de acceso
-        </p>
+    <div className="min-h-screen bg-singular-gray dark:bg-background">
+      <div className="bg-white dark:bg-card border-b border-border">
+        <div className="mx-auto max-w-7xl px-6 py-4">
+          <div className="flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary" />
+            <div>
+              <h1 className="text-2xl font-bold">Seguridad</h1>
+              <p className="text-sm text-muted-foreground">
+                Gestión de seguridad, autenticación y control de acceso
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
+      
+      <div className="mx-auto max-w-7xl space-y-6 p-6">
 
       {/* Security Status Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -208,6 +213,7 @@ export default function SecurityPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

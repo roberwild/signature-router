@@ -30,6 +30,23 @@ import { TestProviderDialog } from '@/components/providers/TestProviderDialog';
 import { getApiClient } from '@/lib/api/client';
 import { useToast } from '@/components/ui/use-toast';
 import { config } from '@/lib/config';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  RadialBarChart,
+  RadialBar,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 
 interface Provider {
   id: string;
@@ -234,6 +251,30 @@ export default function ProvidersPage() {
       providers.reduce((acc, p) => acc + p.avgResponseTime, 0) / providers.length,
   };
 
+  // Datos para gráficas
+  const costData = providers.map(p => ({
+    name: p.name,
+    costo: p.totalCostToday,
+  }));
+
+  const responseTimeData = providers.map(p => ({
+    name: p.name.replace(' ', '\n'),
+    tiempo: p.avgResponseTime,
+  }));
+
+  const uptimeData = providers.map(p => ({
+    name: p.name,
+    uptime: p.uptime,
+    fill: p.uptime > 99 ? '#10b981' : p.uptime > 95 ? '#f59e0b' : '#ef4444',
+  }));
+
+  const requestsDistribution = providers.map(p => ({
+    name: p.name,
+    value: p.requestsToday,
+  }));
+
+  const COLORS = ['#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#06b6d4'];
+
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
       {/* Header */}
@@ -338,6 +379,177 @@ export default function ProvidersPage() {
                 </div>
                 <Zap className="h-8 w-8 text-primary/20" />
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Analytics Charts */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Cost Distribution */}
+          <Card className="bg-white dark:bg-card shadow-sm">
+            <CardHeader>
+              <CardTitle>Distribución de Costos</CardTitle>
+              <CardDescription>Costo total por proveedor hoy</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={costData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name.split(' ')[0]} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="costo"
+                    animationBegin={0}
+                    animationDuration={1500}
+                  >
+                    {costData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    formatter={(value: number) => `$${value.toFixed(2)}`}
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Response Time Comparison */}
+          <Card className="bg-white dark:bg-card shadow-sm">
+            <CardHeader>
+              <CardTitle>Tiempo de Respuesta</CardTitle>
+              <CardDescription>Comparativa de latencia promedio</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={responseTimeData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#6b7280"
+                    style={{ fontSize: '11px' }}
+                  />
+                  <YAxis 
+                    stroke="#6b7280"
+                    label={{ value: 'segundos', angle: -90, position: 'insideLeft' }}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => `${value.toFixed(2)}s`}
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar 
+                    dataKey="tiempo" 
+                    radius={[8, 8, 0, 0]}
+                    animationDuration={1500}
+                  >
+                    {responseTimeData.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={entry.tiempo < 2 ? '#10b981' : entry.tiempo < 3 ? '#f59e0b' : '#ef4444'} 
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Uptime Radial Chart */}
+          <Card className="bg-white dark:bg-card shadow-sm">
+            <CardHeader>
+              <CardTitle>Disponibilidad (Uptime)</CardTitle>
+              <CardDescription>Porcentaje de disponibilidad por proveedor</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <RadialBarChart 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius="10%" 
+                  outerRadius="90%" 
+                  data={uptimeData}
+                  startAngle={90}
+                  endAngle={-270}
+                >
+                  <RadialBar
+                    minAngle={15}
+                    label={{ position: 'insideStart', fill: '#fff', fontSize: 12 }}
+                    background
+                    clockWise
+                    dataKey="uptime"
+                    cornerRadius={10}
+                    animationDuration={2000}
+                  />
+                  <Legend 
+                    iconSize={10}
+                    layout="vertical"
+                    verticalAlign="middle"
+                    align="right"
+                    wrapperStyle={{ fontSize: '12px' }}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => `${value.toFixed(1)}%`}
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                  />
+                </RadialBarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Requests Distribution */}
+          <Card className="bg-white dark:bg-card shadow-sm">
+            <CardHeader>
+              <CardTitle>Volumen de Tráfico</CardTitle>
+              <CardDescription>Distribución de requests procesados hoy</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={providers} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis type="number" stroke="#6b7280" />
+                  <YAxis 
+                    dataKey="name" 
+                    type="category" 
+                    stroke="#6b7280"
+                    width={120}
+                    style={{ fontSize: '11px' }}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => value.toLocaleString()}
+                    contentStyle={{
+                      backgroundColor: '#fff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '8px',
+                    }}
+                  />
+                  <Bar 
+                    dataKey="requestsToday" 
+                    radius={[0, 8, 8, 0]}
+                    animationDuration={1500}
+                  >
+                    {providers.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </CardContent>
           </Card>
         </div>

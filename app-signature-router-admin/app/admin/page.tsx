@@ -21,6 +21,25 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { MetricCard } from '@/components/admin/metric-card';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  RadialBarChart,
+  RadialBar,
+} from 'recharts';
 
 // Variantes de animación
 const containerVariants = {
@@ -112,6 +131,41 @@ export default function AdminDashboardPage() {
       time: 'Hace 15 min',
     },
   ];
+
+  // Datos para gráficas
+  const channelPieData = [
+    { name: 'SMS', value: metrics.channels.sms.total, color: '#3b82f6' },
+    { name: 'Push', value: metrics.channels.push.total, color: '#8b5cf6' },
+    { name: 'Voice', value: metrics.channels.voice.total, color: '#f97316' },
+    { name: 'Biometric', value: metrics.channels.biometric.total, color: '#10b981' },
+  ];
+
+  const hourlyData = [
+    { hour: '00:00', firmas: 45, exito: 44 },
+    { hour: '04:00', firmas: 32, exito: 31 },
+    { hour: '08:00', firmas: 189, exito: 186 },
+    { hour: '12:00', firmas: 234, exito: 230 },
+    { hour: '16:00', firmas: 198, exito: 195 },
+    { hour: '20:00', firmas: 156, exito: 153 },
+  ];
+
+  const performanceData = [
+    { time: '00:00', p50: 0.8, p95: 1.2, p99: 1.8 },
+    { time: '04:00', p50: 0.7, p95: 1.1, p99: 1.6 },
+    { time: '08:00', p50: 1.0, p95: 1.5, p99: 2.1 },
+    { time: '12:00', p50: 1.2, p95: 1.8, p99: 2.4 },
+    { time: '16:00', p50: 1.1, p95: 1.6, p99: 2.2 },
+    { time: '20:00', p50: 0.9, p95: 1.4, p99: 1.9 },
+  ];
+
+  const successRateData = metrics.channels;
+  const channelSuccessData = Object.entries(successRateData).map(([channel, data]) => ({
+    canal: channel.toUpperCase(),
+    tasa: ((data.success / data.total) * 100).toFixed(1),
+    total: data.total,
+  }));
+
+  const COLORS = ['#3b82f6', '#8b5cf6', '#f97316', '#10b981'];
 
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
@@ -226,59 +280,188 @@ export default function AdminDashboardPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Column - 2/3 */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Channel Distribution */}
+            {/* Channel Distribution - Pie Chart */}
             <motion.div variants={cardVariants}>
               <Card className="bg-white dark:bg-card shadow-sm">
                 <CardHeader>
                   <CardTitle>Distribución por Canal</CardTitle>
-                  <CardDescription>Uso y tasa de éxito por tipo de firma</CardDescription>
+                  <CardDescription>Volumen de firmas por tipo de canal</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries(metrics.channels).map(([channel, data], index) => {
-                      const successRate = ((data.success / data.total) * 100).toFixed(1);
-                      return (
-                        <motion.div
-                          key={channel}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: index * 0.1, duration: 0.4 }}
-                        >
-                          <div className="flex items-center justify-between mb-2">
-                            <div>
-                              <span className="text-sm font-medium capitalize">{channel}</span>
-                              <span className="text-xs text-muted-foreground ml-2">
-                                {data.total.toLocaleString()} firmas
-                              </span>
-                            </div>
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ delay: index * 0.1 + 0.2, type: 'spring' }}
-                            >
-                              <Badge
-                                variant={parseFloat(successRate) > 98 ? 'default' : 'secondary'}
-                                className={parseFloat(successRate) > 98 
-                                  ? 'bg-green-500/10 text-green-700' 
-                                  : 'bg-yellow-500/10 text-yellow-700'
-                                }
-                              >
-                                {successRate}% éxito
-                              </Badge>
-                            </motion.div>
-                          </div>
-                          <motion.div
-                            initial={{ scaleX: 0 }}
-                            animate={{ scaleX: 1 }}
-                            transition={{ delay: index * 0.1 + 0.3, duration: 0.6 }}
-                            style={{ transformOrigin: 'left' }}
-                          >
-                            <Progress value={parseFloat(successRate)} className="h-2" />
-                          </motion.div>
-                        </motion.div>
-                      );
-                    })}
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={channelPieData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                        animationBegin={0}
+                        animationDuration={1000}
+                      >
+                        {channelPieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 grid grid-cols-2 gap-2">
+                    {channelPieData.map((channel, index) => (
+                      <motion.div
+                        key={channel.name}
+                        className="flex items-center gap-2"
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 + 1 }}
+                      >
+                        <div
+                          className="h-3 w-3 rounded-full"
+                          style={{ backgroundColor: channel.color }}
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          {channel.name}: <strong>{channel.value.toLocaleString()}</strong>
+                        </span>
+                      </motion.div>
+                    ))}
                   </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Hourly Traffic */}
+            <motion.div variants={cardVariants}>
+              <Card className="bg-white dark:bg-card shadow-sm">
+                <CardHeader>
+                  <CardTitle>Tráfico por Hora</CardTitle>
+                  <CardDescription>Firmas procesadas vs exitosas en las últimas 24h</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <AreaChart data={hourlyData}>
+                      <defs>
+                        <linearGradient id="colorFirmas" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorExito" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="hour" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#fff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="firmas"
+                        stroke="#3b82f6"
+                        fillOpacity={1}
+                        fill="url(#colorFirmas)"
+                        animationDuration={1500}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="exito"
+                        stroke="#10b981"
+                        fillOpacity={1}
+                        fill="url(#colorExito)"
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Performance Metrics */}
+            <motion.div variants={cardVariants}>
+              <Card className="bg-white dark:bg-card shadow-sm">
+                <CardHeader>
+                  <CardTitle>Latencia del Sistema</CardTitle>
+                  <CardDescription>P50, P95 y P99 en segundos</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <LineChart data={performanceData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="time" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#fff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="p50"
+                        stroke="#10b981"
+                        strokeWidth={2}
+                        dot={{ fill: '#10b981', r: 4 }}
+                        animationDuration={1500}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="p95"
+                        stroke="#f59e0b"
+                        strokeWidth={2}
+                        dot={{ fill: '#f59e0b', r: 4 }}
+                        animationDuration={1500}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="p99"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        dot={{ fill: '#ef4444', r: 4 }}
+                        animationDuration={1500}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Success Rate by Channel - Bar Chart */}
+            <motion.div variants={cardVariants}>
+              <Card className="bg-white dark:bg-card shadow-sm">
+                <CardHeader>
+                  <CardTitle>Tasa de Éxito por Canal</CardTitle>
+                  <CardDescription>Porcentaje de firmas completadas exitosamente</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={250}>
+                    <BarChart data={channelSuccessData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="canal" stroke="#6b7280" />
+                      <YAxis stroke="#6b7280" domain={[95, 100]} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#fff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                        }}
+                      />
+                      <Bar dataKey="tasa" fill="#00a859" radius={[8, 8, 0, 0]} animationDuration={1500}>
+                        {channelSuccessData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </CardContent>
               </Card>
             </motion.div>

@@ -59,23 +59,28 @@ const mockUsers = [
 
 export default function UsersPage() {
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <Users className="h-8 w-8" />
-            Usuarios
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Usuarios sincronizados desde Active Directory (Solo lectura)
-          </p>
+    <div className="min-h-screen bg-singular-gray dark:bg-background">
+      <div className="bg-white dark:bg-card border-b border-border">
+        <div className="mx-auto max-w-7xl px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-6 w-6 text-primary" />
+              <div>
+                <h1 className="text-2xl font-bold">Usuarios</h1>
+                <p className="text-sm text-muted-foreground">
+                  Usuarios sincronizados desde Active Directory (Solo lectura)
+                </p>
+              </div>
+            </div>
+            <Button variant="outline">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Sincronizar desde AD
+            </Button>
+          </div>
         </div>
-        <Button variant="outline">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Sincronizar desde AD
-        </Button>
       </div>
+      
+      <div className="mx-auto max-w-7xl space-y-6 p-6">
 
       {/* Active Directory Notice */}
       <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
@@ -355,6 +360,7 @@ export default function UsersPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

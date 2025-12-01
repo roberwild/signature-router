@@ -19,6 +19,26 @@ import { Progress } from '@/components/ui/progress';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
 import { apiClient } from '@/lib/api/client';
 import type { MetricsData } from '@/lib/api/types';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  ComposedChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+} from 'recharts';
 
 export default function MetricsPage() {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
@@ -398,6 +418,201 @@ export default function MetricsPage() {
             </Card>
           </div>
         </div>
+
+        {/* Latency Timeline Chart */}
+        <Card className="bg-white dark:bg-card shadow-sm">
+          <CardHeader>
+            <CardTitle>Evolución de Latencia</CardTitle>
+            <CardDescription>P50, P95 y P99 a lo largo del tiempo</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={metrics.latency.timeline}>
+                <defs>
+                  <linearGradient id="colorP50" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorP95" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorP99" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" label={{ value: 'ms', angle: -90, position: 'insideLeft' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="p50"
+                  stroke="#10b981"
+                  strokeWidth={3}
+                  dot={{ fill: '#10b981', r: 5 }}
+                  fill="url(#colorP50)"
+                  animationDuration={2000}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="p95"
+                  stroke="#f59e0b"
+                  strokeWidth={3}
+                  dot={{ fill: '#f59e0b', r: 5 }}
+                  fill="url(#colorP95)"
+                  animationDuration={2000}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="p99"
+                  stroke="#ef4444"
+                  strokeWidth={3}
+                  dot={{ fill: '#ef4444', r: 5 }}
+                  fill="url(#colorP99)"
+                  animationDuration={2000}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Signature Duration Timeline */}
+        <Card className="bg-white dark:bg-card shadow-sm">
+          <CardHeader>
+            <CardTitle>Duración de Firmas en el Tiempo</CardTitle>
+            <CardDescription>Tiempo promedio y mediana desde creación hasta firma</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart data={metrics.signatureDuration.timeline}>
+                <defs>
+                  <linearGradient id="colorAverage" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" label={{ value: 'segundos', angle: -90, position: 'insideLeft' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="average"
+                  fill="url(#colorAverage)"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  animationDuration={2000}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="median"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  dot={{ fill: '#8b5cf6', r: 4 }}
+                  animationDuration={2000}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Error Rate Timeline */}
+        <Card className="bg-white dark:bg-card shadow-sm">
+          <CardHeader>
+            <CardTitle>Evolución de Tasa de Error</CardTitle>
+            <CardDescription>Porcentaje de errores a lo largo del tiempo</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={250}>
+              <AreaChart data={metrics.errorRate.timeline}>
+                <defs>
+                  <linearGradient id="colorError" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0.1} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" stroke="#6b7280" />
+                <YAxis stroke="#6b7280" domain={[0, 5]} label={{ value: '%', angle: -90, position: 'insideLeft' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="errorRate"
+                  stroke="#ef4444"
+                  strokeWidth={2}
+                  fillOpacity={1}
+                  fill="url(#colorError)"
+                  animationDuration={2000}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Challenge Completion Timeline */}
+        <Card className="bg-white dark:bg-card shadow-sm">
+          <CardHeader>
+            <CardTitle>Tasa de Completado de Desafíos</CardTitle>
+            <CardDescription>Evolución del tiempo de respuesta y porcentaje de completado</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <ComposedChart data={metrics.challengeCompletion.timeline}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" stroke="#6b7280" />
+                <YAxis yAxisId="left" stroke="#6b7280" label={{ value: 'segundos', angle: -90, position: 'insideLeft' }} />
+                <YAxis yAxisId="right" orientation="right" stroke="#6b7280" domain={[0, 100]} label={{ value: '%', angle: 90, position: 'insideRight' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#fff',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                  }}
+                />
+                <Legend />
+                <Bar
+                  yAxisId="right"
+                  dataKey="completionRate"
+                  fill="#10b981"
+                  opacity={0.7}
+                  radius={[8, 8, 0, 0]}
+                  animationDuration={2000}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="avgResponseTime"
+                  stroke="#3b82f6"
+                  strokeWidth={3}
+                  dot={{ fill: '#3b82f6', r: 5 }}
+                  animationDuration={2000}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
 
         {/* Integration with Grafana */}
         <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
