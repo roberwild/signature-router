@@ -195,6 +195,53 @@ export interface MetricsData {
       errorRate: number;
     }>;
   };
+  // NEW: Duration analytics using signedAt field
+  signatureDuration: {
+    average: number;
+    median: number;
+    p95: number;
+    byChannel: {
+      [key: string]: {
+        average: number;
+        median: number;
+        p95: number;
+      };
+    };
+    timeline: Array<{
+      date: string;
+      average: number;
+      median: number;
+    }>;
+  };
+  // NEW: Challenge completion analytics using completedAt field
+  challengeCompletion: {
+    averageResponseTime: number;
+    byChannel: {
+      [key: string]: {
+        averageResponseTime: number;
+        completionRate: number;
+        totalChallenges: number;
+      };
+    };
+    timeline: Array<{
+      date: string;
+      avgResponseTime: number;
+      completionRate: number;
+    }>;
+  };
+  // NEW: Fallback analytics from routing timeline
+  fallbackMetrics: {
+    fallbackRate: number;
+    totalFallbacks: number;
+    byChannelTransition: {
+      [key: string]: number; // e.g., "SMS->PUSH": 45
+    };
+    timeline: Array<{
+      date: string;
+      fallbackCount: number;
+      fallbackRate: number;
+    }>;
+  };
 }
 
 // ============================================
