@@ -83,21 +83,21 @@ public class SignatureRequestEntity {
     
     /**
      * Serialized List&lt;RoutingEvent&gt; as JSONB.
-     * 
+     *
      * <p>Mapper converts: List&lt;RoutingEvent&gt; (domain VOs) ↔ JSON String (JPA entity)</p>
      */
-    // @Type(JsonBinaryType.class) // Field removed from DB schema
-    // @Column(name = "routing_timeline", columnDefinition = "jsonb", nullable = false)
-    // private String routingTimelineJson;
-    
+    @Type(JsonBinaryType.class)
+    @Column(name = "routing_timeline", columnDefinition = "jsonb", nullable = false)
+    private String routingTimelineJson;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
-    
+
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
-    
-    // @Column(name = "signed_at") // Field removed from DB schema
-    // private Instant signedAt;
+
+    @Column(name = "signed_at")
+    private Instant signedAt;
     
     @Column(name = "aborted_at")
     private Instant abortedAt;  // Story 2.12: Timestamp when aborted
