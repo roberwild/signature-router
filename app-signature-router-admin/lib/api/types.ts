@@ -60,7 +60,7 @@ export interface Provider {
 // ============================================
 
 export interface SignatureFilters {
-  status?: 'SENT' | 'VALIDATED' | 'EXPIRED' | 'FAILED' | 'PENDING';
+  status?: 'PENDING' | 'SENT' | 'SIGNED' | 'EXPIRED' | 'FAILED' | 'ABORTED';
   channel?: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC';
   dateFrom?: string; // ISO 8601
   dateTo?: string; // ISO 8601
@@ -69,6 +69,63 @@ export interface SignatureFilters {
   sort?: string; // e.g., "createdAt,desc"
 }
 
+export interface RoutingEvent {
+  timestamp: string; // ISO 8601
+  eventType: string; // e.g., "CHALLENGE_SENT", "FALLBACK_TRIGGERED", "SIGNATURE_COMPLETED"
+  fromChannel?: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC' | null;
+  toChannel?: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC' | null;
+  reason: string;
+}
+
+export interface TransactionContext {
+  amount: number;
+  currency: string;
+  transactionType: string;
+  description?: string;
+  metadata?: { [key: string]: any };
+}
+
+export interface ProviderResult {
+  providerId: string;
+  providerName: string;
+  providerType: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC';
+  transactionId?: string;
+  externalReference?: string;
+  responseCode?: string;
+  responseMessage?: string;
+  timestamp: string;
+  metadata?: { [key: string]: any };
+}
+
+export interface SignatureChallenge {
+  id: string;
+  channelType: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC';
+  provider: 'TWILIO' | 'AWS_SNS' | 'ONESIGNAL' | 'FCM' | 'VONAGE' | 'AWS_CONNECT' | 'BIOCATCH' | 'IOVATION';
+  status: 'PENDING' | 'SENT' | 'COMPLETED' | 'FAILED' | 'EXPIRED';
+  challengeCode?: string;
+  sentAt?: string;
+  expiresAt: string;
+  completedAt?: string; // NEW: Story 1.6 - Challenge completion timestamp
+  providerProof?: ProviderResult;
+  errorCode?: string;
+  createdAt: string;
+}
+
+export interface SignatureRequest {
+  id: string;
+  customerId: string;
+  transactionContext: TransactionContext;
+  status: 'PENDING' | 'SENT' | 'SIGNED' | 'EXPIRED' | 'FAILED' | 'ABORTED';
+  challenges: SignatureChallenge[];
+  routingTimeline: RoutingEvent[]; // NEW: Story 1.6 - Complete audit trail
+  createdAt: string;
+  expiresAt: string;
+  signedAt?: string; // NEW: Story 1.6 - Signature completion timestamp
+  abortedAt?: string;
+  abortReason?: 'USER_CANCELLED' | 'FRAUD_DETECTED' | 'TIMEOUT' | 'SYSTEM_ERROR' | 'ADMIN_ACTION';
+}
+
+// Legacy interface for backward compatibility
 export interface Signature {
   id: string;
   status: 'SENT' | 'VALIDATED' | 'EXPIRED' | 'FAILED' | 'PENDING';
@@ -85,6 +142,15 @@ export interface Signature {
   validatedAt?: string;
 }
 
+export interface PaginatedSignatureRequests {
+  content: SignatureRequest[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+}
+
+// Legacy pagination interface
 export interface PaginatedSignatures {
   content: Signature[];
   totalElements: number;
@@ -242,7 +308,11 @@ export interface IApiClient {
   // Dashboard
   getDashboardMetrics(): Promise<DashboardMetrics>;
 
-  // Signatures
+  // Signatures (New Enhanced API)
+  getSignatureRequests(filters?: SignatureFilters): Promise<PaginatedSignatureRequests>;
+  getSignatureRequest(id: string): Promise<SignatureRequest>;
+
+  // Signatures (Legacy - for backward compatibility)
   getSignatures(filters?: SignatureFilters): Promise<PaginatedSignatures>;
   getSignature(id: string): Promise<Signature>;
 

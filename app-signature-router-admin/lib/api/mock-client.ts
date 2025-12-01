@@ -9,7 +9,9 @@ import type {
   DashboardMetrics,
   Provider,
   PaginatedSignatures,
+  PaginatedSignatureRequests,
   Signature,
+  SignatureRequest,
   SignatureFilters,
   MetricsData,
   SecurityOverview,
@@ -29,6 +31,8 @@ import {
   mockProviders,
   mockSignatures,
   mockPaginatedSignatures,
+  mockSignatureRequests,
+  mockPaginatedSignatureRequests,
   mockMetricsData,
   mockSecurityOverview,
   mockAccessEvents,
@@ -139,6 +143,61 @@ export class MockApiClient implements IApiClient {
       throw new Error(`Signature not found: ${id}`);
     }
     return this.delay(signature);
+  }
+
+  // ============================================
+  // Signature Requests (New Enhanced API)
+  // ============================================
+
+  async getSignatureRequests(filters?: SignatureFilters): Promise<PaginatedSignatureRequests> {
+    this.log('GET', '/api/v1/admin/signature-requests', filters);
+
+    // Simulate filtering
+    let filtered = [...mockSignatureRequests];
+
+    if (filters?.status) {
+      filtered = filtered.filter((s) => s.status === filters.status);
+    }
+
+    if (filters?.channel) {
+      // Filter by primary channel (first challenge)
+      filtered = filtered.filter((s) =>
+        s.challenges.length > 0 && s.challenges[0].channelType === filters.channel
+      );
+    }
+
+    if (filters?.dateFrom) {
+      const fromDate = new Date(filters.dateFrom);
+      filtered = filtered.filter((s) => new Date(s.createdAt) >= fromDate);
+    }
+
+    if (filters?.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      filtered = filtered.filter((s) => new Date(s.createdAt) <= toDate);
+    }
+
+    // Simulate pagination
+    const page = filters?.page || 0;
+    const size = filters?.size || 20;
+    const start = page * size;
+    const end = start + size;
+
+    return this.delay({
+      content: filtered.slice(start, end),
+      totalElements: filtered.length,
+      totalPages: Math.ceil(filtered.length / size),
+      page,
+      size,
+    });
+  }
+
+  async getSignatureRequest(id: string): Promise<SignatureRequest> {
+    this.log('GET', `/api/v1/admin/signature-requests/${id}`);
+    const request = mockSignatureRequests.find((s) => s.id === id);
+    if (!request) {
+      throw new Error(`Signature request not found: ${id}`);
+    }
+    return this.delay(request);
   }
 
   // ============================================
