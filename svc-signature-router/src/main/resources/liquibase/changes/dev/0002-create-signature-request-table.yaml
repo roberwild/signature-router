@@ -11,7 +11,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: uuid
-                  defaultValueComputed: uuid_generate_v7()
+                  defaultValueComputed: gen_random_uuid()
                   constraints:
                     primaryKey: true
                     nullable: false
@@ -53,7 +53,7 @@ databaseChangeLog:
         
         # CHECK constraint for status values (using SQL for compatibility)
         - sql:
-            sql: "ALTER TABLE signature_request ADD CONSTRAINT chk_signature_request_status CHECK (status IN ('PENDING', 'CHALLENGE_SENT', 'COMPLETED', 'FAILED', 'EXPIRED'));"
+            sql: "ALTER TABLE signature_request ADD CONSTRAINT chk_signature_request_status CHECK (status IN ('PENDING', 'CHALLENGED', 'SIGNED', 'FAILED', 'EXPIRED', 'ABORTED'));"
         
         # B-tree index on customer_id (frequent queries)
         - createIndex:

@@ -10,5 +10,5 @@ databaseChangeLog:
       
       rollback:
         - sql:
-            sql: "DROP FUNCTION IF EXISTS uuid_generate_v7();"
+            sql: "DROP FUNCTION IF EXISTS gen_random_uuid();"
 

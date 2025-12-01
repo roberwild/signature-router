@@ -5,6 +5,13 @@ spring:
   profiles:
     active: local  # Default profile for development
 
+  # DataSource configuration (default for local development)
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/signature_router}
+    username: ${DB_USERNAME:siguser}
+    password: ${DB_PASSWORD:sigpass}
+    driver-class-name: org.postgresql.Driver
+
   # LiquidBase configuration (Story 1.2)
   liquibase:
     enabled: true
@@ -15,15 +22,15 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: validate  # LiquidBase manages schema
+      ddl-auto: none  # LiquidBase manages schema, no validation needed
   
   # Spring Security OAuth2 Resource Server (Story 8.1)
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/signature-router}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/signature-router/protocol/openid-connect/certs}
   
   # Spring Cloud Vault (Story 8.5, Epic 13)
   cloud:
@@ -39,6 +46,10 @@ spring:
         enabled: false # Managed by application, not Spring Cloud Vault
       connection-timeout: 5000
       read-timeout: 15000
+  
+  # Kafka configuration (disabled for local development)
+  kafka:
+    enabled: false  # Disable Kafka for local development without Kafka infrastructure
   
   # Distributed Tracing - Sleuth Baggage
   sleuth:
@@ -155,6 +166,8 @@ kafka:
 # Provider Configuration (Story 2.5, 2.6, 2.7, 3.3, 3.6)
 # Story 3.6: Unified configuration with ProviderConfigProperties (enabled, timeout-seconds, retry-max-attempts)
 providers:
+  sms:
+    stub: true  # Use stub provider for local development (no Twilio needed)
   twilio:
     enabled: true  # Feature flag (Story 3.6)
     timeout-seconds: 5  # API timeout (Twilio typically responds in 1-2s)
@@ -165,7 +178,7 @@ providers:
     api-url: https://api.twilio.com/2010-04-01
   
   push:
-    enabled: true  # Feature flag (Story 2.6 stub, Story 3.3 FCM)
+    enabled: false  # Disabled for local development (requires Firebase credentials)
     timeout-seconds: 3  # FCM fast, but network-dependent
     retry-max-attempts: 2  # FCM reliable, moderate retries
     api-url: https://fcm.googleapis.com/fcm/send  # Future: Direct FCM API

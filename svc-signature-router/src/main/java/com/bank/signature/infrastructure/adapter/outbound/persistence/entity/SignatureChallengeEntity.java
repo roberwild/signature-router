@@ -93,8 +93,8 @@ public class SignatureChallengeEntity {
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
     
-    @Column(name = "completed_at")
-    private Instant completedAt;
+    // @Column(name = "completed_at") // Field removed from DB schema
+    // private Instant completedAt;
     
     /**
      * Serialized ProviderResult as JSONB.

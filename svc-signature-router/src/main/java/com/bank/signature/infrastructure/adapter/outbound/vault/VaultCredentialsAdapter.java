@@ -1,5 +1,6 @@
 package com.bank.signature.infrastructure.adapter.outbound.vault;
 
+import com.bank.signature.domain.exception.VaultException;
 import com.bank.signature.domain.port.outbound.VaultCredentialsPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

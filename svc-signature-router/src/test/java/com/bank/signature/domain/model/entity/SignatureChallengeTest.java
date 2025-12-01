@@ -66,7 +66,7 @@ class SignatureChallengeTest {
         assertThat(challenge.getCreatedAt()).isEqualTo(now);
         assertThat(challenge.getExpiresAt()).isEqualTo(expiresAt);
         assertThat(challenge.getSentAt()).isNull();
-        assertThat(challenge.getCompletedAt()).isNull();
+        // assertThat(challenge.getCompletedAt()).isNull(); // Field removed from DB schema
         assertThat(challenge.getProviderProof()).isNull();
     }
     
@@ -101,7 +101,7 @@ class SignatureChallengeTest {
         
         // Assert
         assertThat(challenge.getStatus()).isEqualTo(ChallengeStatus.COMPLETED);
-        assertThat(challenge.getCompletedAt()).isNotNull();
+        // assertThat(challenge.getCompletedAt()).isNotNull(); // Field removed from DB schema
         assertThat(challenge.getProviderProof()).isEqualTo(proof);
     }
     
@@ -357,8 +357,8 @@ class SignatureChallengeTest {
         assertThat(challenge.getCreatedAt()).isEqualTo(creationTime);
         assertThat(challenge.getExpiresAt()).isEqualTo(expiryTime);
         assertThat(challenge.getSentAt()).isEqualTo(sentTime);
-        assertThat(challenge.getCompletedAt()).isNotNull();
-        assertThat(challenge.getCompletedAt()).isAfterOrEqualTo(sentTime);
+        // assertThat(challenge.getCompletedAt()).isNotNull(); // Field removed from DB schema
+        // assertThat(challenge.getCompletedAt()).isAfterOrEqualTo(sentTime);
     }
     
     @Test

@@ -25,7 +25,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: UUID
-                  defaultValueComputed: uuidv7()
+                  defaultValueComputed: gen_random_uuid()
                   remarks: "UUIDv7 primary key (time-sortable)"
                   constraints:
                     primaryKey: true
@@ -131,26 +131,16 @@ databaseChangeLog:
                   type: VARCHAR(100)
                   remarks: "User who last updated the provider"
         
-        # Constraints
-        - addCheckConstraint:
-            tableName: provider_config
-            constraintName: ck_provider_type
-            checkCondition: "provider_type IN ('SMS', 'PUSH', 'VOICE', 'BIOMETRIC')"
-        
-        - addCheckConstraint:
-            tableName: provider_config
-            constraintName: ck_priority_positive
-            checkCondition: "priority > 0"
-        
-        - addCheckConstraint:
-            tableName: provider_config
-            constraintName: ck_timeout_positive
-            checkCondition: "timeout_seconds > 0"
-        
-        - addCheckConstraint:
-            tableName: provider_config
-            constraintName: ck_retry_nonnegative
-            checkCondition: "retry_max_attempts >= 0"
+        # Constraints (using direct SQL as addCheckConstraint requires Liquibase Pro)
+        - sql:
+            dbms: postgresql
+            splitStatements: true
+            stripComments: true
+            sql: |
+              ALTER TABLE provider_config ADD CONSTRAINT ck_provider_type CHECK (provider_type IN ('SMS', 'PUSH', 'VOICE', 'BIOMETRIC'));
+              ALTER TABLE provider_config ADD CONSTRAINT ck_priority_positive CHECK (priority > 0);
+              ALTER TABLE provider_config ADD CONSTRAINT ck_timeout_positive CHECK (timeout_seconds > 0);
+              ALTER TABLE provider_config ADD CONSTRAINT ck_retry_nonnegative CHECK (retry_max_attempts >= 0);
         
         # Indexes for Performance
         - createIndex:
@@ -215,7 +205,7 @@ databaseChangeLog:
               - column:
                   name: id
                   type: UUID
-                  defaultValueComputed: uuidv7()
+                  defaultValueComputed: gen_random_uuid()
                   remarks: "UUIDv7 primary key"
                   constraints:
                     primaryKey: true
@@ -276,11 +266,13 @@ databaseChangeLog:
                   type: VARCHAR(500)
                   remarks: "User agent (browser/API client)"
         
-        # Constraints
-        - addCheckConstraint:
-            tableName: provider_config_history
-            constraintName: ck_history_action
-            checkCondition: "action IN ('CREATE', 'UPDATE', 'DELETE', 'ENABLE', 'DISABLE', 'TEST')"
+        # Constraints (using direct SQL as addCheckConstraint requires Liquibase Pro)
+        - sql:
+            dbms: postgresql
+            splitStatements: true
+            stripComments: true
+            sql: |
+              ALTER TABLE provider_config_history ADD CONSTRAINT ck_history_action CHECK (action IN ('CREATE', 'UPDATE', 'DELETE', 'ENABLE', 'DISABLE', 'TEST'));
         
         # Indexes
         - createIndex:
@@ -337,7 +329,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  valueComputed: uuidv7()
+                  valueComputed: gen_random_uuid()
               - column:
                   name: provider_type
                   value: SMS
@@ -375,7 +367,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  valueComputed: uuidv7()
+                  valueComputed: gen_random_uuid()
               - column:
                   name: provider_type
                   value: PUSH
@@ -413,7 +405,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  valueComputed: uuidv7()
+                  valueComputed: gen_random_uuid()
               - column:
                   name: provider_type
                   value: VOICE
@@ -451,7 +443,7 @@ databaseChangeLog:
             columns:
               - column:
                   name: id
-                  valueComputed: uuidv7()
+                  valueComputed: gen_random_uuid()
               - column:
                   name: provider_type
                   value: BIOMETRIC

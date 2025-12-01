@@ -2,10 +2,5 @@ databaseChangeLog:
   - includeAll:
       path: changes/dev
       relativeToChangelogFile: true
-  - includeAll:
-      path: changes/uat
-      relativeToChangelogFile: true
-  - includeAll:
-      path: changes/prod
-      relativeToChangelogFile: true
+      context: dev,local
 

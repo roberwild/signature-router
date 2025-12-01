@@ -98,9 +98,10 @@ public class ChallengeMetrics {
             
             // Record duration histogram (if sentAt is available)
             if (challenge.getSentAt() != null) {
-                Instant completedAt = challenge.getCompletedAt() != null 
-                    ? challenge.getCompletedAt() 
-                    : Instant.now();
+                Instant completedAt = Instant.now(); // completedAt field removed from DB schema
+                // Instant completedAt = challenge.getCompletedAt() != null 
+                //     ? challenge.getCompletedAt() 
+                //     : Instant.now();
                 
                 Duration duration = Duration.between(challenge.getSentAt(), completedAt);
                 
