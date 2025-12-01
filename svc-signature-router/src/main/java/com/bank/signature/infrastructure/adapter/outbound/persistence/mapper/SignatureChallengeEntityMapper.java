@@ -52,7 +52,7 @@ public class SignatureChallengeEntityMapper {
                 .challengeCode(domain.getChallengeCode())
                 .sentAt(domain.getSentAt())
                 .expiresAt(domain.getExpiresAt())
-                // .completedAt(domain.getCompletedAt()) // Field removed from DB schema
+                .completedAt(domain.getCompletedAt())
                 .providerProofJson(providerProofJson)
                 .errorCode(domain.getErrorCode())
                 .createdAt(domain.getCreatedAt())
@@ -84,7 +84,7 @@ public class SignatureChallengeEntityMapper {
                 .createdAt(entity.getCreatedAt())
                 .sentAt(entity.getSentAt())
                 .expiresAt(entity.getExpiresAt())
-                // .completedAt(entity.getCompletedAt()) // Field removed from DB schema
+                .completedAt(entity.getCompletedAt())
                 .providerProof(providerProof)
                 .errorCode(entity.getErrorCode())
                 .build();

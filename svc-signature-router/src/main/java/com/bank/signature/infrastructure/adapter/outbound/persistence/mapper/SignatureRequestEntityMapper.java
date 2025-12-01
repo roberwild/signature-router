@@ -80,10 +80,10 @@ public class SignatureRequestEntityMapper {
                 .customerId(domain.getCustomerId())
                 .transactionContextJson(objectMapper.writeValueAsString(domain.getTransactionContext()))
                 .status(domain.getStatus().name())
-                // .routingTimelineJson(objectMapper.writeValueAsString(domain.getRoutingTimeline())) // Field removed from DB schema
+                .routingTimelineJson(objectMapper.writeValueAsString(domain.getRoutingTimeline()))
                 .createdAt(domain.getCreatedAt())
                 .expiresAt(domain.getExpiresAt())
-                // .signedAt(domain.getSignedAt()) // Field removed from DB schema
+                .signedAt(domain.getSignedAt())
                 .abortedAt(domain.getAbortedAt())  // Story 2.12
                 .abortReason(domain.getAbortReason() != null ? domain.getAbortReason().name() : null)  // Story 2.12
                 .build();
@@ -119,15 +119,14 @@ public class SignatureRequestEntityMapper {
         try {
             TransactionContext transactionContext = objectMapper.readValue(
                 entity.getTransactionContextJson(), TransactionContext.class);
-            
-            // List<RoutingEvent> routingTimeline = objectMapper.readValue( // Field removed from DB schema
-            //     entity.getRoutingTimelineJson(), new TypeReference<List<RoutingEvent>>() {});
-            List<RoutingEvent> routingTimeline = new ArrayList<>(); // Mutable empty list
-            
+
+            List<RoutingEvent> routingTimeline = objectMapper.readValue(
+                entity.getRoutingTimelineJson(), new TypeReference<List<RoutingEvent>>() {});
+
             List<SignatureChallenge> challenges = entity.getChallenges().stream()
                 .map(challengeMapper::toDomain)
                 .collect(Collectors.toList());
-            
+
             return SignatureRequest.builder()
                 .id(entity.getId())
                 .customerId(entity.getCustomerId())
@@ -137,9 +136,9 @@ public class SignatureRequestEntityMapper {
                 .routingTimeline(routingTimeline)
                 .createdAt(entity.getCreatedAt())
                 .expiresAt(entity.getExpiresAt())
-                // .signedAt(entity.getSignedAt()) // Field removed from DB schema
+                .signedAt(entity.getSignedAt())
                 .abortedAt(entity.getAbortedAt())  // Story 2.12
-                .abortReason(entity.getAbortReason() != null ? 
+                .abortReason(entity.getAbortReason() != null ?
                     com.bank.signature.domain.model.valueobject.AbortReason.valueOf(entity.getAbortReason()) : null)  // Story 2.12
                 .build();
         } catch (JsonProcessingException e) {
@@ -164,8 +163,8 @@ public class SignatureRequestEntityMapper {
         try {
             // Update mutable fields
             entity.setStatus(domain.getStatus().name());
-            // entity.setRoutingTimelineJson(objectMapper.writeValueAsString(domain.getRoutingTimeline())); // Field removed from DB schema
-            // entity.setSignedAt(domain.getSignedAt()); // Field removed from DB schema
+            entity.setRoutingTimelineJson(objectMapper.writeValueAsString(domain.getRoutingTimeline()));
+            entity.setSignedAt(domain.getSignedAt());
             entity.setAbortedAt(domain.getAbortedAt());  // Story 2.12
             entity.setAbortReason(domain.getAbortReason() != null ? domain.getAbortReason().name() : null);  // Story 2.12
             

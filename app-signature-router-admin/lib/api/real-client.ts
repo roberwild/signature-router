@@ -9,7 +9,9 @@ import type {
   DashboardMetrics,
   Provider,
   PaginatedSignatures,
+  PaginatedSignatureRequests,
   Signature,
+  SignatureRequest,
   SignatureFilters,
   MetricsData,
   SecurityOverview,
@@ -119,6 +121,29 @@ export class RealApiClient implements IApiClient {
 
   async getSignature(id: string): Promise<Signature> {
     return this.fetch(`/admin/signatures/${id}`);
+  }
+
+  // ============================================
+  // Signature Requests (New Enhanced API)
+  // ============================================
+
+  async getSignatureRequests(filters?: SignatureFilters): Promise<PaginatedSignatureRequests> {
+    const params = new URLSearchParams();
+
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.channel) params.append('channel', filters.channel);
+    if (filters?.dateFrom) params.append('dateFrom', filters.dateFrom);
+    if (filters?.dateTo) params.append('dateTo', filters.dateTo);
+    if (filters?.page !== undefined) params.append('page', filters.page.toString());
+    if (filters?.size !== undefined) params.append('size', filters.size.toString());
+    if (filters?.sort) params.append('sort', filters.sort);
+
+    const queryString = params.toString();
+    return this.fetch(`/api/v1/admin/signature-requests${queryString ? `?${queryString}` : ''}`);
+  }
+
+  async getSignatureRequest(id: string): Promise<SignatureRequest> {
+    return this.fetch(`/api/v1/admin/signature-requests/${id}`);
   }
 
   // ============================================

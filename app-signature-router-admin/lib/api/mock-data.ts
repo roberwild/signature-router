@@ -7,7 +7,11 @@ import type {
   DashboardMetrics,
   Provider,
   PaginatedSignatures,
+  PaginatedSignatureRequests,
   Signature,
+  SignatureRequest,
+  RoutingEvent,
+  SignatureChallenge,
   MetricsData,
   SecurityOverview,
   AccessEvent,
@@ -184,8 +188,277 @@ export const mockPaginatedSignatures: PaginatedSignatures = {
 };
 
 // ============================================
+// Signature Requests Mock Data (New Enhanced API)
+// ============================================
+
+const generateMockSignatureRequests = (count: number): SignatureRequest[] => {
+  const statuses: SignatureRequest['status'][] = ['PENDING', 'SENT', 'SIGNED', 'EXPIRED', 'FAILED', 'ABORTED'];
+  const channels: SignatureChallenge['channelType'][] = ['SMS', 'PUSH', 'VOICE', 'BIOMETRIC'];
+  const providers: SignatureChallenge['provider'][] = ['TWILIO', 'AWS_SNS', 'ONESIGNAL', 'FCM', 'VONAGE', 'AWS_CONNECT', 'BIOCATCH', 'IOVATION'];
+  const abortReasons: SignatureRequest['abortReason'][] = ['USER_CANCELLED', 'FRAUD_DETECTED', 'TIMEOUT', 'SYSTEM_ERROR', 'ADMIN_ACTION'];
+
+  return Array.from({ length: count }, (_, i) => {
+    const createdAt = new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000); // Last 7 days
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const primaryChannel = channels[Math.floor(Math.random() * channels.length)];
+    const useFallback = Math.random() > 0.7; // 30% chance of fallback
+
+    // Generate routing timeline
+    const routingTimeline: RoutingEvent[] = [];
+    let currentTime = new Date(createdAt);
+
+    // Initial event
+    routingTimeline.push({
+      timestamp: currentTime.toISOString(),
+      eventType: 'SIGNATURE_REQUEST_INITIATED',
+      fromChannel: null,
+      toChannel: primaryChannel,
+      reason: 'Initial signature request created',
+    });
+
+    currentTime = new Date(currentTime.getTime() + 100);
+    routingTimeline.push({
+      timestamp: currentTime.toISOString(),
+      eventType: 'CHALLENGE_SENT',
+      fromChannel: null,
+      toChannel: primaryChannel,
+      reason: `Challenge sent via ${primaryChannel}`,
+    });
+
+    // Fallback scenario
+    if (useFallback && status !== 'PENDING') {
+      currentTime = new Date(currentTime.getTime() + 5000);
+      const fallbackChannel = channels.filter(c => c !== primaryChannel)[0];
+      routingTimeline.push({
+        timestamp: currentTime.toISOString(),
+        eventType: 'FALLBACK_TRIGGERED',
+        fromChannel: primaryChannel,
+        toChannel: fallbackChannel,
+        reason: 'Primary channel timeout - initiating fallback',
+      });
+
+      currentTime = new Date(currentTime.getTime() + 200);
+      routingTimeline.push({
+        timestamp: currentTime.toISOString(),
+        eventType: 'CHALLENGE_SENT',
+        fromChannel: null,
+        toChannel: fallbackChannel,
+        reason: `Fallback challenge sent via ${fallbackChannel}`,
+      });
+    }
+
+    // Completion event
+    if (status === 'SIGNED') {
+      currentTime = new Date(currentTime.getTime() + Math.random() * 30000 + 5000);
+      routingTimeline.push({
+        timestamp: currentTime.toISOString(),
+        eventType: 'SIGNATURE_COMPLETED',
+        fromChannel: null,
+        toChannel: null,
+        reason: 'User successfully completed signature',
+      });
+    } else if (status === 'FAILED') {
+      currentTime = new Date(currentTime.getTime() + Math.random() * 20000 + 10000);
+      routingTimeline.push({
+        timestamp: currentTime.toISOString(),
+        eventType: 'SIGNATURE_FAILED',
+        fromChannel: null,
+        toChannel: null,
+        reason: 'Maximum retry attempts exceeded',
+      });
+    } else if (status === 'ABORTED') {
+      currentTime = new Date(currentTime.getTime() + Math.random() * 15000 + 3000);
+      routingTimeline.push({
+        timestamp: currentTime.toISOString(),
+        eventType: 'SIGNATURE_ABORTED',
+        fromChannel: null,
+        toChannel: null,
+        reason: abortReasons[Math.floor(Math.random() * abortReasons.length)].replace(/_/g, ' ').toLowerCase(),
+      });
+    }
+
+    // Generate challenges
+    const challenges: SignatureChallenge[] = [];
+    const numChallenges = useFallback ? 2 : 1;
+
+    for (let j = 0; j < numChallenges; j++) {
+      const channelType = j === 0 ? primaryChannel : channels.filter(c => c !== primaryChannel)[0];
+      const provider = providers[channels.indexOf(channelType) % providers.length];
+      const challengeCreatedAt = new Date(createdAt.getTime() + j * 5000);
+      const sentAt = new Date(challengeCreatedAt.getTime() + 100);
+
+      let challengeStatus: SignatureChallenge['status'] = 'PENDING';
+      let completedAt: string | undefined;
+      let errorCode: string | undefined;
+
+      if (status === 'SIGNED' && j === numChallenges - 1) {
+        challengeStatus = 'COMPLETED';
+        completedAt = routingTimeline[routingTimeline.length - 1].timestamp;
+      } else if (status === 'FAILED') {
+        challengeStatus = j === numChallenges - 1 ? 'FAILED' : 'EXPIRED';
+        errorCode = j === numChallenges - 1 ? 'MAX_RETRIES_EXCEEDED' : 'TIMEOUT';
+      } else if (status === 'EXPIRED') {
+        challengeStatus = 'EXPIRED';
+      } else if (status === 'SENT') {
+        challengeStatus = 'SENT';
+      }
+
+      challenges.push({
+        id: `CH-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
+        channelType,
+        provider,
+        status: challengeStatus,
+        challengeCode: challengeStatus !== 'PENDING' ? String(Math.floor(100000 + Math.random() * 900000)) : undefined,
+        sentAt: challengeStatus !== 'PENDING' ? sentAt.toISOString() : undefined,
+        expiresAt: new Date(challengeCreatedAt.getTime() + 3 * 60 * 1000).toISOString(),
+        completedAt,
+        providerProof: challengeStatus === 'COMPLETED' ? {
+          providerId: `${provider}-${Math.random().toString(36).substring(7)}`,
+          providerName: provider,
+          providerType: channelType,
+          externalReference: `EXT-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
+          responseCode: '200',
+          responseMessage: 'OK',
+          timestamp: completedAt!,
+        } : undefined,
+        errorCode,
+        createdAt: challengeCreatedAt.toISOString(),
+      });
+    }
+
+    const signedAt = status === 'SIGNED' ? routingTimeline[routingTimeline.length - 1].timestamp : undefined;
+    const abortedAt = status === 'ABORTED' ? routingTimeline[routingTimeline.length - 1].timestamp : undefined;
+
+    return {
+      id: `SR-${String(i).padStart(8, '0')}`,
+      customerId: `CUST-${String(Math.floor(10000 + Math.random() * 90000))}`,
+      transactionContext: {
+        amount: Math.floor(Math.random() * 50000 + 1000),
+        currency: 'EUR',
+        transactionType: ['TRANSFER', 'PAYMENT', 'WITHDRAWAL', 'LOAN_APPROVAL'][Math.floor(Math.random() * 4)],
+        description: 'Autorización de transacción bancaria',
+        metadata: {
+          ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+          deviceId: `DEV-${Math.random().toString(36).substring(7).toUpperCase()}`,
+        },
+      },
+      status,
+      challenges,
+      routingTimeline,
+      createdAt: createdAt.toISOString(),
+      expiresAt: new Date(createdAt.getTime() + 10 * 60 * 1000).toISOString(),
+      signedAt,
+      abortedAt,
+      abortReason: status === 'ABORTED' ? abortReasons[Math.floor(Math.random() * abortReasons.length)] : undefined,
+    };
+  });
+};
+
+export const mockSignatureRequests = generateMockSignatureRequests(100);
+
+export const mockPaginatedSignatureRequests: PaginatedSignatureRequests = {
+  content: mockSignatureRequests.slice(0, 20),
+  totalElements: 100,
+  totalPages: 5,
+  page: 0,
+  size: 20,
+};
+
+// ============================================
 // Metrics Mock Data
 // ============================================
+
+// Calculate metrics from mockSignatureRequests
+const calculateSignatureDurationMetrics = () => {
+  const completedSignatures = mockSignatureRequests.filter(s => s.signedAt);
+  const durations = completedSignatures.map(s => {
+    const start = new Date(s.createdAt).getTime();
+    const end = new Date(s.signedAt!).getTime();
+    return (end - start) / 1000; // in seconds
+  });
+
+  durations.sort((a, b) => a - b);
+  const average = durations.reduce((a, b) => a + b, 0) / durations.length || 0;
+  const median = durations[Math.floor(durations.length / 2)] || 0;
+  const p95 = durations[Math.floor(durations.length * 0.95)] || 0;
+
+  const byChannel: any = {};
+  ['SMS', 'PUSH', 'VOICE', 'BIOMETRIC'].forEach(channel => {
+    const channelSigs = completedSignatures.filter(s =>
+      s.challenges.some(c => c.channelType === channel && c.status === 'COMPLETED')
+    );
+    const channelDurations = channelSigs.map(s => {
+      const start = new Date(s.createdAt).getTime();
+      const end = new Date(s.signedAt!).getTime();
+      return (end - start) / 1000;
+    }).sort((a, b) => a - b);
+
+    byChannel[channel] = {
+      average: channelDurations.reduce((a, b) => a + b, 0) / channelDurations.length || 0,
+      median: channelDurations[Math.floor(channelDurations.length / 2)] || 0,
+      p95: channelDurations[Math.floor(channelDurations.length * 0.95)] || 0,
+    };
+  });
+
+  return { average, median, p95, byChannel };
+};
+
+const calculateChallengeCompletionMetrics = () => {
+  const allChallenges = mockSignatureRequests.flatMap(s => s.challenges);
+  const completedChallenges = allChallenges.filter(c => c.completedAt && c.sentAt);
+
+  const responseTimes = completedChallenges.map(c => {
+    const sent = new Date(c.sentAt!).getTime();
+    const completed = new Date(c.completedAt!).getTime();
+    return (completed - sent) / 1000;
+  });
+
+  const averageResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length || 0;
+
+  const byChannel: any = {};
+  ['SMS', 'PUSH', 'VOICE', 'BIOMETRIC'].forEach(channel => {
+    const channelChallenges = allChallenges.filter(c => c.channelType === channel);
+    const completedChannel = channelChallenges.filter(c => c.completedAt && c.sentAt);
+    const channelResponseTimes = completedChannel.map(c => {
+      const sent = new Date(c.sentAt!).getTime();
+      const completed = new Date(c.completedAt!).getTime();
+      return (completed - sent) / 1000;
+    });
+
+    byChannel[channel] = {
+      averageResponseTime: channelResponseTimes.reduce((a, b) => a + b, 0) / channelResponseTimes.length || 0,
+      completionRate: (completedChannel.length / channelChallenges.length) * 100 || 0,
+      totalChallenges: channelChallenges.length,
+    };
+  });
+
+  return { averageResponseTime, byChannel };
+};
+
+const calculateFallbackMetrics = () => {
+  let totalFallbacks = 0;
+  const byChannelTransition: any = {};
+
+  mockSignatureRequests.forEach(s => {
+    const fallbackEvents = s.routingTimeline.filter(e => e.eventType === 'FALLBACK_TRIGGERED');
+    totalFallbacks += fallbackEvents.length;
+
+    fallbackEvents.forEach(event => {
+      if (event.fromChannel && event.toChannel) {
+        const key = `${event.fromChannel}→${event.toChannel}`;
+        byChannelTransition[key] = (byChannelTransition[key] || 0) + 1;
+      }
+    });
+  });
+
+  const fallbackRate = (totalFallbacks / mockSignatureRequests.length) * 100;
+
+  return { fallbackRate, totalFallbacks, byChannelTransition };
+};
+
+const durationMetrics = calculateSignatureDurationMetrics();
+const challengeMetrics = calculateChallengeCompletionMetrics();
+const fallbackMetrics = calculateFallbackMetrics();
 
 export const mockMetricsData: MetricsData = {
   range: '7d',
@@ -218,6 +491,48 @@ export const mockMetricsData: MetricsData = {
       BIOMETRIC: 0.0,
     },
     timeline: mockDashboardMetrics.errorTimeline,
+  },
+  signatureDuration: {
+    average: durationMetrics.average,
+    median: durationMetrics.median,
+    p95: durationMetrics.p95,
+    byChannel: durationMetrics.byChannel,
+    timeline: [
+      { date: '2025-11-24', average: 12.5, median: 10.2 },
+      { date: '2025-11-25', average: 13.8, median: 11.1 },
+      { date: '2025-11-26', average: 11.9, median: 9.8 },
+      { date: '2025-11-27', average: 14.2, median: 12.0 },
+      { date: '2025-11-28', average: 12.8, median: 10.5 },
+      { date: '2025-11-29', average: 13.5, median: 11.3 },
+      { date: '2025-11-30', average: durationMetrics.average, median: durationMetrics.median },
+    ],
+  },
+  challengeCompletion: {
+    averageResponseTime: challengeMetrics.averageResponseTime,
+    byChannel: challengeMetrics.byChannel,
+    timeline: [
+      { date: '2025-11-24', avgResponseTime: 8.5, completionRate: 92.3 },
+      { date: '2025-11-25', avgResponseTime: 9.2, completionRate: 91.8 },
+      { date: '2025-11-26', avgResponseTime: 8.1, completionRate: 93.5 },
+      { date: '2025-11-27', avgResponseTime: 9.8, completionRate: 90.2 },
+      { date: '2025-11-28', avgResponseTime: 8.9, completionRate: 92.1 },
+      { date: '2025-11-29', avgResponseTime: 9.5, completionRate: 91.5 },
+      { date: '2025-11-30', avgResponseTime: challengeMetrics.averageResponseTime, completionRate: 92.0 },
+    ],
+  },
+  fallbackMetrics: {
+    fallbackRate: fallbackMetrics.fallbackRate,
+    totalFallbacks: fallbackMetrics.totalFallbacks,
+    byChannelTransition: fallbackMetrics.byChannelTransition,
+    timeline: [
+      { date: '2025-11-24', fallbackCount: 12, fallbackRate: 8.5 },
+      { date: '2025-11-25', fallbackCount: 15, fallbackRate: 9.2 },
+      { date: '2025-11-26', fallbackCount: 10, fallbackRate: 7.1 },
+      { date: '2025-11-27', fallbackCount: 18, fallbackRate: 10.5 },
+      { date: '2025-11-28', fallbackCount: 13, fallbackRate: 8.8 },
+      { date: '2025-11-29', fallbackCount: 16, fallbackRate: 9.6 },
+      { date: '2025-11-30', fallbackCount: fallbackMetrics.totalFallbacks, fallbackRate: fallbackMetrics.fallbackRate },
+    ],
   },
 };
 

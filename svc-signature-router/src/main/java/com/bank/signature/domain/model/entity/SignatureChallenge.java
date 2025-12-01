@@ -34,7 +34,7 @@ public class SignatureChallenge {
     private final Instant createdAt;
     private Instant sentAt;
     private final Instant expiresAt;
-    // private Instant completedAt; // Column removed from DB schema - using respondedAt or status instead
+    private Instant completedAt;
     private ProviderResult providerProof;
     private String errorCode;
     
@@ -92,7 +92,7 @@ public class SignatureChallenge {
         }
         
         this.status = ChallengeStatus.COMPLETED;
-        // this.completedAt = Instant.now(); // Field removed from DB schema
+        this.completedAt = Instant.now();
         this.providerProof = proof;
     }
     
