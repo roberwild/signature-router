@@ -711,7 +711,7 @@ export default function ProvidersPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {providers
+              {[...providers]
                 .sort((a, b) => b.totalCostToday - a.totalCostToday)
                 .map((provider) => {
                   const percentage = (provider.totalCostToday / totalStats.totalCost) * 100;
