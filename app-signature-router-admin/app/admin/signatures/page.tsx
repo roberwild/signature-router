@@ -1,10 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   FileSignature,
   Search,
-  Filter,
   Download,
   CheckCircle2,
   XCircle,
@@ -12,6 +11,8 @@ import {
   RefreshCw,
   Eye,
   AlertTriangle,
+  Ban,
+  Send,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,141 +27,52 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
-
-interface Signature {
-  id: string;
-  customerId: string;
-  customerName: string;
-  channel: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC';
-  provider: string;
-  status: 'SUCCESS' | 'PENDING' | 'FAILED' | 'TIMEOUT';
-  createdAt: string;
-  completedAt?: string;
-  responseTime?: number;
-  attempts: number;
-  fallbackUsed: boolean;
-  errorMessage?: string;
-}
+import { SignatureDetailDialog } from '@/components/admin/signature-detail-dialog';
+import { SignatureRequest } from '@/lib/api/types';
+import { apiClient } from '@/lib/api';
+import { formatDistanceToNow, parseISO, differenceInSeconds } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 export default function SignaturesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [signatures, setSignatures] = useState<SignatureRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedSignature, setSelectedSignature] = useState<SignatureRequest | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
-  const signatures: Signature[] = [
-    {
-      id: 'SIG-2024-0001',
-      customerId: 'CUST-45231',
-      customerName: 'Juan Pérez',
-      channel: 'SMS',
-      provider: 'Twilio',
-      status: 'SUCCESS',
-      createdAt: '2024-11-29 14:32:15',
-      completedAt: '2024-11-29 14:32:18',
-      responseTime: 2.8,
-      attempts: 1,
-      fallbackUsed: false,
-    },
-    {
-      id: 'SIG-2024-0002',
-      customerId: 'CUST-45229',
-      customerName: 'María García',
-      channel: 'PUSH',
-      provider: 'OneSignal',
-      status: 'SUCCESS',
-      createdAt: '2024-11-29 14:28:42',
-      completedAt: '2024-11-29 14:28:44',
-      responseTime: 1.2,
-      attempts: 1,
-      fallbackUsed: false,
-    },
-    {
-      id: 'SIG-2024-0003',
-      customerId: 'CUST-45227',
-      customerName: 'Carlos Rodríguez',
-      channel: 'VOICE',
-      provider: 'AWS Connect',
-      status: 'SUCCESS',
-      createdAt: '2024-11-29 14:25:10',
-      completedAt: '2024-11-29 14:25:28',
-      responseTime: 18.2,
-      attempts: 2,
-      fallbackUsed: true,
-    },
-    {
-      id: 'SIG-2024-0004',
-      customerId: 'CUST-45225',
-      customerName: 'Ana Martínez',
-      channel: 'BIOMETRIC',
-      provider: 'BioCatch',
-      status: 'PENDING',
-      createdAt: '2024-11-29 14:22:35',
-      attempts: 1,
-      fallbackUsed: false,
-    },
-    {
-      id: 'SIG-2024-0005',
-      customerId: 'CUST-45223',
-      customerName: 'Luis Fernández',
-      channel: 'SMS',
-      provider: 'Twilio',
-      status: 'FAILED',
-      createdAt: '2024-11-29 14:18:52',
-      completedAt: '2024-11-29 14:19:12',
-      responseTime: 20.0,
-      attempts: 3,
-      fallbackUsed: true,
-      errorMessage: 'Maximum retry attempts exceeded',
-    },
-    {
-      id: 'SIG-2024-0006',
-      customerId: 'CUST-45221',
-      customerName: 'Isabel Sánchez',
-      channel: 'PUSH',
-      provider: 'OneSignal',
-      status: 'SUCCESS',
-      createdAt: '2024-11-29 14:15:20',
-      completedAt: '2024-11-29 14:15:22',
-      responseTime: 1.5,
-      attempts: 1,
-      fallbackUsed: false,
-    },
-    {
-      id: 'SIG-2024-0007',
-      customerId: 'CUST-45219',
-      customerName: 'Pedro Gómez',
-      channel: 'SMS',
-      provider: 'AWS SNS',
-      status: 'SUCCESS',
-      createdAt: '2024-11-29 14:12:45',
-      completedAt: '2024-11-29 14:12:48',
-      responseTime: 2.3,
-      attempts: 1,
-      fallbackUsed: false,
-    },
-    {
-      id: 'SIG-2024-0008',
-      customerId: 'CUST-45217',
-      customerName: 'Laura Torres',
-      channel: 'VOICE',
-      provider: 'Vonage',
-      status: 'TIMEOUT',
-      createdAt: '2024-11-29 14:08:10',
-      completedAt: '2024-11-29 14:08:40',
-      responseTime: 30.0,
-      attempts: 1,
-      fallbackUsed: false,
-      errorMessage: 'Request timeout after 30s',
-    },
-  ];
+  useEffect(() => {
+    loadSignatures();
+  }, [statusFilter]);
+
+  const loadSignatures = async () => {
+    setLoading(true);
+    try {
+      const filters = statusFilter !== 'ALL' ? { status: statusFilter as any } : undefined;
+      const result = await apiClient.getSignatureRequests(filters);
+      setSignatures(result.content);
+    } catch (error) {
+      console.error('Error loading signatures:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDetails = async (signature: SignatureRequest) => {
+    setSelectedSignature(signature);
+    setDialogOpen(true);
+  };
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      SUCCESS: { variant: 'default' as const, className: 'bg-green-500/10 text-green-700 border-green-200', icon: CheckCircle2 },
-      PENDING: { variant: 'secondary' as const, className: 'bg-yellow-500/10 text-yellow-700 border-yellow-200', icon: Clock },
-      FAILED: { variant: 'destructive' as const, className: 'bg-red-500/10 text-red-700 border-red-200', icon: XCircle },
-      TIMEOUT: { variant: 'destructive' as const, className: 'bg-orange-500/10 text-orange-700 border-orange-200', icon: AlertTriangle },
+      SIGNED: { className: 'bg-green-500/10 text-green-700 border-green-200', icon: CheckCircle2 },
+      PENDING: { className: 'bg-yellow-500/10 text-yellow-700 border-yellow-200', icon: Clock },
+      SENT: { className: 'bg-blue-500/10 text-blue-700 border-blue-200', icon: Send },
+      FAILED: { className: 'bg-red-500/10 text-red-700 border-red-200', icon: XCircle },
+      EXPIRED: { className: 'bg-orange-500/10 text-orange-700 border-orange-200', icon: AlertTriangle },
+      ABORTED: { className: 'bg-gray-500/10 text-gray-700 border-gray-200', icon: Ban },
     };
-    const config = variants[status as keyof typeof variants];
+    const config = variants[status as keyof typeof variants] || variants.PENDING;
     const Icon = config.icon;
     return (
       <Badge variant="outline" className={config.className}>
@@ -184,24 +96,37 @@ export default function SignaturesPage() {
     );
   };
 
+  const calculateDuration = (createdAt: string, completedAt?: string): string => {
+    if (!completedAt) return '-';
+    const start = parseISO(createdAt);
+    const end = parseISO(completedAt);
+    const seconds = differenceInSeconds(end, start);
+    if (seconds < 60) return `${seconds}s`;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  };
+
   const filteredSignatures = signatures.filter((sig) => {
     const matchesSearch =
       sig.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sig.customerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sig.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'ALL' || sig.status === statusFilter;
-    return matchesSearch && matchesStatus;
+      sig.customerId.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
   });
 
   const stats = {
     total: signatures.length,
-    success: signatures.filter(s => s.status === 'SUCCESS').length,
-    pending: signatures.filter(s => s.status === 'PENDING').length,
-    failed: signatures.filter(s => s.status === 'FAILED' || s.status === 'TIMEOUT').length,
-    avgResponseTime: signatures
-      .filter(s => s.responseTime)
-      .reduce((acc, s) => acc + (s.responseTime || 0), 0) / 
-      signatures.filter(s => s.responseTime).length,
+    signed: signatures.filter(s => s.status === 'SIGNED').length,
+    pending: signatures.filter(s => s.status === 'PENDING' || s.status === 'SENT').length,
+    failed: signatures.filter(s => s.status === 'FAILED' || s.status === 'EXPIRED' || s.status === 'ABORTED').length,
+    avgDuration: (() => {
+      const completed = signatures.filter(s => s.signedAt);
+      if (completed.length === 0) return 0;
+      const totalSeconds = completed.reduce((acc, s) => {
+        return acc + differenceInSeconds(parseISO(s.signedAt!), parseISO(s.createdAt));
+      }, 0);
+      return totalSeconds / completed.length;
+    })(),
   };
 
   return (
@@ -214,12 +139,12 @@ export default function SignaturesPage() {
               <FileSignature className="h-6 w-6 text-primary" />
               <AdminPageTitle
                 title="Monitoreo de Firmas"
-                info="Seguimiento en tiempo real de solicitudes de firma"
+                info="Seguimiento en tiempo real con audit trail completo"
               />
             </div>
             <div className="flex gap-2">
-              <Button variant="outline">
-                <RefreshCw className="mr-2 h-4 w-4" />
+              <Button variant="outline" onClick={loadSignatures} disabled={loading}>
+                <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Actualizar
               </Button>
               <Button variant="outline">
@@ -239,7 +164,7 @@ export default function SignaturesPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Hoy</p>
+                  <p className="text-sm font-medium text-muted-foreground">Total</p>
                   <p className="text-2xl font-bold">{stats.total}</p>
                 </div>
                 <FileSignature className="h-8 w-8 text-primary/20" />
@@ -251,10 +176,10 @@ export default function SignaturesPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Exitosas</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.success}</p>
+                  <p className="text-sm font-medium text-muted-foreground">Firmadas</p>
+                  <p className="text-2xl font-bold text-green-600">{stats.signed}</p>
                   <p className="text-xs text-muted-foreground">
-                    {((stats.success / stats.total) * 100).toFixed(1)}%
+                    {stats.total > 0 ? ((stats.signed / stats.total) * 100).toFixed(1) : 0}%
                   </p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500/20" />
@@ -278,9 +203,9 @@ export default function SignaturesPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Tiempo Resp.</p>
-                  <p className="text-2xl font-bold">{stats.avgResponseTime.toFixed(1)}s</p>
-                  <p className="text-xs text-muted-foreground">Promedio</p>
+                  <p className="text-sm font-medium text-muted-foreground">Tiempo Prom.</p>
+                  <p className="text-2xl font-bold">{stats.avgDuration.toFixed(1)}s</p>
+                  <p className="text-xs text-muted-foreground">Duración</p>
                 </div>
                 <RefreshCw className="h-8 w-8 text-primary/20" />
               </div>
@@ -296,39 +221,50 @@ export default function SignaturesPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Buscar por ID, Cliente..."
+                    placeholder="Buscar por ID o Cliente..."
                     className="pl-9"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-wrap">
                 <Button
                   variant={statusFilter === 'ALL' ? 'default' : 'outline'}
                   onClick={() => setStatusFilter('ALL')}
-                  className={statusFilter === 'ALL' ? 'bg-primary' : ''}
+                  size="sm"
                 >
                   Todas
                 </Button>
                 <Button
-                  variant={statusFilter === 'SUCCESS' ? 'default' : 'outline'}
-                  onClick={() => setStatusFilter('SUCCESS')}
-                  className={statusFilter === 'SUCCESS' ? 'bg-green-500 hover:bg-green-600' : ''}
+                  variant={statusFilter === 'SIGNED' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('SIGNED')}
+                  size="sm"
+                  className={statusFilter === 'SIGNED' ? 'bg-green-600 hover:bg-green-700' : ''}
                 >
-                  Exitosas
+                  Firmadas
+                </Button>
+                <Button
+                  variant={statusFilter === 'SENT' ? 'default' : 'outline'}
+                  onClick={() => setStatusFilter('SENT')}
+                  size="sm"
+                  className={statusFilter === 'SENT' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  Enviadas
                 </Button>
                 <Button
                   variant={statusFilter === 'PENDING' ? 'default' : 'outline'}
                   onClick={() => setStatusFilter('PENDING')}
-                  className={statusFilter === 'PENDING' ? 'bg-yellow-500 hover:bg-yellow-600' : ''}
+                  size="sm"
+                  className={statusFilter === 'PENDING' ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
                 >
                   Pendientes
                 </Button>
                 <Button
                   variant={statusFilter === 'FAILED' ? 'default' : 'outline'}
                   onClick={() => setStatusFilter('FAILED')}
-                  className={statusFilter === 'FAILED' ? 'bg-red-500 hover:bg-red-600' : ''}
+                  size="sm"
+                  className={statusFilter === 'FAILED' ? 'bg-red-600 hover:bg-red-700' : ''}
                 >
                   Fallidas
                 </Button>
@@ -349,86 +285,109 @@ export default function SignaturesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>ID Firma</TableHead>
+                  <TableHead>ID</TableHead>
                   <TableHead>Cliente</TableHead>
+                  <TableHead>Monto</TableHead>
                   <TableHead>Canal</TableHead>
-                  <TableHead>Proveedor</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Creada</TableHead>
-                  <TableHead>Tiempo</TableHead>
-                  <TableHead>Intentos</TableHead>
+                  <TableHead>Duración</TableHead>
+                  <TableHead>Timeline</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredSignatures.map((signature) => (
-                  <TableRow key={signature.id}>
-                    <TableCell>
-                      <code className="text-xs font-mono font-medium">{signature.id}</code>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="font-medium">{signature.customerName}</div>
-                        <div className="text-xs text-muted-foreground">{signature.customerId}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getChannelBadge(signature.channel)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">{signature.provider}</span>
-                        {signature.fallbackUsed && (
-                          <Badge variant="outline" className="bg-orange-500/10 text-orange-700 text-xs">
-                            Fallback
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{getStatusBadge(signature.status)}</TableCell>
-                    <TableCell>
-                      <div className="text-sm">{signature.createdAt}</div>
-                    </TableCell>
-                    <TableCell>
-                      {signature.responseTime ? (
-                        <span
-                          className={`text-sm font-medium ${
-                            signature.responseTime < 3
-                              ? 'text-green-600'
-                              : signature.responseTime < 10
-                                ? 'text-yellow-600'
-                                : 'text-red-600'
-                          }`}
-                        >
-                          {signature.responseTime}s
+                {filteredSignatures.map((signature) => {
+                  const primaryChannel = signature.challenges[0]?.channelType || 'N/A';
+                  const hasFallback = signature.challenges.length > 1;
+                  const duration = calculateDuration(signature.createdAt, signature.signedAt);
+
+                  return (
+                    <TableRow key={signature.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => handleViewDetails(signature)}>
+                      <TableCell>
+                        <code className="text-xs font-mono font-medium">{signature.id}</code>
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="text-sm font-medium">{signature.customerId}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {signature.transactionContext.transactionType}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm font-medium">
+                          {signature.transactionContext.currency} {signature.transactionContext.amount.toLocaleString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          {getChannelBadge(primaryChannel)}
+                          {hasFallback && (
+                            <Badge variant="outline" className="bg-orange-500/10 text-orange-700 text-xs">
+                              +Fallback
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{getStatusBadge(signature.status)}</TableCell>
+                      <TableCell>
+                        <div className="text-xs">
+                          {formatDistanceToNow(parseISO(signature.createdAt), { addSuffix: true, locale: es })}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-sm font-mono ${duration !== '-' ? 'font-medium' : 'text-muted-foreground'}`}>
+                          {duration}
                         </span>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          signature.attempts > 1
-                            ? 'bg-orange-500/10 text-orange-700 border-orange-200'
-                            : ''
-                        }
-                      >
-                        {signature.attempts}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-xs">
+                          {signature.routingTimeline.length} eventos
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewDetails(signature);
+                          }}
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
+
+            {filteredSignatures.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <FileSignature className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No se encontraron firmas</p>
+              </div>
+            )}
+
+            {loading && (
+              <div className="text-center py-12">
+                <RefreshCw className="h-12 w-12 text-muted-foreground mx-auto mb-3 animate-spin" />
+                <p className="text-sm text-muted-foreground">Cargando firmas...</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      {/* Detail Dialog */}
+      <SignatureDetailDialog
+        signature={selectedSignature}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }
-
