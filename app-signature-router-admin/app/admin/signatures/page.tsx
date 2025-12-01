@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Ban,
   Send,
+  Filter,
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,8 @@ import {
 } from '@/components/ui/table';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
 import { SignatureDetailDialog } from '@/components/admin/signature-detail-dialog';
-import { SignatureRequest } from '@/lib/api/types';
-import { apiClient } from '@/lib/api';
+import type { SignatureRequest } from '@/lib/api/types';
+import { apiClient } from '@/lib/api/client';
 import { formatDistanceToNow, parseISO, differenceInSeconds } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {

@@ -17,8 +17,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
-import { apiClient } from '@/lib/api';
-import { MetricsData } from '@/lib/api/types';
+import { apiClient } from '@/lib/api/client';
+import type { MetricsData } from '@/lib/api/types';
 
 export default function MetricsPage() {
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
