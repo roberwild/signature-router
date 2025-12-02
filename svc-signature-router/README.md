@@ -702,5 +702,89 @@ La arquitectura Liquibase es **mandatoria** y debe cumplirse al 100% cuando se d
 
 ---
 
+## 🔐 HashiCorp Vault - Gestión de Credenciales
+
+### Estado Actual: MOCK (Desarrollo Local)
+
+- **Vault Real:** `DESHABILITADO` (`vault.enabled: false`)
+- **Mock Adapter:** `ACTIVO` (almacenamiento en memoria)
+- **Credenciales:** Hardcodeadas en `VaultCredentialsMockAdapter`
+
+### ⚠️ Configuración por Entorno
+
+| Entorno | `vault.enabled` | Implementación | Seguridad |
+|---------|-----------------|----------------|-----------|
+| **LOCAL** | `false` (default) | `VaultCredentialsMockAdapter` | ❌ Mock en memoria |
+| **DEV** | `true` | `VaultCredentialsAdapter` | ✅ Vault Dev |
+| **UAT** | `true` | `VaultCredentialsAdapter` | ✅ Vault UAT |
+| **PROD** | `true` | `VaultCredentialsAdapter` | ✅ Vault Prod |
+
+### 🚀 Activar Vault Real
+
+**1. En `application-dev.yml` / `application-uat.yml` / `application-prod.yml`:**
+
+```yaml
+vault:
+  enabled: true
+  uri: https://vault.singular-bank.com  # URL del Vault corporativo
+  token: ${VAULT_TOKEN}  # Inyectado por CI/CD o K8s Secret
+```
+
+**2. Variables de Entorno (Kubernetes):**
+
+```yaml
+env:
+  - name: VAULT_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: vault-credentials
+        key: token
+```
+
+**3. Verificar Logs al Arrancar:**
+
+✅ **Con Vault Real:**
+```
+Configuring VaultTemplate with URI: https://vault.singular-bank.com
+VaultTemplate configured successfully
+```
+
+❌ **Con Mock (LOCAL):**
+```
+================================================================================
+USING MOCK VAULT ADAPTER - NOT SUITABLE FOR PRODUCTION
+Set vault.enabled=true to use real HashiCorp Vault
+================================================================================
+```
+
+### 🔍 ¿Dónde se Usa Vault?
+
+- **Provider Credentials**: Credenciales de Twilio, AWS SNS, FCM, etc.
+- **Paths en Vault**:
+  - `secret/signature-router/providers/twilio-sms`
+  - `secret/signature-router/providers/aws-sns`
+  - `secret/signature-router/providers/fcm`
+  - `secret/signature-router/providers/twilio-voice`
+  - `secret/signature-router/providers/facetech`
+  - `secret/signature-router/providers/veridas`
+
+### 📖 Implementación
+
+- **Mock Adapter**: `VaultCredentialsMockAdapter.java` - `@ConditionalOnProperty(name = "vault.enabled", havingValue = "false", matchIfMissing = true)`
+- **Real Adapter**: `VaultCredentialsAdapter.java` - `@ConditionalOnProperty(name = "vault.enabled", havingValue = "true")`
+- **Configuración**: `VaultConfig.java`
+- **Port**: `VaultCredentialsPort.java`
+
+### 🚨 RECORDATORIO
+
+**ANTES de subir a DEV/UAT/PROD:**
+1. ✅ Activar `vault.enabled: true`
+2. ✅ Configurar `vault.uri` con URL correcta
+3. ✅ Configurar `vault.token` vía secret de K8s
+4. ✅ Verificar logs al arrancar (NO debe aparecer "MOCK VAULT")
+5. ✅ Migrar credenciales desde mock a Vault real
+
+---
+
 **¿Preguntas?** Consulta la documentación completa en [docs/](docs/) o contacta al equipo de desarrollo.
 
