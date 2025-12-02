@@ -4,6 +4,7 @@
  */
 
 import { config } from '../config';
+import { auth } from '@/auth';
 import type {
   IApiClient,
   DashboardMetrics,
@@ -37,7 +38,20 @@ export class RealApiClient implements IApiClient {
   }
 
   /**
-   * Wrapper genérico para fetch con manejo de errores
+   * Obtiene el token de acceso de la sesión actual
+   */
+  private async getAccessToken(): Promise<string | null> {
+    try {
+      const session = await auth();
+      return session?.accessToken || null;
+    } catch (error) {
+      console.error('Error getting access token:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Wrapper genérico para fetch con manejo de errores y autenticación
    */
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
@@ -46,19 +60,32 @@ export class RealApiClient implements IApiClient {
       console.log(`🌐 [REAL] ${options?.method || 'GET'} ${endpoint}`);
     }
 
+    // Obtener token de acceso
+    const accessToken = await this.getAccessToken();
+
     try {
       const response = await fetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
-          // TODO: Add Authorization header when auth is implemented
-          // Authorization: `Bearer ${getToken()}`,
+          // Agregar Authorization header si hay token
+          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
           ...options?.headers,
         },
         signal: AbortSignal.timeout(config.apiTimeout),
       });
 
       if (!response.ok) {
+        // Handle 401 Unauthorized
+        if (response.status === 401) {
+          console.error('❌ Unauthorized - Token inválido o expirado');
+          // Redirigir al login (esto será manejado por el middleware)
+          if (typeof window !== 'undefined') {
+            window.location.href = '/auth/signin?error=SessionExpired';
+          }
+          throw new Error('Sesión expirada o no autorizada');
+        }
+
         const errorData = await response.json().catch(() => null);
         throw new Error(
           errorData?.message || `HTTP ${response.status}: ${response.statusText}`
