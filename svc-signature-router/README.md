@@ -37,15 +37,26 @@
 
 Este comando:
 1. ✅ Verifica y libera puerto 5432 (si está ocupado)
-2. ✅ Inicia Docker Compose (PostgreSQL, Kafka, Vault, Grafana, Jaeger)
-3. ✅ **Carga 30+ registros de prueba** (proveedores, reglas, firmas)
-4. ✅ Arranca Spring Boot backend
+2. ✅ Levanta infraestructura Docker (PostgreSQL, Kafka, Vault, Grafana, Jaeger)
+3. ✅ Espera a que PostgreSQL esté listo
+4. ✅ **Carga datos de prueba** (proveedores, reglas, firmas)
+5. ✅ Arranca Spring Boot backend con perfil `local`
 
-**Base de datos poblada con:**
-- 7 proveedores (SMS: Twilio/AWS SNS, PUSH: FCM/OneSignal, VOICE: Twilio, BIOMETRIC: BioCatch)
-- 6 reglas de enrutamiento
-- 30 solicitudes de firma (COMPLETED, PENDING, EXPIRED, FAILED, ABORTED)
-- Desafíos, audit logs, eventos
+**Base de datos poblada automáticamente con:**
+- **6 proveedores** activos (SMS: Twilio/AWS SNS, PUSH: FCM, VOICE: Twilio, BIOMETRIC: FaceTech/Veridas)
+- **4 reglas de enrutamiento** dinámicas
+- **6 solicitudes de firma** en diferentes estados:
+  - 2 COMPLETED (firmadas exitosamente)
+  - 1 PENDING (esperando firma)
+  - 1 EXPIRED (expirada sin firmar)
+  - 1 FAILED (error en proveedor)
+  - 1 ABORTED (cancelada por usuario)
+- **6 desafíos de firma** correspondientes (SMS, PUSH, VOICE)
+- **4 registros de auditoría** con trazabilidad completa
+- **2 eventos outbox** (1 publicado, 1 pendiente)
+- **2 registros de idempotencia**
+
+**Ideal para:** Desarrollo frontend, demos, pruebas funcionales.
 
 ### Arranque Normal (sin datos)
 
@@ -53,7 +64,7 @@ Este comando:
 .\check-and-start.ps1
 ```
 
-Base de datos vacía - Ideal para desarrollo limpio.
+Base de datos vacía - Ideal para desarrollo backend limpio o cuando necesitas datos específicos.
 
 ### URLs Útiles
 
@@ -62,6 +73,17 @@ Base de datos vacía - Ideal para desarrollo limpio.
 - **Health Check**: http://localhost:8080/actuator/health
 - **Grafana**: http://localhost:3001 (admin/admin)
 - **Jaeger**: http://localhost:16686
+
+### Cargar Datos de Prueba Manualmente
+
+Si ya tienes el backend corriendo y quieres cargar/recargar los datos:
+
+```powershell
+# Desde svc-signature-router/
+.\scripts\load-test-data.ps1
+```
+
+**⚠️ ADVERTENCIA:** Este script **elimina TODOS los datos existentes** y carga datos frescos.
 
 📖 **Guía completa**: Ver [`QUICK-START.md`](QUICK-START.md)
 
