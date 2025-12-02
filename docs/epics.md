@@ -35,10 +35,12 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E9** | Observability & SLO Tracking | Métricas, logs, traces para SLO ≥99.9% y P99 <300ms | 6 stories | NFR-O1-O14, NFR-P1-P10 |
 | **E10** | Quality & Testing Excellence (v2) | Testing coverage 75%+, exception handling, MDC logging, documentation | 4 stories | Epic v1 descartada 29-Nov-2025 |
 | **E12** | Admin Panel Frontend-Backend Integration | Implementar endpoints backend para Admin Panel + Mock/Real toggle | 8 stories | Soporta E6, E7 |
+| **E14** | Frontend-Backend Complete Integration (NUEVO) | Completar integración de 8 páginas pendientes del Admin Panel con backend real | 8 stories | FR47-FR72, E6, E7 |
 
-**Total**: 11 Epics, ~101 Stories
+**Total**: 12 Epics, ~109 Stories
 
-**Note:** Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)
+**Note:** Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)  
+**Note:** Epic 14 creada 2025-12-02 basada en HITO-VAULT-Y-JWT-ACTIVADOS.md (refleja estado REAL del proyecto)
 
 ---
 
@@ -2165,6 +2167,274 @@ Cada story está dimensionada para ser completable en una **sesión enfocada de 
 - Usar workflow `/bmad:bmm:workflows:sprint-planning`
 - Seleccionar stories de Epic 1 para Sprint 1 (Foundation)
 - Epic 2 stories en Sprint 2-3 (Core features)
+
+---
+
+## Epic 14: Frontend-Backend Complete Integration (NUEVO - 2025-12-02)
+
+**Epic Goal:** Completar la integración de las 8 páginas pendientes del Admin Panel con el backend Spring Boot, eliminando completamente los mocks.
+
+**Epic Value:** Admin Panel 100% funcional con datos reales, visibilidad completa del sistema, operaciones eficientes.
+
+**Status:** 📋 BACKLOG (0/8 stories iniciadas)  
+**Priority:** 🔴 CRITICAL  
+**Context:** Basado en HITO-2025-12-02-VAULT-Y-JWT-ACTIVADOS.md
+
+**Documento Completo:** `docs/epics/epic-14-frontend-backend-complete-integration.md`
+
+---
+
+### Estado Actual (2025-12-02)
+
+| Página | Backend | Frontend | Status |
+|--------|---------|----------|--------|
+| Signatures | ✅ Implementado | ✅ Integrado | 100% |
+| Dashboard | ✅ Implementado | ❌ Hardcoded | 0% |
+| Providers | ✅ Implementado | ⚠️ Parcial | 20% |
+| Rules | ✅ Implementado | ❌ No funcional | 0% |
+| Alerts | ✅ Mock backend | ❌ No implementado | 0% |
+| Metrics | ✅ Implementado | ❌ Vacío | 0% |
+| Users | ✅ Mock backend | ⚠️ Parcial | 10% |
+| Security | ✅ Implementado | ❌ Vacío | 0% |
+| Templates | ✅ Implementado | ❌ Vacío | 0% |
+
+**Cobertura Total:** 1/9 páginas (11%)
+
+---
+
+### 🔴 Sprint 1: Prioridad ALTA (Core Functionality)
+
+#### Story 14.1: Dashboard - Conectar Métricas Reales
+
+**As a** Operador del sistema  
+**I want** Ver métricas reales del dashboard  
+**So that** Tengo visibilidad del estado actual del sistema
+
+**Acceptance Criteria:**
+- ✅ Dashboard consume `GET /api/v1/admin/dashboard/metrics`
+- ✅ Métricas actualizadas automáticamente cada 30s
+- ✅ Manejo de errores con mensajes al usuario
+- ✅ Loading state mientras carga
+- ✅ No hay datos hardcodeados
+
+**Technical Notes:**
+- Archivo: `app-signature-router-admin/app/admin/page.tsx`
+- Backend: Ya implementado en `AdminDashboardController.java`
+- Hook: `useApiClient()` disponible
+
+**Prerequisites:** Backend running, JWT funcionando
+
+**Estimation:** 4h
+
+---
+
+#### Story 14.2: Providers - CRUD Completo
+
+**As a** Administrador del sistema  
+**I want** Gestionar providers de firma (crear, editar, eliminar, probar)  
+**So that** Puedo configurar y mantener los canales de firma disponibles
+
+**Acceptance Criteria:**
+- ✅ Listado de providers consume API real
+- ✅ Formulario de creación funcional con validación
+- ✅ Formulario de edición con datos precargados
+- ✅ Botón "Probar Conexión" funcional
+- ✅ Eliminación con confirmación
+- ✅ Toasts para feedback de acciones
+- ✅ Loading states en todos los botones
+
+**Technical Notes:**
+- Archivo: `app-signature-router-admin/app/admin/providers/page.tsx`
+- Backend: `AdminProviderController.java` (CRUD completo)
+- Endpoints: GET/POST/PUT/DELETE `/api/v1/admin/providers`
+- Test: `POST /api/v1/admin/providers/{id}/test`
+
+**Prerequisites:** Backend CRUD implementado, JWT funcionando
+
+**Estimation:** 8h
+
+---
+
+#### Story 14.3: Rules - Editor de Reglas de Enrutamiento
+
+**As a** Administrador del sistema  
+**I want** Crear y editar reglas de enrutamiento con SpEL  
+**So that** Puedo definir la lógica de routing de firmas
+
+**Acceptance Criteria:**
+- ✅ Listado de reglas consume API real
+- ✅ Editor SpEL con syntax highlighting
+- ✅ Validación en tiempo real (debounce 500ms)
+- ✅ Drag & Drop para reordenar prioridades
+- ✅ Toggle enabled/disabled funcional
+- ✅ Formulario de creación/edición completo
+- ✅ Eliminación con confirmación
+
+**Technical Notes:**
+- Archivo: `app-signature-router-admin/app/admin/rules/page.tsx`
+- Backend: `AdminRuleController.java` (CRUD completo)
+- Validación: `POST /api/v1/admin/rules/{id}/validate`
+- Drag & Drop: `@dnd-kit/core` o `react-beautiful-dnd`
+- Editor: Monaco Editor o CodeMirror
+
+**Prerequisites:** Backend CRUD implementado, Validación SpEL funcionando
+
+**Estimation:** 12h
+
+---
+
+### 🟡 Sprint 2: Prioridad MEDIA (Operations)
+
+#### Story 14.4: Alerts - Sistema de Alertas
+
+**As a** Operador del sistema  
+**I want** Ver y gestionar alertas del sistema  
+**So that** Puedo responder rápidamente a problemas
+
+**Acceptance Criteria:**
+- ✅ Listado de alertas consume API
+- ✅ Botón "Reconocer" funcional
+- ✅ Botón "Resolver" funcional
+- ✅ Filtros por severidad (CRITICAL, WARNING, INFO)
+- ✅ Auto-refresh cada 60 segundos
+- ✅ Badge con contador de alertas activas en sidebar
+
+**Technical Notes:**
+- Crear: `app-signature-router-admin/app/admin/alerts/page.tsx`
+- Backend: `AdminAlertsController.java` (Mock por ahora)
+- Estado: `admin.portal.alerts.mock=true`
+
+**Prerequisites:** Backend mock implementado
+
+**Estimation:** 6h
+
+---
+
+#### Story 14.5: Metrics - Dashboard de Analíticas
+
+**As a** Administrador del sistema  
+**I want** Ver gráficos y métricas detalladas  
+**So that** Puedo analizar el rendimiento del sistema
+
+**Acceptance Criteria:**
+- ✅ 4 gráficos funcionando (Firmas, Providers, Latencia, Errores)
+- ✅ Selector de período (24h, 7d, 30d)
+- ✅ Exportación CSV funcional
+- ✅ Loading states
+- ✅ Responsive design
+
+**Technical Notes:**
+- Crear: `app-signature-router-admin/app/admin/metrics/page.tsx`
+- Backend: `MetricsAnalyticsController.java`
+- Gráficos: Recharts (ya incluido)
+
+**Prerequisites:** Backend implementado
+
+**Estimation:** 8h
+
+---
+
+#### Story 14.6: Users - Gestión de Usuarios (Keycloak Proxy)
+
+**As a** Administrador del sistema  
+**I want** Gestionar usuarios del sistema  
+**So that** Puedo controlar accesos y roles
+
+**Acceptance Criteria:**
+- ✅ Listado de usuarios consume API (mock)
+- ✅ Formulario de creación funcional
+- ✅ Edición de roles funcional
+- ✅ Toggle enabled/disabled funcional
+- ✅ Búsqueda de usuarios
+- ✅ Filtros por rol
+
+**Technical Notes:**
+- Archivo: `app-signature-router-admin/app/admin/users/page.tsx`
+- Backend: `AdminUsersController.java` (Mock por ahora)
+- Estado: `admin.portal.user-management.mode=MOCK`
+
+**Prerequisites:** Backend mock implementado
+
+**Estimation:** 6h
+
+---
+
+### 🟢 Sprint 3: Prioridad BAJA (Admin)
+
+#### Story 14.7: Security - Auditoría de Seguridad
+
+**As a** Auditor de seguridad  
+**I want** Ver logs de auditoría del sistema  
+**So that** Puedo cumplir con requisitos de compliance
+
+**Acceptance Criteria:**
+- ✅ Listado de eventos de auditoría
+- ✅ Filtros por tipo, fecha, usuario
+- ✅ Paginación
+- ✅ Exportación CSV
+- ✅ Vista de detalles del evento
+
+**Technical Notes:**
+- Crear: `app-signature-router-admin/app/admin/security/page.tsx`
+- Backend: `SecurityAuditController.java`
+
+**Estimation:** 5h
+
+---
+
+#### Story 14.8: Provider Templates - Catálogo de Configuraciones
+
+**As a** Administrador del sistema  
+**I want** Ver templates predefinidos de providers  
+**So that** Puedo configurar nuevos providers rápidamente
+
+**Acceptance Criteria:**
+- ✅ Catálogo de templates consume API
+- ✅ Vista de detalles por tipo
+- ✅ Botón "Usar Template" redirige a formulario
+- ✅ Documentación de configuración
+- ✅ Ejemplos de configuración
+
+**Technical Notes:**
+- Crear: `app-signature-router-admin/app/admin/providers/templates/page.tsx`
+- Backend: `ProviderTemplatesController.java`
+
+**Estimation:** 3h
+
+---
+
+### Estimación Total Epic 14
+
+**Sprint 1 (ALTA):** 24h (~3 días)  
+**Sprint 2 (MEDIA):** 20h (~2.5 días)  
+**Sprint 3 (BAJA):** 8h (~1 día)
+
+**Total Epic 14:** 52h (~6.5 días)
+
+---
+
+### Definition of Done (Epic 14)
+
+- [ ] 8/9 páginas del Admin Panel 100% integradas con backend real
+- [ ] 0 mocks en el código frontend (excepto modo desarrollo)
+- [ ] Todos los endpoints consumen API real
+- [ ] Manejo de errores implementado en todas las páginas
+- [ ] Loading states en todas las interacciones
+- [ ] Tests E2E del flujo completo de cada página
+- [ ] Documentación actualizada en README del frontend
+
+---
+
+### FR Coverage
+
+Epic 14 soporta indirectamente los mismos FRs que Epic 6 y 7 (FR47-FR72) al proporcionar la interfaz de gestión funcional:
+
+- **FR47-FR56:** Admin Portal - Rule Management (Story 14.3)
+- **FR57-FR72:** Admin Portal - Monitoring & Ops (Stories 14.1, 14.2, 14.4, 14.5, 14.6, 14.7, 14.8)
+
+---
+
+**Siguiente paso:** Iniciar Sprint 1 con Story 14.1 (Dashboard)
 
 ---
 
