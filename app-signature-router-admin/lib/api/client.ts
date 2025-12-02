@@ -11,26 +11,30 @@ import { RealApiClient } from './real-client';
 /**
  * Factory function que crea el cliente API apropiado
  * según la configuración de useMockData
+ * 
+ * @param getAccessToken - Función para obtener el access token del usuario autenticado
  */
-export function createApiClient(): IApiClient {
+export function createApiClient(getAccessToken?: () => string | null): IApiClient {
   if (config.useMockData) {
     console.log('🎭 Using MOCK API Client');
     return new MockApiClient();
   } else {
     console.log('🌐 Using REAL API Client');
-    return new RealApiClient();
+    return new RealApiClient(getAccessToken);
   }
 }
 
 /**
- * Singleton instance del API client
- * Se crea una sola vez al importar este módulo
+ * DEPRECATED: Singleton instance ya no se usa.
+ * Usar createApiClient() con el token de sesión en su lugar.
  */
 export const apiClient = createApiClient();
 
 /**
  * Hook/función para obtener el cliente API
  * Mantiene compatibilidad con el patrón getApiClient()
+ * 
+ * @deprecated Use createApiClient() con el token de sesión en su lugar
  */
 export function getApiClient(): IApiClient {
   return apiClient;

@@ -4,7 +4,6 @@
  */
 
 import { config } from '../config';
-import { auth } from '@/auth';
 import type {
   IApiClient,
   DashboardMetrics,
@@ -32,29 +31,38 @@ import type {
  */
 export class RealApiClient implements IApiClient {
   private baseUrl: string;
+  private getAccessToken: () => string | null;
 
-  constructor() {
+  constructor(getAccessToken: () => string | null = () => null) {
     this.baseUrl = config.apiBaseUrl;
+    this.getAccessToken = getAccessToken;
   }
 
   /**
    * Wrapper genérico para fetch con manejo de errores
-   * Nota: El token se debe pasar desde el componente que llama
    */
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    const token = this.getAccessToken();
 
     if (config.enableDebugLogs) {
-      console.log(`🌐 [REAL] ${options?.method || 'GET'} ${endpoint}`);
+      console.log(`🌐 [REAL] ${options?.method || 'GET'} ${endpoint}`, token ? '🔑 With JWT' : '⚠️ No JWT');
     }
 
     try {
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...options?.headers as Record<string, string>,
+      };
+
+      // Inject JWT if available
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(url, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
+        headers,
         signal: AbortSignal.timeout(config.apiTimeout),
       });
 

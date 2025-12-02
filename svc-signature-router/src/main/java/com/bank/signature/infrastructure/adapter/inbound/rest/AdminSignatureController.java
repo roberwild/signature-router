@@ -73,8 +73,7 @@ public class AdminSignatureController {
      * @return Paginated list of signature requests
      */
     @GetMapping
-    // TEMPORARY: Disabled for frontend integration testing without JWT
-    // @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'VIEWER', 'SUPPORT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'OPERATOR', 'VIEWER', 'SUPPORT')")
     @Operation(
         summary = "List signature requests with filters",
         description = """

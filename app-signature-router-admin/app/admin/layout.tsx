@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { SessionProvider } from 'next-auth/react';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 
 export default function AdminLayout({
@@ -28,12 +29,14 @@ export default function AdminLayout({
   }, []);
 
   return (
-    <div className="min-h-screen bg-singular-gray dark:bg-background">
-      <AdminSidebar />
-      <main className={`transition-all duration-300 ${sidebarCollapsed ? 'pl-16' : 'pl-64'}`}>
-        {children}
-      </main>
-    </div>
+    <SessionProvider>
+      <div className="min-h-screen bg-singular-gray dark:bg-background">
+        <AdminSidebar />
+        <main className={`transition-all duration-300 ${sidebarCollapsed ? 'pl-16' : 'pl-64'}`}>
+          {children}
+        </main>
+      </div>
+    </SessionProvider>
   );
 }
 

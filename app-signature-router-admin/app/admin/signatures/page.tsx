@@ -30,7 +30,7 @@ import {
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
 import { SignatureDetailDialog } from '@/components/admin/signature-detail-dialog';
 import type { SignatureRequest } from '@/lib/api/types';
-import { apiClient } from '@/lib/api/client';
+import { useApiClient } from '@/lib/api/use-api-client';
 import { formatDistanceToNow, parseISO, differenceInSeconds } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export default function SignaturesPage() {
+  const apiClient = useApiClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [channelFilter, setChannelFilter] = useState<string>('ALL');
