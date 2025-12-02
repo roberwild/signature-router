@@ -224,8 +224,8 @@ public interface SignatureRequestJpaRepository extends JpaRepository<SignatureRe
     @Query("""
         SELECT sr FROM SignatureRequestEntity sr
         WHERE (:status IS NULL OR sr.status = :status)
-        AND (:dateFrom IS NULL OR sr.createdAt >= :dateFrom)
-        AND (:dateTo IS NULL OR sr.createdAt < :dateTo)
+        AND (CAST(:dateFrom AS java.time.Instant) IS NULL OR sr.createdAt >= :dateFrom)
+        AND (CAST(:dateTo AS java.time.Instant) IS NULL OR sr.createdAt < :dateTo)
         """)
     @EntityGraph(attributePaths = {"challenges"})
     Page<SignatureRequestEntity> findAllWithFiltersWithoutChannel(

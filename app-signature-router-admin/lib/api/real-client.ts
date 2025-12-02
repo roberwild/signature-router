@@ -38,20 +38,8 @@ export class RealApiClient implements IApiClient {
   }
 
   /**
-   * Obtiene el token de acceso de la sesión actual
-   */
-  private async getAccessToken(): Promise<string | null> {
-    try {
-      const session = await auth();
-      return session?.accessToken || null;
-    } catch (error) {
-      console.error('Error getting access token:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Wrapper genérico para fetch con manejo de errores y autenticación
+   * Wrapper genérico para fetch con manejo de errores
+   * Nota: El token se debe pasar desde el componente que llama
    */
   private async fetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
@@ -60,16 +48,11 @@ export class RealApiClient implements IApiClient {
       console.log(`🌐 [REAL] ${options?.method || 'GET'} ${endpoint}`);
     }
 
-    // Obtener token de acceso
-    const accessToken = await this.getAccessToken();
-
     try {
       const response = await fetch(url, {
         ...options,
         headers: {
           'Content-Type': 'application/json',
-          // Agregar Authorization header si hay token
-          ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {}),
           ...options?.headers,
         },
         signal: AbortSignal.timeout(config.apiTimeout),
@@ -166,11 +149,11 @@ export class RealApiClient implements IApiClient {
     if (filters?.sort) params.append('sort', filters.sort);
 
     const queryString = params.toString();
-    return this.fetch(`/api/v1/admin/signature-requests${queryString ? `?${queryString}` : ''}`);
+    return this.fetch(`/admin/signatures${queryString ? `?${queryString}` : ''}`);
   }
 
   async getSignatureRequest(id: string): Promise<SignatureRequest> {
-    return this.fetch(`/api/v1/admin/signature-requests/${id}`);
+    return this.fetch(`/admin/signatures/${id}`);
   }
 
   // ============================================

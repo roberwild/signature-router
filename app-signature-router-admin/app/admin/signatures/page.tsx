@@ -462,9 +462,9 @@ export default function SignaturesPage() {
               </TableHeader>
               <TableBody>
                 {filteredSignatures.map((signature) => {
-                  const primaryChannel = signature.challenges[0]?.channelType || 'N/A';
-                  const hasFallback = signature.challenges.length > 1;
-                  const duration = calculateDuration(signature.createdAt, signature.signedAt);
+                  const primaryChannel = signature.activeChallenge?.channelType || 'N/A';
+                  const hasFallback = (signature.routingTimeline || []).length > 1;
+                  const duration = calculateDuration(signature.createdAt, signature.updatedAt);
 
                   return (
                     <TableRow key={signature.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => handleViewDetails(signature)}>
@@ -475,13 +475,13 @@ export default function SignaturesPage() {
                         <div>
                           <div className="text-sm font-medium">{signature.customerId}</div>
                           <div className="text-xs text-muted-foreground">
-                            {signature.transactionContext.transactionType}
+                            {signature.status}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-medium">
-                          {signature.transactionContext.currency} {signature.transactionContext.amount.toLocaleString()}
+                        <div className="text-sm font-medium text-muted-foreground">
+                          N/A
                         </div>
                       </TableCell>
                       <TableCell>
@@ -507,7 +507,7 @@ export default function SignaturesPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="text-xs">
-                          {signature.routingTimeline.length} eventos
+                          {(signature.routingTimeline || []).length} eventos
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
