@@ -281,7 +281,7 @@ class SignatureChallengeEntityMapperTest {
         assertThat(domain.getSentAt()).isEqualTo(sentAt);
         assertThat(domain.getProviderProof()).isNotNull();
         assertThat(domain.getProviderProof().providerChallengeId()).isEqualTo("twilio-msg-123");
-        assertThat(domain.getProviderProof().providerMessage()).isEqualTo("Message sent successfully");
+        assertThat(domain.getProviderProof().providerProof()).isEqualTo("Message sent successfully");
         assertThat(domain.getCompletedAt()).isNull();
     }
 

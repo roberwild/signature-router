@@ -245,7 +245,7 @@ class SignatureRequestEntityMapperTest {
 
         // Validate deserialized transaction context
         assertThat(domain.getTransactionContext()).isNotNull();
-        assertThat(domain.getTransactionContext().amount().value()).isEqualByComparingTo("100.00");
+        assertThat(domain.getTransactionContext().amount().amount()).isEqualByComparingTo("100.00");
         assertThat(domain.getTransactionContext().merchantId()).isEqualTo("merchant-123");
 
         // Validate deserialized routing timeline
@@ -407,7 +407,7 @@ class SignatureRequestEntityMapperTest {
             .createdAt(now)
             .expiresAt(expiresAt)
             .abortedAt(abortedAt)
-            .abortReason(AbortReason.TIMEOUT)
+            .abortReason(AbortReason.SYSTEM_ERROR)
             .build();
 
         // Act
@@ -450,8 +450,8 @@ class SignatureRequestEntityMapperTest {
         assertThat(reconstructedDomain.getStatus()).isEqualTo(originalDomain.getStatus());
         assertThat(reconstructedDomain.getSignedAt()).isEqualTo(originalDomain.getSignedAt());
         assertThat(reconstructedDomain.getRoutingTimeline()).hasSize(originalDomain.getRoutingTimeline().size());
-        assertThat(reconstructedDomain.getTransactionContext().amount().value())
-            .isEqualByComparingTo(originalDomain.getTransactionContext().amount().value());
+        assertThat(reconstructedDomain.getTransactionContext().amount().amount())
+            .isEqualByComparingTo(originalDomain.getTransactionContext().amount().amount());
     }
 
     // ========== Helper Methods ==========
