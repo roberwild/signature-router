@@ -1,8 +1,9 @@
 package com.bank.signature.infrastructure.adapter.outbound.security;
 
-import com.bank.signature.domain.service.PseudonymizationService;
+import com.bank.signature.domain.port.outbound.PseudonymizationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.Mac;
@@ -24,6 +25,7 @@ import java.security.NoSuchAlgorithmException;
  */
 @Service
 @Slf4j
+@ConditionalOnProperty(prefix = "spring.cloud.vault", name = "enabled", havingValue = "false", matchIfMissing = true)
 public class PseudonymizationServiceImpl implements PseudonymizationService {
     
     private static final String HMAC_ALGORITHM = "HmacSHA256";

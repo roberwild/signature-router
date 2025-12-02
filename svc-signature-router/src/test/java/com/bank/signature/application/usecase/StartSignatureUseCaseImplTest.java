@@ -9,7 +9,7 @@ import com.bank.signature.domain.model.entity.SignatureChallenge;
 import com.bank.signature.domain.model.valueobject.*;
 import com.bank.signature.domain.port.outbound.SignatureRequestRepository;
 import com.bank.signature.domain.service.ChallengeService;
-import com.bank.signature.domain.service.PseudonymizationService;
+import com.bank.signature.domain.port.outbound.PseudonymizationService;
 import com.bank.signature.domain.service.RoutingService;
 import com.bank.signature.domain.service.TransactionHashService;
 import com.bank.signature.infrastructure.ratelimit.CustomerRateLimitService;

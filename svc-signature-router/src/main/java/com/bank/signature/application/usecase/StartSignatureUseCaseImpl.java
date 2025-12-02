@@ -8,7 +8,7 @@ import com.bank.signature.domain.model.valueobject.TransactionContext;
 import com.bank.signature.domain.model.valueobject.UUIDGenerator;
 import com.bank.signature.domain.port.outbound.SignatureRequestRepository;
 import com.bank.signature.domain.service.ChallengeService;
-import com.bank.signature.domain.service.PseudonymizationService;
+import com.bank.signature.domain.port.outbound.PseudonymizationService;
 import com.bank.signature.domain.service.RoutingService;
 import com.bank.signature.domain.service.TransactionHashService;
 import com.bank.signature.infrastructure.observability.metrics.SignatureRequestMetrics;

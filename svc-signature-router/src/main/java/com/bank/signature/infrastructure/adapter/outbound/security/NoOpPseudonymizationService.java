@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
-@ConditionalOnProperty(prefix = "vault", name = "enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "security.pseudonymization", name = "noop", havingValue = "true")
 public class NoOpPseudonymizationService implements PseudonymizationService {
     
     public NoOpPseudonymizationService() {
