@@ -1,0 +1,283 @@
+# TEMPLATE DE CHANGESET - ARQUITECTURA MANDATORIA
+# Este archivo es una plantilla. NO ejecutar directamente.
+# Copiar a changes/{env}/NNNN-descripcion.yaml y adaptar
+
+databaseChangeLog:
+  # =============================================================================
+  # TEMPLATE: Crear Tabla Nueva
+  # =============================================================================
+  - changeSet:
+      id: NNNN  # Número secuencial (0001, 0002, etc.)
+      author: nombre <email@signature-router.com>
+      labels: story-X.Y  # Referencia a story/ticket
+      context: dev,uat,prod  # Contextos donde aplica
+      comment: "Descripción del cambio y su propósito"
+      changes:
+        - createTable:
+            tableName: nombre_tabla
+            remarks: "Descripción de la tabla y su propósito en el dominio"
+            columns:
+              # =====================
+              # COLUMNAS OBLIGATORIAS
+              # =====================
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7 ordenable temporalmente"
+              
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de creación del registro"
+              
+              - column:
+                  name: updated_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de última actualización"
+              
+              # =====================
+              # COLUMNAS DE AUDITORÍA (tablas de configuración)
+              # =====================
+              - column:
+                  name: created_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Usuario que creó el registro"
+              
+              - column:
+                  name: updated_by
+                  type: varchar(255)
+                  remarks: "Usuario que actualizó el registro por última vez"
+              
+              # =====================
+              # COLUMNAS DE NEGOCIO
+              # =====================
+              - column:
+                  name: nombre_columna
+                  type: varchar(255)  # varchar, integer, boolean, jsonb, etc.
+                  constraints:
+                    nullable: false
+                    unique: false
+                  defaultValue: "valor_por_defecto"  # Opcional
+                  remarks: "Descripción del propósito y valores esperados"
+        
+        # Índices recomendados
+        - createIndex:
+            indexName: idx_nombre_tabla_columna
+            tableName: nombre_tabla
+            columns:
+              - column:
+                  name: nombre_columna
+            remarks: "Índice para optimizar búsquedas por X"
+        
+        # Foreign Keys (si aplica)
+        - addForeignKeyConstraint:
+            baseTableName: nombre_tabla
+            baseColumnNames: otra_tabla_id
+            constraintName: fk_nombre_tabla_otra_tabla
+            referencedTableName: otra_tabla
+            referencedColumnNames: id
+            onDelete: CASCADE  # o RESTRICT, SET NULL
+            onUpdate: CASCADE
+      
+      # ROLLBACK OBLIGATORIO
+      rollback:
+        - dropTable:
+            tableName: nombre_tabla
+            cascadeConstraints: true
+
+  # =============================================================================
+  # TEMPLATE: Añadir Columna a Tabla Existente
+  # =============================================================================
+  - changeSet:
+      id: NNNN-add-column
+      author: nombre <email@signature-router.com>
+      labels: story-X.Y
+      context: dev,uat,prod
+      comment: "Añadir columna X para soportar funcionalidad Y"
+      changes:
+        - addColumn:
+            tableName: tabla_existente
+            columns:
+              - column:
+                  name: nueva_columna
+                  type: varchar(100)
+                  constraints:
+                    nullable: true  # true inicialmente para no romper datos
+                  defaultValue: "valor_default"
+                  remarks: "Descripción de la nueva columna"
+        
+        # Opcional: Actualizar datos existentes
+        - sql:
+            sql: "UPDATE tabla_existente SET nueva_columna = 'valor' WHERE nueva_columna IS NULL;"
+            comment: "Populate existing records with default value"
+        
+        # Opcional: Hacer NOT NULL después de población
+        - addNotNullConstraint:
+            tableName: tabla_existente
+            columnName: nueva_columna
+            columnDataType: varchar(100)
+      
+      rollback:
+        - dropColumn:
+            tableName: tabla_existente
+            columnName: nueva_columna
+
+  # =============================================================================
+  # TEMPLATE: Crear Función SQL
+  # =============================================================================
+  - changeSet:
+      id: NNNN-function
+      author: nombre <email@signature-router.com>
+      labels: infrastructure
+      context: dev,uat,prod
+      comment: "Crear función de utilidad X"
+      changes:
+        - sqlFile:
+            path: liquibase/sql/nombre_funcion.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+      
+      rollback:
+        - sql:
+            sql: "DROP FUNCTION IF EXISTS nombre_funcion();"
+
+  # =============================================================================
+  # TEMPLATE: Seed Data (Datos Iniciales)
+  # =============================================================================
+  - changeSet:
+      id: NNNN-seed-data
+      author: nombre <email@signature-router.com>
+      labels: seed-data
+      context: dev,uat,prod
+      comment: "Datos iniciales para configuración X"
+      changes:
+        - insert:
+            tableName: nombre_tabla
+            columns:
+              - column:
+                  name: id
+                  valueComputed: uuid_generate_v7()
+              - column:
+                  name: nombre
+                  value: "Valor 1"
+              - column:
+                  name: descripcion
+                  value: "Descripción del registro"
+              - column:
+                  name: created_by
+                  value: "SYSTEM"
+        
+        - insert:
+            tableName: nombre_tabla
+            columns:
+              - column:
+                  name: id
+                  valueComputed: uuid_generate_v7()
+              - column:
+                  name: nombre
+                  value: "Valor 2"
+              - column:
+                  name: created_by
+                  value: "SYSTEM"
+      
+      rollback:
+        - delete:
+            tableName: nombre_tabla
+            where: "created_by = 'SYSTEM'"
+
+  # =============================================================================
+  # TEMPLATE: Renombrar Columna (con preservación de datos)
+  # =============================================================================
+  - changeSet:
+      id: NNNN-rename-column
+      author: nombre <email@signature-router.com>
+      labels: story-X.Y
+      context: dev,uat,prod
+      comment: "Renombrar columna para reflejar mejor su propósito"
+      changes:
+        - renameColumn:
+            tableName: nombre_tabla
+            oldColumnName: nombre_antiguo
+            newColumnName: nombre_nuevo
+            columnDataType: varchar(255)
+            remarks: "Nuevo nombre refleja mejor el propósito: X"
+      
+      rollback:
+        - renameColumn:
+            tableName: nombre_tabla
+            oldColumnName: nombre_nuevo
+            newColumnName: nombre_antiguo
+            columnDataType: varchar(255)
+
+  # =============================================================================
+  # TEMPLATE: Modificar Tipo de Columna
+  # =============================================================================
+  - changeSet:
+      id: NNNN-modify-type
+      author: nombre <email@signature-router.com>
+      labels: story-X.Y
+      context: dev,uat,prod
+      comment: "Cambiar tipo de columna para soportar valores más grandes"
+      changes:
+        - modifyDataType:
+            tableName: nombre_tabla
+            columnName: nombre_columna
+            newDataType: varchar(500)  # Antes era varchar(255)
+      
+      rollback:
+        - modifyDataType:
+            tableName: nombre_tabla
+            columnName: nombre_columna
+            newDataType: varchar(255)
+
+  # =============================================================================
+  # TEMPLATE: Crear Índice Compuesto
+  # =============================================================================
+  - changeSet:
+      id: NNNN-composite-index
+      author: nombre <email@signature-router.com>
+      labels: performance
+      context: dev,uat,prod
+      comment: "Índice compuesto para optimizar queries frecuentes"
+      changes:
+        - createIndex:
+            indexName: idx_tabla_col1_col2
+            tableName: nombre_tabla
+            columns:
+              - column:
+                  name: columna1
+              - column:
+                  name: columna2
+            remarks: "Optimiza búsquedas WHERE columna1 = X AND columna2 = Y"
+      
+      rollback:
+        - dropIndex:
+            indexName: idx_tabla_col1_col2
+            tableName: nombre_tabla
+
+# =============================================================================
+# NOTAS DE USO
+# =============================================================================
+#
+# 1. NUNCA usar este archivo directamente
+# 2. Copiar sección relevante a nuevo changeset numerado
+# 3. Adaptar valores específicos del cambio
+# 4. SIEMPRE incluir rollback funcional
+# 5. SIEMPRE añadir remarks explicativos
+# 6. Validar con: mvn liquibase:validate
+# 7. Probar rollback en DEV antes de UAT/PROD
+#
+# =============================================================================
+

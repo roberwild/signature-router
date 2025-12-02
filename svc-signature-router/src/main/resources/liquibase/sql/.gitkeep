@@ -1,0 +1,4 @@
+# Scripts SQL reutilizables
+# Ejemplo: uuid_generate_v7.sql (función para PKs)
+# Ver: ../README-LIQUIBASE-GUIDELINES.md para detalles
+

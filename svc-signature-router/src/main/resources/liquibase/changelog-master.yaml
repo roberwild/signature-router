@@ -1,6 +1,9 @@
 databaseChangeLog:
-  - includeAll:
-      path: changes/dev
-      relativeToChangelogFile: true
-      context: dev,local
-
+  # Liquibase changelogs - Se crearán cuando se suba a DEV/UAT/PROD
+  # En local, Hibernate ddl-auto=update gestiona el esquema
+  #
+  # Cuando subas a otros entornos:
+  # 1. Crear un único changeset inicial con todo el esquema
+  # 2. Habilitar liquibase.enabled=true en el perfil correspondiente
+  # 3. Los evolutivos posteriores seguirán la secuencia normal
+  []

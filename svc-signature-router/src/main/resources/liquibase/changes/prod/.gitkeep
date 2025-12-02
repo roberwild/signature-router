@@ -1,2 +1,3 @@
-# Placeholder for LiquidBase changesets (prod environment)
-
+# Changesets para entorno PRODUCCIÓN
+# Ver: ../README-LIQUIBASE-GUIDELINES.md para estructura mandatoria
+# IMPORTANTE: Solo changesets validados en UAT

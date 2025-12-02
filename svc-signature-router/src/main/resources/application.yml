@@ -13,8 +13,10 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   # LiquidBase configuration (Story 1.2)
+  # DISABLED in local - Hibernate ddl-auto manages schema during development
+  # Enable in DEV/UAT/PROD environments
   liquibase:
-    enabled: true
+    enabled: false
     change-log: classpath:liquibase/changelog-master.yaml
     # Contexts are configured per profile (dev/uat/prod)
 
@@ -22,7 +24,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: none  # LiquidBase manages schema, no validation needed
+      ddl-auto: update  # Local: Hibernate manages schema; DEV/UAT/PROD: set to 'none' + Liquibase
   
   # Spring Security OAuth2 Resource Server (Story 8.1)
   security:

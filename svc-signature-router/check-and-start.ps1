@@ -5,7 +5,16 @@
 # 1. Puerto 5432 ocupado por Supabase u otro PostgreSQL
 # 2. Docker Compose no corriendo
 # 3. PostgreSQL no listo para aceptar conexiones
+#
+# Uso:
+#   .\check-and-start.ps1                  # Arranque normal
+#   .\check-and-start.ps1 -LoadTestData    # Arranque + carga de datos de prueba
 # ============================================================================
+
+# Parámetros
+param(
+    [switch]$LoadTestData = $false  # Si se especifica, carga datos de prueba
+)
 
 # Verificar si se está ejecutando como administrador
 $isAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
@@ -14,6 +23,13 @@ Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host "  SIGNATURE ROUTER - ARRANQUE AUTOMATIZADO DEL BACKEND" -ForegroundColor Cyan
 Write-Host "==================================================================" -ForegroundColor Cyan
+Write-Host ""
+
+if ($LoadTestData) {
+    Write-Host "[*] Modo: ARRANQUE CON DATOS DE PRUEBA" -ForegroundColor Magenta
+} else {
+    Write-Host "[*] Modo: ARRANQUE NORMAL (sin datos de prueba)" -ForegroundColor Cyan
+}
 Write-Host ""
 
 if ($isAdmin) {
@@ -37,18 +53,18 @@ if ($port5432) {
     Write-Host "Procesos usando el puerto 5432:" -ForegroundColor Yellow
     netstat -ano | Select-String ":5432"
     Write-Host ""
-    
+
     # Verificar si es Supabase
     $supabaseProcess = Get-Process | Where-Object { $_.ProcessName -like "*supabase*" -or $_.ProcessName -like "*postgres*" }
-    
+
     if ($supabaseProcess) {
         Write-Host "[!] Se detectaron procesos de PostgreSQL/Supabase corriendo." -ForegroundColor Yellow
         Write-Host ""
         $response = Read-Host "Deseas detener TODOS los procesos de PostgreSQL y Supabase? (S/N)"
-        
+
         if ($response -eq "S" -or $response -eq "s") {
             Write-Host "[*] Deteniendo procesos..." -ForegroundColor Yellow
-            
+
             # Intentar detener Supabase si existe el comando
             try {
                 supabase stop 2>$null
@@ -56,7 +72,7 @@ if ($port5432) {
             } catch {
                 Write-Host "[!] Comando 'supabase' no encontrado o ya esta detenido." -ForegroundColor Yellow
             }
-            
+
             # Detener servicios de PostgreSQL
             try {
                 Stop-Service -Name "postgresql*" -Force -ErrorAction SilentlyContinue
@@ -64,14 +80,14 @@ if ($port5432) {
             } catch {
                 Write-Host "[!] No se encontraron servicios de PostgreSQL corriendo." -ForegroundColor Yellow
             }
-            
+
             Start-Sleep -Seconds 2
-            
+
             # Verificar nuevamente y matar procesos si es necesario
             $port5432After = netstat -ano | Select-String ":5432" | Select-String "LISTENING"
             if ($port5432After) {
                 Write-Host "[*] Identificando y terminando procesos en el puerto 5432..." -ForegroundColor Yellow
-                
+
                 # Extraer PIDs únicos
                 $processIds = @()
                 foreach ($line in $port5432After) {
@@ -82,7 +98,7 @@ if ($port5432) {
                         }
                     }
                 }
-                
+
                 if (-not $isAdmin) {
                     Write-Host ""
                     Write-Host "[ERROR] Se necesitan privilegios de Administrador para terminar estos procesos." -ForegroundColor Red
@@ -99,7 +115,7 @@ if ($port5432) {
                     Write-Host ""
                     exit 1
                 }
-                
+
                 # Matar cada proceso (solo si es admin)
                 foreach ($processId in $processIds) {
                     try {
@@ -113,9 +129,9 @@ if ($port5432) {
                         Write-Host "    [!] No se pudo terminar el proceso $processId" -ForegroundColor Yellow
                     }
                 }
-                
+
                 Start-Sleep -Seconds 2
-                
+
                 # Verificación final
                 $port5432Final = netstat -ano | Select-String ":5432" | Select-String "LISTENING"
                 if ($port5432Final) {
@@ -212,7 +228,7 @@ $postgresReady = $false
 while ($attempt -lt $maxAttempts -and -not $postgresReady) {
     $attempt++
     Start-Sleep -Seconds 1
-    
+
     try {
         $logs = docker logs signature-router-postgres 2>&1 | Select-String "database system is ready to accept connections"
         if ($logs) {
@@ -235,9 +251,71 @@ if (-not $postgresReady) {
 Write-Host ""
 
 # ----------------------------------------------------------------------------
-# PASO 6: Arrancar Spring Boot Backend
+# PASO 6: Cargar Datos de Prueba (si se solicitó)
 # ----------------------------------------------------------------------------
-Write-Host "[*] Paso 6/6: Arrancando Spring Boot Backend..." -ForegroundColor Yellow
+if ($LoadTestData) {
+    Write-Host "[*] Paso 6/7: Cargando datos de prueba..." -ForegroundColor Yellow
+    Write-Host ""
+
+    $testDataScript = ".\scripts\seed-test-data.sql"
+
+    if (-not (Test-Path $testDataScript)) {
+        Write-Host "[ERROR] No se encontro el script: $testDataScript" -ForegroundColor Red
+        Write-Host "Asegurate de estar en el directorio svc-signature-router" -ForegroundColor Yellow
+        exit 1
+    }
+
+    try {
+        # Leer el contenido del script SQL
+        $sqlContent = Get-Content $testDataScript -Raw
+
+        # Ejecutar el script en el contenedor PostgreSQL
+        Write-Host "  - Ejecutando script SQL..." -ForegroundColor Gray
+        $output = $sqlContent | docker exec -i signature-router-postgres psql -U siguser -d signature_router 2>&1
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] Datos de prueba cargados exitosamente." -ForegroundColor Green
+            Write-Host ""
+            Write-Host "  Base de datos poblada con:" -ForegroundColor Cyan
+            Write-Host "    - 7 proveedores (SMS, PUSH, VOICE, BIOMETRIC)" -ForegroundColor White
+            Write-Host "    - 6 reglas de enrutamiento" -ForegroundColor White
+            Write-Host "    - 30 solicitudes de firma (COMPLETED, PENDING, EXPIRED, etc.)" -ForegroundColor White
+            Write-Host "    - Desafios, audit logs, y eventos" -ForegroundColor White
+            Write-Host ""
+        } else {
+            Write-Host "[ERROR] Hubo un problema al cargar los datos." -ForegroundColor Red
+            Write-Host ""
+            Write-Host "Error del SQL:" -ForegroundColor Yellow
+            Write-Host $output -ForegroundColor Gray
+            Write-Host ""
+            Write-Host "Ejecuta manualmente: .\scripts\load-test-data.ps1" -ForegroundColor Yellow
+            Write-Host ""
+            Write-Host "Continuar sin datos de prueba? (S/N): " -NoNewline
+            $continue = Read-Host
+            if ($continue -ne "S" -and $continue -ne "s") {
+                exit 1
+            }
+        }
+    } catch {
+        Write-Host "[ERROR] Error al cargar datos: $_" -ForegroundColor Red
+        Write-Host "Continuar sin datos de prueba? (S/N): " -NoNewline
+        $continue = Read-Host
+        if ($continue -ne "S" -and $continue -ne "s") {
+            exit 1
+        }
+    }
+
+    Write-Host ""
+}
+
+# ----------------------------------------------------------------------------
+# PASO 7: Arrancar Spring Boot Backend
+# ----------------------------------------------------------------------------
+if ($LoadTestData) {
+    Write-Host "[*] Paso 7/7: Arrancando Spring Boot Backend..." -ForegroundColor Yellow
+} else {
+    Write-Host "[*] Paso 6/6: Arrancando Spring Boot Backend..." -ForegroundColor Yellow
+}
 Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host "  BACKEND INICIADO - Presiona Ctrl+C para detener" -ForegroundColor Cyan

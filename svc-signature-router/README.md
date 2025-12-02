@@ -8,6 +8,7 @@
 
 ## 📋 Tabla de Contenidos
 
+- [**🚀 Quick Start**](#-quick-start)
 - [Descripción General](#-descripción-general)
 - [Características Principales](#-características-principales)
 - [Arquitectura](#-arquitectura)
@@ -21,6 +22,48 @@
 - [Seguridad](#-seguridad)
 - [Observabilidad](#-observabilidad)
 - [Deployment](#-deployment)
+- [**⚠️ Liquibase - Arquitectura Mandatoria**](#️-liquibase---arquitectura-mandatoria)
+
+---
+
+## 🚀 Quick Start
+
+### Arranque Rápido con Datos de Prueba (RECOMENDADO)
+
+```powershell
+# Desde svc-signature-router/
+.\check-and-start.ps1 -LoadTestData
+```
+
+Este comando:
+1. ✅ Verifica y libera puerto 5432 (si está ocupado)
+2. ✅ Inicia Docker Compose (PostgreSQL, Kafka, Vault, Grafana, Jaeger)
+3. ✅ **Carga 30+ registros de prueba** (proveedores, reglas, firmas)
+4. ✅ Arranca Spring Boot backend
+
+**Base de datos poblada con:**
+- 7 proveedores (SMS: Twilio/AWS SNS, PUSH: FCM/OneSignal, VOICE: Twilio, BIOMETRIC: BioCatch)
+- 6 reglas de enrutamiento
+- 30 solicitudes de firma (COMPLETED, PENDING, EXPIRED, FAILED, ABORTED)
+- Desafíos, audit logs, eventos
+
+### Arranque Normal (sin datos)
+
+```powershell
+.\check-and-start.ps1
+```
+
+Base de datos vacía - Ideal para desarrollo limpio.
+
+### URLs Útiles
+
+- **API REST**: http://localhost:8080
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **Health Check**: http://localhost:8080/actuator/health
+- **Grafana**: http://localhost:3001 (admin/admin)
+- **Jaeger**: http://localhost:16686
+
+📖 **Guía completa**: Ver [`QUICK-START.md`](QUICK-START.md)
 
 ---
 
@@ -602,6 +645,38 @@ Copyright © 2025 Singular Bank. Todos los derechos reservados.
 - [ ] Dashboard de analíticas en tiempo real
 - [ ] Soporte multi-región (replicación geográfica)
 - [ ] Machine Learning para optimización de rutas
+
+---
+
+## ⚠️ Liquibase - Arquitectura Mandatoria
+
+### Estado Actual: LOCAL
+
+- **Liquibase:** `DESHABILITADO` (`enabled: false`)
+- **Hibernate:** `ddl-auto: update` (genera esquema automáticamente)
+- **Changesets:** Vacíos (se crearán para primer despliegue)
+
+### 📖 Documentación Completa
+
+**ANTES de crear changesets para DEV/UAT/PROD, LEER:**
+
+```
+src/main/resources/liquibase/README-LIQUIBASE-GUIDELINES.md
+```
+
+Este documento contiene la **arquitectura mandatoria** de la organización:
+- ✅ Estructura de directorios obligatoria
+- ✅ Convenciones de nomenclatura
+- ✅ Columnas obligatorias (id, created_at, updated_at)
+- ✅ Reglas de auditoría
+- ✅ Proceso de validación y rollback
+- ✅ Templates reutilizables
+
+### 🚨 IMPORTANTE
+
+**NO crear changesets** sin consultar primero `README-LIQUIBASE-GUIDELINES.md`.
+
+La arquitectura Liquibase es **mandatoria** y debe cumplirse al 100% cuando se despliegue a otros entornos.
 
 ---
 
