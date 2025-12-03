@@ -360,14 +360,39 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  fullName: string;
   firstName: string;
   lastName: string;
-  enabled: boolean;
   roles: string[];
-  createdAt: string;
-  lastAccess?: string;
+  primaryRole: string;
+  department?: string;
+  enabled: boolean; // maps to 'active' from backend
+  firstLoginAt?: string;
+  lastAccess?: string; // maps to 'lastLoginAt' from backend
+  loginCount: number;
+  lastLoginIp?: string;
 }
 
+export interface UsersListResponse {
+  users: User[];
+  stats: {
+    total: number;
+    active: number;
+    admins: number;
+    operators: number;
+    viewers: number;
+  };
+  lastSyncAt: string;
+  dataSource: string;
+  pagination: {
+    page: number;
+    size: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
+// Legacy DTOs - kept for compatibility but Users are read-only
 export interface CreateUserDto {
   username: string;
   email: string;

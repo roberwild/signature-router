@@ -52,17 +52,18 @@ export default function UsersPage() {
   // Filtrar usuarios por búsqueda
   const filteredUsers = users.filter(user => 
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.lastName.toLowerCase().includes(searchTerm.toLowerCase())
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.lastName?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Estadísticas
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.enabled).length;
-  const adminUsers = users.filter(u => u.roles.includes('ADMIN')).length;
-  const operatorUsers = users.filter(u => u.roles.includes('OPERATOR')).length;
-  const viewerUsers = users.filter(u => u.roles.includes('VIEWER')).length;
+  const adminUsers = users.filter(u => u.primaryRole === 'ADMIN').length;
+  const operatorUsers = users.filter(u => u.primaryRole === 'OPERATOR').length;
+  const viewerUsers = users.filter(u => u.primaryRole === 'VIEWER').length;
 
   const formatLastAccess = (lastAccess?: string) => {
     if (!lastAccess) return 'Nunca';
@@ -284,19 +285,22 @@ export default function UsersPage() {
                       {/* Avatar */}
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          {`${user.firstName[0] || ''}${user.lastName[0] || ''}`.toUpperCase()}
+                          {`${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}`.toUpperCase() || user.username[0]?.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
 
                       {/* User Info */}
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-semibold">{user.firstName} {user.lastName}</h4>
+                          <h4 className="text-sm font-semibold">{user.fullName || `${user.firstName} ${user.lastName}`}</h4>
                           <Badge
                             variant={user.enabled ? 'default' : 'secondary'}
                             className={user.enabled ? 'bg-green-500 hover:bg-green-600' : 'bg-gray-500 hover:bg-gray-600'}
                           >
                             {user.enabled ? 'Activo' : 'Inactivo'}
+                          </Badge>
+                          <Badge className={getRoleBadgeColor(user.primaryRole)}>
+                            {user.primaryRole}
                           </Badge>
                         </div>
                         <div className="flex items-center gap-4 mt-1">
@@ -304,17 +308,17 @@ export default function UsersPage() {
                             <Mail className="h-3 w-3" />
                             {user.email}
                           </span>
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Shield className="h-3 w-3" />
-                            {user.roles.map(role => (
-                              <Badge key={role} variant="outline" className="text-xs ml-1">
-                                {role}
-                              </Badge>
-                            ))}
-                          </span>
+                          {user.department && (
+                            <span className="text-xs text-muted-foreground">
+                              {user.department}
+                            </span>
+                          )}
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
                             Último acceso: {formatLastAccess(user.lastAccess)}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            ({user.loginCount} logins)
                           </span>
                         </div>
                       </div>

@@ -211,42 +211,70 @@ export class RealApiClient implements IApiClient {
   }
 
   // ============================================
-  // Users
+  // Users (Read-only - managed via Active Directory)
   // ============================================
 
   async getUsers(): Promise<User[]> {
-    return this.fetch('/admin/users');
+    // Backend returns UsersListResponse, we extract the users array
+    // and map backend fields to frontend User interface
+    const response = await this.fetch('/admin/users');
+    
+    // Handle both direct array (mock) and wrapped response (real backend)
+    const users = response.users || response;
+    
+    return users.map((u: any) => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+      firstName: u.firstName || '',
+      lastName: u.lastName || '',
+      roles: u.roles || [],
+      primaryRole: u.primaryRole || (u.roles?.[0] || 'USER'),
+      department: u.department,
+      enabled: u.active !== undefined ? u.active : u.enabled,
+      firstLoginAt: u.firstLoginAt,
+      lastAccess: u.lastLoginAt || u.lastAccess,
+      loginCount: u.loginCount || 0,
+      lastLoginIp: u.lastLoginIp,
+    }));
   }
 
   async getUser(id: string): Promise<User> {
-    return this.fetch(`/admin/users/${id}`);
+    const u = await this.fetch(`/admin/users/${id}`);
+    return {
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      fullName: u.fullName || `${u.firstName || ''} ${u.lastName || ''}`.trim(),
+      firstName: u.firstName || '',
+      lastName: u.lastName || '',
+      roles: u.roles || [],
+      primaryRole: u.primaryRole || (u.roles?.[0] || 'USER'),
+      department: u.department,
+      enabled: u.active !== undefined ? u.active : u.enabled,
+      firstLoginAt: u.firstLoginAt,
+      lastAccess: u.lastLoginAt || u.lastAccess,
+      loginCount: u.loginCount || 0,
+      lastLoginIp: u.lastLoginIp,
+    };
   }
 
-  async createUser(data: CreateUserDto): Promise<User> {
-    return this.fetch('/admin/users', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+  // Users are read-only (managed via AD), these methods throw errors
+  async createUser(_data: CreateUserDto): Promise<User> {
+    throw new Error('Users are managed via Active Directory. Creation not supported.');
   }
 
-  async updateUser(id: string, data: UpdateUserDto): Promise<User> {
-    return this.fetch(`/admin/users/${id}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
+  async updateUser(_id: string, _data: UpdateUserDto): Promise<User> {
+    throw new Error('Users are managed via Active Directory. Updates not supported.');
   }
 
-  async deleteUser(id: string): Promise<void> {
-    return this.fetch(`/admin/users/${id}`, {
-      method: 'DELETE',
-    });
+  async deleteUser(_id: string): Promise<void> {
+    throw new Error('Users are managed via Active Directory. Deletion not supported.');
   }
 
-  async updateUserRoles(id: string, roles: string[]): Promise<void> {
-    return this.fetch(`/admin/users/${id}/roles`, {
-      method: 'PUT',
-      body: JSON.stringify({ roles }),
-    });
+  async updateUserRoles(_id: string, _roles: string[]): Promise<void> {
+    throw new Error('User roles are managed via Active Directory.');
   }
 
   // ============================================
