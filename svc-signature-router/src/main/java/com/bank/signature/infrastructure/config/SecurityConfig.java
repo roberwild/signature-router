@@ -1,5 +1,6 @@
 package com.bank.signature.infrastructure.config;
 
+import com.bank.signature.infrastructure.filter.UserProfileSyncFilter;
 import com.bank.signature.infrastructure.security.CustomAccessDeniedHandler;
 import com.bank.signature.infrastructure.security.KeycloakJwtAuthenticationConverter;
 import org.springframework.context.annotation.Bean;
@@ -9,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -61,7 +63,8 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http, 
             KeycloakJwtAuthenticationConverter jwtAuthenticationConverter,
-            CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
+            CustomAccessDeniedHandler accessDeniedHandler,
+            UserProfileSyncFilter userProfileSyncFilter) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints (no authentication) - Story 8.1 AC9
@@ -92,7 +95,9 @@ public class SecurityConfig {
                     .includeSubDomains(true)
                     .preload(true)
                 )
-            );
+            )
+            // Story 14.2: User profile sync filter (records user info from JWT on each request)
+            .addFilterAfter(userProfileSyncFilter, UsernamePasswordAuthenticationFilter.class);
         
         return http.build();
     }

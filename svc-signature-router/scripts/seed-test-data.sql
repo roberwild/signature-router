@@ -521,6 +521,169 @@ INSERT INTO idempotency_record (
 );
 
 -- ================================================================================
+-- 8. USER_PROFILE - Perfiles de usuarios (simulando logins previos)
+-- ================================================================================
+
+-- Crear tabla si no existe (Hibernate la crea, pero por si acaso)
+CREATE TABLE IF NOT EXISTS user_profile (
+    id UUID PRIMARY KEY,
+    keycloak_id VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    full_name VARCHAR(255),
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    roles JSONB DEFAULT '[]'::jsonb,
+    department VARCHAR(100),
+    active BOOLEAN NOT NULL DEFAULT true,
+    first_login_at TIMESTAMP,
+    last_login_at TIMESTAMP,
+    login_count INTEGER NOT NULL DEFAULT 0,
+    last_login_ip VARCHAR(45),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);
+
+-- Limpiar datos existentes
+TRUNCATE TABLE user_profile CASCADE;
+
+INSERT INTO user_profile (
+    id, keycloak_id, username, email, full_name, first_name, last_name,
+    roles, department, active, first_login_at, last_login_at, login_count,
+    last_login_ip, created_at, updated_at
+) VALUES
+-- Admin user
+(
+    gen_random_uuid(),
+    'kc-admin-001',
+    'admin',
+    'admin@singular.com',
+    'Administrador Sistema',
+    'Administrador',
+    'Sistema',
+    '["admin", "signature-admin"]'::jsonb,
+    'IT',
+    true,
+    NOW() - INTERVAL '90 days',
+    NOW() - INTERVAL '1 hour',
+    156,
+    '192.168.1.100',
+    NOW() - INTERVAL '90 days',
+    NOW() - INTERVAL '1 hour'
+),
+-- Operator users
+(
+    gen_random_uuid(),
+    'kc-operator-001',
+    'maria.garcia',
+    'maria.garcia@singular.com',
+    'María García López',
+    'María',
+    'García López',
+    '["operator", "signature-operator"]'::jsonb,
+    'Operaciones',
+    true,
+    NOW() - INTERVAL '60 days',
+    NOW() - INTERVAL '2 hours',
+    89,
+    '192.168.1.101',
+    NOW() - INTERVAL '60 days',
+    NOW() - INTERVAL '2 hours'
+),
+(
+    gen_random_uuid(),
+    'kc-operator-002',
+    'carlos.rodriguez',
+    'carlos.rodriguez@singular.com',
+    'Carlos Rodríguez Martín',
+    'Carlos',
+    'Rodríguez Martín',
+    '["operator", "signature-operator"]'::jsonb,
+    'Operaciones',
+    true,
+    NOW() - INTERVAL '45 days',
+    NOW() - INTERVAL '5 hours',
+    67,
+    '192.168.1.102',
+    NOW() - INTERVAL '45 days',
+    NOW() - INTERVAL '5 hours'
+),
+(
+    gen_random_uuid(),
+    'kc-operator-003',
+    'ana.martinez',
+    'ana.martinez@singular.com',
+    'Ana Martínez Sánchez',
+    'Ana',
+    'Martínez Sánchez',
+    '["operator", "signature-operator"]'::jsonb,
+    'Operaciones',
+    true,
+    NOW() - INTERVAL '30 days',
+    NOW() - INTERVAL '1 day',
+    45,
+    '192.168.1.103',
+    NOW() - INTERVAL '30 days',
+    NOW() - INTERVAL '1 day'
+),
+-- Viewer users
+(
+    gen_random_uuid(),
+    'kc-viewer-001',
+    'pedro.sanchez',
+    'pedro.sanchez@singular.com',
+    'Pedro Sánchez Ruiz',
+    'Pedro',
+    'Sánchez Ruiz',
+    '["viewer", "signature-viewer"]'::jsonb,
+    'Auditoría',
+    true,
+    NOW() - INTERVAL '20 days',
+    NOW() - INTERVAL '3 days',
+    23,
+    '192.168.1.104',
+    NOW() - INTERVAL '20 days',
+    NOW() - INTERVAL '3 days'
+),
+(
+    gen_random_uuid(),
+    'kc-viewer-002',
+    'laura.fernandez',
+    'laura.fernandez@singular.com',
+    'Laura Fernández Gómez',
+    'Laura',
+    'Fernández Gómez',
+    '["viewer", "signature-viewer"]'::jsonb,
+    'Compliance',
+    true,
+    NOW() - INTERVAL '15 days',
+    NOW() - INTERVAL '2 days',
+    18,
+    '192.168.1.105',
+    NOW() - INTERVAL '15 days',
+    NOW() - INTERVAL '2 days'
+),
+-- Inactive user (hasn't logged in recently)
+(
+    gen_random_uuid(),
+    'kc-inactive-001',
+    'jose.lopez',
+    'jose.lopez@singular.com',
+    'José López Torres',
+    'José',
+    'López Torres',
+    '["viewer"]'::jsonb,
+    'Soporte',
+    false,
+    NOW() - INTERVAL '120 days',
+    NOW() - INTERVAL '90 days',
+    5,
+    '192.168.1.106',
+    NOW() - INTERVAL '120 days',
+    NOW() - INTERVAL '90 days'
+);
+
+-- ================================================================================
 -- VERIFICACIÓN DE DATOS CARGADOS
 -- ================================================================================
 
@@ -531,6 +694,7 @@ DECLARE
     v_requests INT;
     v_challenges INT;
     v_audit_logs INT;
+    v_users INT;
     v_completed INT;
     v_pending INT;
     v_expired INT;
@@ -542,6 +706,7 @@ BEGIN
     SELECT COUNT(*) INTO v_requests FROM signature_request;
     SELECT COUNT(*) INTO v_challenges FROM signature_challenge;
     SELECT COUNT(*) INTO v_audit_logs FROM audit_log;
+    SELECT COUNT(*) INTO v_users FROM user_profile;
     
     SELECT COUNT(*) INTO v_completed FROM signature_request WHERE status = 'SIGNED';
     SELECT COUNT(*) INTO v_pending FROM signature_request WHERE status = 'PENDING';
@@ -558,6 +723,7 @@ BEGIN
     RAISE NOTICE 'Solicitudes de firma:         %', v_requests;
     RAISE NOTICE 'Desafíos de firma:            %', v_challenges;
     RAISE NOTICE 'Registros de auditoría:       %', v_audit_logs;
+    RAISE NOTICE 'Perfiles de usuario:          %', v_users;
     RAISE NOTICE '================================================================================';
     RAISE NOTICE '';
     RAISE NOTICE 'DISTRIBUCIÓN DE ESTADOS:';
