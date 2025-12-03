@@ -234,5 +234,96 @@ public interface SignatureRequestJpaRepository extends JpaRepository<SignatureRe
         @Param("dateTo") Instant dateTo,
         Pageable pageable
     );
+    
+    // ========================================
+    // Signature Duration Analytics Methods
+    // Story 12.4: Metrics Analytics - Signature Duration
+    // ========================================
+    
+    /**
+     * Find completed signature requests (with signedAt not null) between two timestamps.
+     * Used to calculate signature duration metrics.
+     * 
+     * @param from Start timestamp (inclusive) - filters by signedAt
+     * @param to   End timestamp (exclusive) - filters by signedAt
+     * @return List of completed signature requests
+     * @since Story 12.4
+     */
+    @Query("""
+        SELECT sr FROM SignatureRequestEntity sr
+        WHERE sr.signedAt IS NOT NULL
+        AND sr.signedAt >= :from
+        AND sr.signedAt < :to
+        ORDER BY sr.signedAt ASC
+        """)
+    List<SignatureRequestEntity> findBySignedAtBetween(
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
+    
+    /**
+     * Count completed signature requests (with signedAt not null) between two timestamps.
+     * 
+     * @param from Start timestamp (inclusive) - filters by signedAt
+     * @param to   End timestamp (exclusive) - filters by signedAt
+     * @return Count of completed signature requests
+     * @since Story 12.4
+     */
+    @Query("""
+        SELECT COUNT(sr) FROM SignatureRequestEntity sr
+        WHERE sr.signedAt IS NOT NULL
+        AND sr.signedAt >= :from
+        AND sr.signedAt < :to
+        """)
+    long countBySignedAtBetween(
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
+    
+    // ========================================
+    // Challenge Completion Analytics Methods
+    // Story 12.4: Metrics Analytics - Challenge Completion
+    // ========================================
+    
+    /**
+     * Find signature requests that have challenges with completedAt in the given range.
+     * Used to calculate challenge completion metrics.
+     * 
+     * @param from Start timestamp (inclusive) - filters by challenge completedAt
+     * @param to   End timestamp (exclusive) - filters by challenge completedAt
+     * @return List of signature requests with completed challenges
+     * @since Story 12.4
+     */
+    @Query("""
+        SELECT DISTINCT sr FROM SignatureRequestEntity sr
+        JOIN FETCH sr.challenges c
+        WHERE c.completedAt IS NOT NULL
+        AND c.completedAt >= :from
+        AND c.completedAt < :to
+        """)
+    List<SignatureRequestEntity> findWithCompletedChallengesBetween(
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
+    
+    /**
+     * Find signature requests that have challenges sent in the given range (for total count).
+     * 
+     * @param from Start timestamp (inclusive) - filters by challenge sentAt
+     * @param to   End timestamp (exclusive) - filters by challenge sentAt
+     * @return List of signature requests with sent challenges
+     * @since Story 12.4
+     */
+    @Query("""
+        SELECT DISTINCT sr FROM SignatureRequestEntity sr
+        JOIN FETCH sr.challenges c
+        WHERE c.sentAt IS NOT NULL
+        AND c.sentAt >= :from
+        AND c.sentAt < :to
+        """)
+    List<SignatureRequestEntity> findWithSentChallengesBetween(
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
 }
 

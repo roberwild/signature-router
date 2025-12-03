@@ -26,7 +26,13 @@ public record MetricsAnalyticsResponse(
     ThroughputMetrics throughput,
     
     @Schema(description = "Error rate metrics with timeline")
-    ErrorRateMetrics errorRate
+    ErrorRateMetrics errorRate,
+    
+    @Schema(description = "Signature duration metrics (time from creation to completion)")
+    SignatureDurationMetrics signatureDuration,
+    
+    @Schema(description = "Challenge completion metrics (time from sent to completed)")
+    ChallengeCompletionMetrics challengeCompletion
 ) {
     
     /**
@@ -117,6 +123,107 @@ public record MetricsAnalyticsResponse(
             
             @Schema(description = "Error rate (%)", example = "5.2")
             double errorRate
+        ) {}
+    }
+    
+    /**
+     * Signature Duration Metrics
+     * Time from signature request creation to completion (signedAt)
+     */
+    @Builder
+    @Schema(description = "Signature duration metrics (creation to completion)")
+    public record SignatureDurationMetrics(
+        @Schema(description = "Average duration in seconds", example = "12.5")
+        double average,
+        
+        @Schema(description = "Median duration in seconds", example = "10.2")
+        double median,
+        
+        @Schema(description = "95th percentile duration in seconds", example = "25.8")
+        double p95,
+        
+        @Schema(description = "Duration by channel")
+        Map<String, ChannelDuration> byChannel,
+        
+        @Schema(description = "Duration timeline")
+        List<DurationTimelinePoint> timeline
+    ) {
+        @Builder
+        @Schema(description = "Duration metrics for a specific channel")
+        public record ChannelDuration(
+            @Schema(description = "Average duration in seconds", example = "11.5")
+            double average,
+            
+            @Schema(description = "Median duration in seconds", example = "9.8")
+            double median,
+            
+            @Schema(description = "95th percentile duration in seconds", example = "22.3")
+            double p95
+        ) {}
+        
+        @Builder
+        @Schema(description = "Duration timeline point")
+        public record DurationTimelinePoint(
+            @Schema(description = "Date (YYYY-MM-DD)", example = "2025-11-24")
+            String date,
+            
+            @Schema(description = "Average duration in seconds", example = "12.5")
+            double average,
+            
+            @Schema(description = "Median duration in seconds", example = "10.2")
+            double median
+        ) {}
+    }
+    
+    /**
+     * Challenge Completion Metrics
+     * Time from challenge sent to completed, and completion rate
+     */
+    @Builder
+    @Schema(description = "Challenge completion metrics (sent to completed)")
+    public record ChallengeCompletionMetrics(
+        @Schema(description = "Average response time in seconds (sent to completed)", example = "8.5")
+        double averageResponseTime,
+        
+        @Schema(description = "Completion rate percentage", example = "92.5")
+        double completionRate,
+        
+        @Schema(description = "Total challenges in period", example = "1250")
+        long totalChallenges,
+        
+        @Schema(description = "Completed challenges in period", example = "1156")
+        long completedChallenges,
+        
+        @Schema(description = "Metrics by channel")
+        Map<String, ChannelChallengeMetrics> byChannel,
+        
+        @Schema(description = "Timeline of completion metrics")
+        List<ChallengeTimelinePoint> timeline
+    ) {
+        @Builder
+        @Schema(description = "Challenge metrics for a specific channel")
+        public record ChannelChallengeMetrics(
+            @Schema(description = "Average response time in seconds", example = "7.5")
+            double averageResponseTime,
+            
+            @Schema(description = "Completion rate percentage", example = "94.2")
+            double completionRate,
+            
+            @Schema(description = "Total challenges for this channel", example = "450")
+            long totalChallenges
+        ) {}
+        
+        @Builder
+        @Schema(description = "Challenge completion timeline point")
+        public record ChallengeTimelinePoint(
+            @Schema(description = "Date (YYYY-MM-DD)", example = "2025-11-24")
+            String date,
+            
+            @Schema(description = "Average response time in seconds", example = "8.2")
+            double avgResponseTime,
+            
+            @Schema(description = "Completion rate percentage", example = "91.5")
+            double completionRate
         ) {}
     }
 }

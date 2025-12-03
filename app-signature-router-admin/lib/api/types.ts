@@ -325,9 +325,11 @@ export interface AccessEvent {
   id: string;
   timestamp: string;
   username: string;
+  userId?: string;
   ipAddress: string;
-  event: 'LOGIN_SUCCESS' | 'LOGIN_FAILED' | 'LOGOUT';
-  userAgent: string;
+  eventType: 'LOGIN' | 'LOGOUT' | 'LOGIN_ERROR';
+  success: boolean;
+  error?: string;
 }
 
 // ============================================

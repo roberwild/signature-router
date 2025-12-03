@@ -219,13 +219,16 @@ export default function ProvidersPage() {
     tiempo: p.metrics?.avg_response_time || 0,
   }));
 
-  const uptimeData = providers.map(p => ({
+  // Colores variados para el gráfico de uptime
+  const UPTIME_COLORS = ['#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#06b6d4', '#ec4899'];
+  
+  const uptimeData = providers.map((p, index) => ({
     name: p.name,
     uptime: p.metrics?.uptime || 0,
-    fill: (p.metrics?.uptime || 0) > 99 ? '#10b981' : (p.metrics?.uptime || 0) > 95 ? '#f59e0b' : '#ef4444',
+    fill: UPTIME_COLORS[index % UPTIME_COLORS.length],
   }));
 
-  const COLORS = ['#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#06b6d4'];
+  const COLORS = ['#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#06b6d4', '#ec4899'];
 
   // Show loading state
   if (authLoading || loading) {
@@ -450,131 +453,72 @@ export default function ProvidersPage() {
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <RadialBarChart 
-                  cx="50%" 
+                  cx="30%" 
                   cy="50%" 
-                  innerRadius="10%" 
-                  outerRadius="90%" 
+                  innerRadius="20%" 
+                  outerRadius="85%" 
                   data={uptimeData}
-                  startAngle={90}
-                  endAngle={-270}
+                  startAngle={180}
+                  endAngle={-180}
                 >
                   <RadialBar
                     minAngle={15}
-                    label={{ position: 'insideStart', fill: '#fff', fontSize: 12 }}
-                    background
+                    label={{ 
+                      position: 'insideStart', 
+                      fill: '#fff', 
+                      fontSize: 11,
+                      fontWeight: 'bold',
+                      formatter: (value: number) => `${value.toFixed(1)}%`
+                    }}
+                    background={{ fill: '#e5e7eb' }}
                     clockWise
                     dataKey="uptime"
-                    cornerRadius={10}
-                    animationDuration={2000}
+                    cornerRadius={6}
+                    animationDuration={1500}
                   />
                   <Legend 
-                    iconSize={10}
+                    iconSize={12}
+                    iconType="circle"
                     layout="vertical"
                     verticalAlign="middle"
                     align="right"
-                    wrapperStyle={{ fontSize: '12px' }}
+                    wrapperStyle={{ 
+                      fontSize: '12px',
+                      paddingLeft: '20px',
+                      lineHeight: '24px'
+                    }}
+                    formatter={(value: string, entry: any) => (
+                      <span style={{ color: entry.color, fontWeight: 500 }}>
+                        {value}: {entry.payload?.uptime?.toFixed(1)}%
+                      </span>
+                    )}
                   />
                   <Tooltip
-                    formatter={(value: number) => `${value.toFixed(1)}%`}
+                    formatter={(value: number) => [`${value.toFixed(2)}%`, 'Uptime']}
                     contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
+                      backgroundColor: '#1f2937',
+                      border: 'none',
                       borderRadius: '8px',
+                      color: '#fff',
                     }}
+                    labelStyle={{ color: '#9ca3af' }}
                   />
                 </RadialBarChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Requests Distribution */}
-          <Card className="bg-white dark:bg-card shadow-sm">
-            <CardHeader>
-              <CardTitle>Volumen de Tráfico</CardTitle>
-              <CardDescription>Distribución de requests procesados hoy</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart 
-                  data={providers.map(p => ({ 
-                    name: p.name, 
-                    requestsToday: p.metrics?.requests_today || 0 
-                  }))} 
-                  layout="vertical"
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis type="number" stroke="#6b7280" />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    stroke="#6b7280"
-                    width={120}
-                    style={{ fontSize: '11px' }}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => value.toLocaleString()}
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Bar 
-                    dataKey="requestsToday" 
-                    radius={[0, 8, 8, 0]}
-                    animationDuration={1500}
-                  >
-                    {providers.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Cost Distribution */}
-          <Card className="bg-white dark:bg-card shadow-sm">
-            <CardHeader>
-              <CardTitle>Distribución de Costos</CardTitle>
-              <CardDescription>Costo por proveedor hoy (EUR)</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart 
-                  data={providers.map(p => ({ 
-                    name: p.name, 
-                    cost: p.metrics?.total_cost_today_eur || 0 
-                  }))} 
-                  layout="vertical"
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis type="number" stroke="#6b7280" />
-                  <YAxis 
-                    dataKey="name" 
-                    type="category" 
-                    stroke="#6b7280"
-                    width={120}
-                    style={{ fontSize: '11px' }}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => `€${value.toFixed(2)}`}
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Bar 
-                    dataKey="cost" 
-                    radius={[0, 8, 8, 0]}
-                    fill="#10b981"
-                    animationDuration={1500}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          {/* 
+            NOTA: Los gráficos "Volumen de Tráfico" y "Distribución de Costos" por provider 
+            fueron eliminados porque requieren datos de MuleSoft que aún no están disponibles.
+            
+            Cuando MuleSoft implemente la metadata de providers (ver docs/PROPUESTA-INTERFACES-MULESOFT.md),
+            estos gráficos podrán ser restaurados con datos reales.
+            
+            Datos necesarios de MuleSoft:
+            - requests_today por provider
+            - total_cost_today_eur por provider
+          */}
         </div>
 
         {/* Providers Grid */}

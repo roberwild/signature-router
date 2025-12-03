@@ -196,5 +196,56 @@ public interface SignatureRequestRepository {
         Instant dateTo,
         Pageable pageable
     );
+    
+    // ========================================
+    // Signature Duration Analytics Methods
+    // Story 12.4: Metrics Analytics - Signature Duration
+    // ========================================
+    
+    /**
+     * Find completed signature requests (with signedAt not null) between two timestamps.
+     * Used to calculate signature duration metrics (time from creation to completion).
+     * 
+     * @param from Start timestamp (inclusive) - filters by signedAt
+     * @param to   End timestamp (exclusive) - filters by signedAt
+     * @return List of completed signature requests
+     * @since Story 12.4
+     */
+    List<SignatureRequest> findCompletedBetween(Instant from, Instant to);
+    
+    /**
+     * Count completed signature requests (with signedAt not null) between two timestamps.
+     * 
+     * @param from Start timestamp (inclusive) - filters by signedAt
+     * @param to   End timestamp (exclusive) - filters by signedAt
+     * @return Count of completed signature requests
+     * @since Story 12.4
+     */
+    long countCompletedBetween(Instant from, Instant to);
+    
+    // ========================================
+    // Challenge Completion Analytics Methods
+    // Story 12.4: Metrics Analytics - Challenge Completion
+    // ========================================
+    
+    /**
+     * Find signature requests with completed challenges in the given range.
+     * 
+     * @param from Start timestamp (inclusive) - filters by challenge completedAt
+     * @param to   End timestamp (exclusive) - filters by challenge completedAt
+     * @return List of signature requests with completed challenges
+     * @since Story 12.4
+     */
+    List<SignatureRequest> findWithCompletedChallengesBetween(Instant from, Instant to);
+    
+    /**
+     * Find signature requests with sent challenges in the given range.
+     * 
+     * @param from Start timestamp (inclusive) - filters by challenge sentAt
+     * @param to   End timestamp (exclusive) - filters by challenge sentAt
+     * @return List of signature requests with sent challenges
+     * @since Story 12.4
+     */
+    List<SignatureRequest> findWithSentChallengesBetween(Instant from, Instant to);
 }
 

@@ -55,30 +55,40 @@ export default function SecurityPage() {
     return 'Hace un momento';
   };
 
-  const getEventIcon = (event: string) => {
-    switch (event) {
-      case 'LOGIN_SUCCESS':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
-      case 'LOGIN_FAILED':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'LOGOUT':
-        return <Lock className="h-4 w-4 text-blue-500" />;
-      default:
-        return <UserCheck className="h-4 w-4 text-gray-500" />;
+  const getEventIcon = (eventType: string, success: boolean) => {
+    if (eventType === 'LOGOUT') {
+      return <Lock className="h-4 w-4 text-blue-500" />;
     }
+    if (eventType === 'LOGIN' && success) {
+      return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+    }
+    if (eventType === 'LOGIN_ERROR' || !success) {
+      return <AlertTriangle className="h-4 w-4 text-red-500" />;
+    }
+    return <UserCheck className="h-4 w-4 text-gray-500" />;
   };
 
-  const getEventLabel = (event: string) => {
-    switch (event) {
-      case 'LOGIN_SUCCESS':
-        return 'Login exitoso';
-      case 'LOGIN_FAILED':
-        return 'Intento fallido de login';
-      case 'LOGOUT':
-        return 'Logout';
-      default:
-        return event;
+  const getEventLabel = (eventType: string, success: boolean) => {
+    if (eventType === 'LOGOUT') {
+      return 'Logout';
     }
+    if (eventType === 'LOGIN' && success) {
+      return 'Login exitoso';
+    }
+    if (eventType === 'LOGIN_ERROR' || !success) {
+      return 'Intento fallido de login';
+    }
+    return eventType;
+  };
+
+  const getEventBadgeColor = (eventType: string, success: boolean) => {
+    if (eventType === 'LOGOUT') {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+    }
+    if (success) {
+      return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+    }
+    return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
   };
 
   // Auth loading state
@@ -350,12 +360,20 @@ export default function SecurityPage() {
                   {accessEvents.map((event) => (
                     <div key={event.id} className="flex items-center justify-between py-2 border-b last:border-0">
                       <div className="flex items-center gap-3">
-                        {getEventIcon(event.event)}
+                        {getEventIcon(event.eventType, event.success)}
                         <div>
                           <p className="text-sm font-medium">{event.username}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {getEventLabel(event.event)} desde {event.ipAddress}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <Badge className={`text-xs ${getEventBadgeColor(event.eventType, event.success)}`}>
+                              {getEventLabel(event.eventType, event.success)}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              desde {event.ipAddress}
+                            </span>
+                          </div>
+                          {event.error && (
+                            <p className="text-xs text-red-500 mt-1">{event.error}</p>
+                          )}
                         </div>
                       </div>
                       <span className="text-xs text-muted-foreground">
