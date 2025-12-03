@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
-import { apiClient } from '@/lib/api/client';
+import { useApiClient } from '@/lib/api/use-api-client';
 import type { MetricsData } from '@/lib/api/types';
 import {
   AreaChart,
@@ -41,13 +41,14 @@ import {
 } from 'recharts';
 
 export default function MetricsPage() {
+  const apiClient = useApiClient();
   const [metrics, setMetrics] = useState<MetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [range, setRange] = useState<'1d' | '7d' | '30d'>('7d');
 
   useEffect(() => {
     loadMetrics();
-  }, [range]);
+  }, [range, apiClient]);
 
   const loadMetrics = async () => {
     setLoading(true);
@@ -61,7 +62,44 @@ export default function MetricsPage() {
     }
   };
 
-  if (loading || !metrics) {
+  // Valores por defecto para datos incompletos del backend
+  const defaultChannelData = { average: 0, median: 0, p95: 0 };
+  const defaultChallengeData = { totalChallenges: 0, averageResponseTime: 0, completionRate: 0 };
+  
+  const safeMetrics = metrics ? {
+    ...metrics,
+    signatureDuration: {
+      average: metrics.signatureDuration?.average ?? 0,
+      median: metrics.signatureDuration?.median ?? 0,
+      p95: metrics.signatureDuration?.p95 ?? 0,
+      byChannel: metrics.signatureDuration?.byChannel ?? {},
+      timeline: metrics.signatureDuration?.timeline ?? [],
+    },
+    challengeCompletion: {
+      averageResponseTime: metrics.challengeCompletion?.averageResponseTime ?? 0,
+      byChannel: metrics.challengeCompletion?.byChannel ?? {},
+      timeline: metrics.challengeCompletion?.timeline ?? [],
+    },
+    fallbackMetrics: {
+      fallbackRate: metrics.fallbackMetrics?.fallbackRate ?? 0,
+      totalFallbacks: metrics.fallbackMetrics?.totalFallbacks ?? 0,
+      byChannelTransition: metrics.fallbackMetrics?.byChannelTransition ?? {},
+    },
+    latency: {
+      current: {
+        p50: metrics.latency?.current?.p50 ?? 0,
+        p95: metrics.latency?.current?.p95 ?? 0,
+        p99: metrics.latency?.current?.p99 ?? 0,
+      },
+      timeline: metrics.latency?.timeline ?? [],
+    },
+    errorRate: {
+      overall: metrics.errorRate?.overall ?? 0,
+      timeline: metrics.errorRate?.timeline ?? [],
+    },
+  } : null;
+
+  if (loading || !safeMetrics) {
     return (
       <div className="min-h-screen bg-singular-gray dark:bg-background flex items-center justify-center">
         <div className="text-center">
@@ -71,6 +109,9 @@ export default function MetricsPage() {
       </div>
     );
   }
+
+  // Usar safeMetrics en lugar de metrics para el render
+  const m = safeMetrics;
 
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
@@ -126,7 +167,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Promedio</p>
-                    <p className="text-2xl font-bold">{metrics.signatureDuration.average.toFixed(1)}s</p>
+                    <p className="text-2xl font-bold">{m.signatureDuration.average.toFixed(1)}s</p>
                   </div>
                   <Clock className="h-8 w-8 text-blue-500/20" />
                 </div>
@@ -138,7 +179,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Mediana</p>
-                    <p className="text-2xl font-bold">{metrics.signatureDuration.median.toFixed(1)}s</p>
+                    <p className="text-2xl font-bold">{m.signatureDuration.median.toFixed(1)}s</p>
                   </div>
                   <Activity className="h-8 w-8 text-green-500/20" />
                 </div>
@@ -150,7 +191,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">P95</p>
-                    <p className="text-2xl font-bold">{metrics.signatureDuration.p95.toFixed(1)}s</p>
+                    <p className="text-2xl font-bold">{m.signatureDuration.p95.toFixed(1)}s</p>
                     <p className="text-xs text-muted-foreground">95 percentil</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-yellow-500/20" />
@@ -166,7 +207,7 @@ export default function MetricsPage() {
               <CardDescription>Tiempo promedio desde creación hasta firma completada</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {Object.entries(metrics.signatureDuration.byChannel).map(([channel, data]: [string, any]) => {
+              {Object.entries(m.signatureDuration.byChannel).map(([channel, data]: [string, any]) => {
                 const channelColors = {
                   SMS: 'bg-blue-500',
                   PUSH: 'bg-purple-500',
@@ -220,7 +261,7 @@ export default function MetricsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {Object.entries(metrics.challengeCompletion.byChannel).map(([channel, data]: [string, any]) => {
+              {Object.entries(m.challengeCompletion.byChannel).map(([channel, data]: [string, any]) => {
                 const channelColors = {
                   SMS: 'bg-blue-500',
                   PUSH: 'bg-purple-500',
@@ -263,7 +304,7 @@ export default function MetricsPage() {
                   <span className="font-bold">Promedio General</span>
                   <div className="text-right">
                     <p className="text-lg font-bold">
-                      {metrics.challengeCompletion.averageResponseTime.toFixed(1)}s
+                      {m.challengeCompletion.averageResponseTime.toFixed(1)}s
                     </p>
                     <p className="text-xs text-muted-foreground">Tiempo de respuesta</p>
                   </div>
@@ -286,7 +327,7 @@ export default function MetricsPage() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Tasa de Fallback</p>
                     <p className="text-2xl font-bold text-orange-600">
-                      {metrics.fallbackMetrics.fallbackRate.toFixed(1)}%
+                      {m.fallbackMetrics.fallbackRate.toFixed(1)}%
                     </p>
                   </div>
                   <RefreshCw className="h-8 w-8 text-orange-500/20" />
@@ -299,7 +340,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Total Fallbacks</p>
-                    <p className="text-2xl font-bold">{metrics.fallbackMetrics.totalFallbacks}</p>
+                    <p className="text-2xl font-bold">{m.fallbackMetrics.totalFallbacks}</p>
                   </div>
                   <GitBranch className="h-8 w-8 text-primary/20" />
                 </div>
@@ -312,7 +353,7 @@ export default function MetricsPage() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Transiciones</p>
                     <p className="text-2xl font-bold">
-                      {Object.keys(metrics.fallbackMetrics.byChannelTransition).length}
+                      {Object.keys(m.fallbackMetrics.byChannelTransition).length}
                     </p>
                     <p className="text-xs text-muted-foreground">Tipos únicos</p>
                   </div>
@@ -328,10 +369,10 @@ export default function MetricsPage() {
               <CardDescription>Eventos FALLBACK_TRIGGERED detectados en routing timeline</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {Object.entries(metrics.fallbackMetrics.byChannelTransition)
+              {Object.entries(m.fallbackMetrics.byChannelTransition)
                 .sort(([, a], [, b]) => (b as number) - (a as number))
                 .map(([transition, count]) => {
-                  const maxCount = Math.max(...Object.values(metrics.fallbackMetrics.byChannelTransition));
+                  const maxCount = Math.max(...Object.values(m.fallbackMetrics.byChannelTransition));
                   const percentage = ((count as number) / maxCount) * 100;
 
                   return (
@@ -352,7 +393,7 @@ export default function MetricsPage() {
                   );
                 })}
 
-              {Object.keys(metrics.fallbackMetrics.byChannelTransition).length === 0 && (
+              {Object.keys(m.fallbackMetrics.byChannelTransition).length === 0 && (
                 <div className="text-center py-8">
                   <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
                   <p className="text-sm text-muted-foreground">No se detectaron fallbacks en este período</p>
@@ -374,7 +415,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">P50</p>
-                    <p className="text-2xl font-bold">{metrics.latency.current.p50}ms</p>
+                    <p className="text-2xl font-bold">{m.latency.current.p50}ms</p>
                   </div>
                   <Zap className="h-8 w-8 text-primary/20" />
                 </div>
@@ -386,7 +427,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">P95</p>
-                    <p className="text-2xl font-bold">{metrics.latency.current.p95}ms</p>
+                    <p className="text-2xl font-bold">{m.latency.current.p95}ms</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-green-500/20" />
                 </div>
@@ -398,7 +439,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">P99</p>
-                    <p className="text-2xl font-bold">{metrics.latency.current.p99}ms</p>
+                    <p className="text-2xl font-bold">{m.latency.current.p99}ms</p>
                   </div>
                   <Activity className="h-8 w-8 text-yellow-500/20" />
                 </div>
@@ -410,7 +451,7 @@ export default function MetricsPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Error Rate</p>
-                    <p className="text-2xl font-bold text-red-600">{metrics.errorRate.overall.toFixed(1)}%</p>
+                    <p className="text-2xl font-bold text-red-600">{m.errorRate.overall.toFixed(1)}%</p>
                   </div>
                   <XCircle className="h-8 w-8 text-red-500/20" />
                 </div>
@@ -427,7 +468,7 @@ export default function MetricsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={metrics.latency.timeline}>
+              <LineChart data={m.latency.timeline}>
                 <defs>
                   <linearGradient id="colorP50" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
@@ -493,7 +534,7 @@ export default function MetricsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <ComposedChart data={metrics.signatureDuration.timeline}>
+              <ComposedChart data={m.signatureDuration.timeline}>
                 <defs>
                   <linearGradient id="colorAverage" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
@@ -540,7 +581,7 @@ export default function MetricsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <AreaChart data={metrics.errorRate.timeline}>
+              <AreaChart data={m.errorRate.timeline}>
                 <defs>
                   <linearGradient id="colorError" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8} />
@@ -579,7 +620,7 @@ export default function MetricsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <ComposedChart data={metrics.challengeCompletion.timeline}>
+              <ComposedChart data={m.challengeCompletion.timeline}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" stroke="#6b7280" />
                 <YAxis yAxisId="left" stroke="#6b7280" label={{ value: 'segundos', angle: -90, position: 'insideLeft' }} />

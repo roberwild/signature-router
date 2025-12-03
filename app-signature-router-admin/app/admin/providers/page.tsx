@@ -27,7 +27,7 @@ import { CreateProviderDialog } from '@/components/providers/CreateProviderDialo
 import { EditProviderDialog } from '@/components/providers/EditProviderDialog';
 import { DeleteProviderDialog } from '@/components/providers/DeleteProviderDialog';
 import { TestProviderDialog } from '@/components/providers/TestProviderDialog';
-import { getApiClient } from '@/lib/api/client';
+import { useApiClient } from '@/lib/api/use-api-client';
 import { useToast } from '@/components/ui/use-toast';
 import { config } from '@/lib/config';
 import {
@@ -66,7 +66,7 @@ interface Provider {
 
 export default function ProvidersPage() {
   const { toast } = useToast();
-  const apiClient = getApiClient();
+  const apiClient = useApiClient();
   
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
@@ -79,7 +79,7 @@ export default function ProvidersPage() {
   // Cargar providers al montar el componente
   useEffect(() => {
     loadProviders();
-  }, []);
+  }, [apiClient]);
 
   async function loadProviders() {
     setLoading(true);

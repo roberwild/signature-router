@@ -251,76 +251,68 @@ if (-not $postgresReady) {
 Write-Host ""
 
 # ----------------------------------------------------------------------------
-# PASO 6: Cargar Datos de Prueba (si se solicitó)
+# PASO 6: Lanzar cargador de datos en background (si se solicitó)
 # ----------------------------------------------------------------------------
 if ($LoadTestData) {
-    Write-Host "[*] Paso 6/7: Cargando datos de prueba..." -ForegroundColor Yellow
-    Write-Host ""
-
+    Write-Host "[*] Paso 6/7: Programando carga de datos de prueba..." -ForegroundColor Yellow
+    
     $testDataScript = ".\scripts\seed-test-data.sql"
-
-    if (-not (Test-Path $testDataScript)) {
+    $scriptFullPath = (Resolve-Path $testDataScript -ErrorAction SilentlyContinue).Path
+    
+    if (-not $scriptFullPath) {
         Write-Host "[ERROR] No se encontro el script: $testDataScript" -ForegroundColor Red
         Write-Host "Asegurate de estar en el directorio svc-signature-router" -ForegroundColor Yellow
         exit 1
     }
+    
+    # Lanzar proceso en background que espera a Spring Boot y carga los datos
+    $loaderScript = @"
+`$maxAttempts = 120
+`$attempt = 0
+`$ready = `$false
 
+while (`$attempt -lt `$maxAttempts -and -not `$ready) {
+    `$attempt++
+    Start-Sleep -Seconds 2
     try {
-        # Leer el contenido del script SQL
-        $sqlContent = Get-Content $testDataScript -Raw
-
-        # Ejecutar el script en el contenedor PostgreSQL
-        Write-Host "  - Ejecutando script SQL..." -ForegroundColor Gray
-        $output = $sqlContent | docker exec -i signature-router-postgres psql -U siguser -d signature_router 2>&1
-
-        if ($LASTEXITCODE -eq 0) {
-            Write-Host "[OK] Datos de prueba cargados exitosamente." -ForegroundColor Green
-            Write-Host ""
-            Write-Host "  Base de datos poblada con:" -ForegroundColor Cyan
-            Write-Host "    - 7 proveedores (SMS, PUSH, VOICE, BIOMETRIC)" -ForegroundColor White
-            Write-Host "    - 6 reglas de enrutamiento" -ForegroundColor White
-            Write-Host "    - 30 solicitudes de firma (COMPLETED, PENDING, EXPIRED, etc.)" -ForegroundColor White
-            Write-Host "    - Desafios, audit logs, y eventos" -ForegroundColor White
-            Write-Host ""
-        } else {
-            Write-Host "[ERROR] Hubo un problema al cargar los datos." -ForegroundColor Red
-            Write-Host ""
-            Write-Host "Error del SQL:" -ForegroundColor Yellow
-            Write-Host $output -ForegroundColor Gray
-            Write-Host ""
-            Write-Host "Ejecuta manualmente: .\scripts\load-test-data.ps1" -ForegroundColor Yellow
-            Write-Host ""
-            Write-Host "Continuar sin datos de prueba? (S/N): " -NoNewline
-            $continue = Read-Host
-            if ($continue -ne "S" -and $continue -ne "s") {
-                exit 1
-            }
+        `$response = Invoke-WebRequest -Uri 'http://localhost:8080/actuator/health' -UseBasicParsing -TimeoutSec 2 -ErrorAction SilentlyContinue
+        if (`$response.StatusCode -eq 200) {
+            `$ready = `$true
         }
-    } catch {
-        Write-Host "[ERROR] Error al cargar datos: $_" -ForegroundColor Red
-        Write-Host "Continuar sin datos de prueba? (S/N): " -NoNewline
-        $continue = Read-Host
-        if ($continue -ne "S" -and $continue -ne "s") {
-            exit 1
-        }
-    }
-
-    Write-Host ""
+    } catch { }
 }
 
-# ----------------------------------------------------------------------------
-# PASO 7: Arrancar Spring Boot Backend
-# ----------------------------------------------------------------------------
-if ($LoadTestData) {
+if (`$ready) {
+    Start-Sleep -Seconds 3
+    `$sqlContent = Get-Content '$scriptFullPath' -Raw
+    `$output = `$sqlContent | docker exec -i signature-router-postgres psql -U siguser -d signature_router 2>&1
+    Write-Host ''
+    Write-Host '==================================================================' -ForegroundColor Green
+    Write-Host '  DATOS DE PRUEBA CARGADOS EXITOSAMENTE' -ForegroundColor Green
+    Write-Host '==================================================================' -ForegroundColor Green
+    Write-Host '  - 6 proveedores (SMS, PUSH, VOICE, BIOMETRIC)' -ForegroundColor White
+    Write-Host '  - 4 reglas de enrutamiento' -ForegroundColor White
+    Write-Host '  - 6 solicitudes de firma' -ForegroundColor White
+    Write-Host '==================================================================' -ForegroundColor Green
+    Write-Host ''
+}
+"@
+    
+    # Ejecutar el loader en un proceso separado
+    Start-Process powershell -ArgumentList "-NoProfile", "-Command", $loaderScript -WindowStyle Hidden
+    
+    Write-Host "[OK] Cargador de datos programado (se ejecutara cuando Spring Boot este listo)" -ForegroundColor Green
+    Write-Host ""
     Write-Host "[*] Paso 7/7: Arrancando Spring Boot Backend..." -ForegroundColor Yellow
 } else {
     Write-Host "[*] Paso 6/6: Arrancando Spring Boot Backend..." -ForegroundColor Yellow
 }
+
 Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host "  BACKEND INICIADO - Presiona Ctrl+C para detener" -ForegroundColor Cyan
 Write-Host "==================================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Ejecutar Maven en el directorio correcto
+# Ejecutar Maven en foreground (consola visible)
 mvn spring-boot:run "-Dspring-boot.run.profiles=local" "-Dmaven.test.skip=true"

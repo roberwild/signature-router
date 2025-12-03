@@ -2,7 +2,8 @@
 
 import { signIn } from "next-auth/react"
 import { useSearchParams } from "next/navigation"
-import { useState, Suspense } from "react"
+import { useState, useEffect, Suspense } from "react"
+import { useTheme } from "next-themes"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
@@ -12,6 +13,12 @@ function SignInForm() {
   const callbackUrl = searchParams.get("callbackUrl") || "/admin"
   const error = searchParams.get("error")
   const [isLoading, setIsLoading] = useState(false)
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleSignIn = async () => {
     setIsLoading(true)
@@ -34,12 +41,13 @@ function SignInForm() {
         <CardHeader className="space-y-4 text-center pb-8">
           <div className="flex justify-center mb-4">
             <Image
-              src="/singular-bank-logo.svg"
+              src={mounted && resolvedTheme === 'dark' ? '/singular-bank-logo.svg' : '/singular-bank-logo-black.png'}
               alt="Singular Bank"
               width={200}
               height={60}
-              className="dark:invert"
+              style={{ width: 200, height: 60 }}
               priority
+              unoptimized
             />
           </div>
           <CardTitle className="text-3xl font-semibold">
