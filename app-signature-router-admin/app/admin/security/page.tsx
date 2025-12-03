@@ -9,7 +9,7 @@ import { useApiClientWithStatus } from '@/lib/api/use-api-client';
 import type { SecurityOverview, AccessEvent } from '@/lib/api/types';
 
 export default function SecurityPage() {
-  const { apiClient, isAuthenticated } = useApiClientWithStatus();
+  const { apiClient, isAuthenticated, isLoading: authLoading, redirectToLogin } = useApiClientWithStatus({ autoRedirect: true });
   const [overview, setOverview] = useState<SecurityOverview | null>(null);
   const [accessEvents, setAccessEvents] = useState<AccessEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +80,38 @@ export default function SecurityPage() {
         return event;
     }
   };
+
+  // Auth loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-singular-gray dark:bg-background flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated - autoRedirect should handle this
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-singular-gray dark:bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 text-center">
+            <RefreshCw className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Redirigiendo al Login...</h2>
+            <p className="text-muted-foreground mb-4">
+              Tu sesión ha expirado. Redirigiendo automáticamente...
+            </p>
+            <Button onClick={redirectToLogin} variant="outline">
+              Ir al Login ahora
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">

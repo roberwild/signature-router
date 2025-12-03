@@ -81,7 +81,7 @@ const cardVariants = {
 const COLORS = ['#3b82f6', '#8b5cf6', '#f97316', '#10b981'];
 
 export default function AdminDashboardPage() {
-  const { apiClient, isLoading: sessionLoading, isAuthenticated } = useApiClientWithStatus();
+  const { apiClient, isLoading: sessionLoading, isAuthenticated, redirectToLogin } = useApiClientWithStatus({ autoRedirect: true });
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -146,6 +146,38 @@ export default function AdminDashboardPage() {
         total: data.count,
       }))
     : [];
+
+  // Session loading state
+  if (sessionLoading) {
+    return (
+      <div className="min-h-screen bg-singular-gray dark:bg-background flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Verificando sesión...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated - autoRedirect should handle this, but show fallback UI
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-singular-gray dark:bg-background flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardContent className="pt-6 text-center">
+            <RefreshCw className="h-12 w-12 text-primary animate-spin mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Redirigiendo al Login...</h2>
+            <p className="text-muted-foreground mb-4">
+              Tu sesión ha expirado. Redirigiendo automáticamente...
+            </p>
+            <Button onClick={redirectToLogin} variant="outline">
+              Ir al Login ahora
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Loading state
   if (loading && !metrics) {

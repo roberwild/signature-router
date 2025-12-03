@@ -4,13 +4,15 @@
  * React Hook para obtener el API Client con autenticación JWT
  */
 
-import { useSession } from 'next-auth/react';
-import { useMemo } from 'react';
+import { useSession, signIn } from 'next-auth/react';
+import { useMemo, useEffect, useCallback } from 'react';
 import { createApiClient } from './client';
 import type { IApiClient } from './types';
 
 /**
  * Hook que devuelve el API client con el JWT de la sesión actual
+ * 
+ * @param options.autoRedirect - Si es true, redirige automáticamente al login cuando la sesión expira
  * 
  * @returns Object con API client, estado de carga, y si está autenticado
  * 
@@ -27,12 +29,15 @@ import type { IApiClient } from './types';
  * }
  * ```
  */
-export function useApiClientWithStatus(): { 
+export function useApiClientWithStatus(options?: { autoRedirect?: boolean }): { 
   apiClient: IApiClient; 
   isLoading: boolean; 
   isAuthenticated: boolean;
+  sessionError: string | undefined;
+  redirectToLogin: () => void;
 } {
   const { data: session, status } = useSession();
+  const autoRedirect = options?.autoRedirect ?? false;
 
   const apiClient = useMemo(() => {
     return createApiClient(() => {
@@ -41,10 +46,31 @@ export function useApiClientWithStatus(): {
     });
   }, [session?.accessToken]);
 
+  // Check if token is expired
+  const hasValidToken = !!session?.accessToken && session?.error !== "TokenExpired";
+  const isAuthenticated = status === 'authenticated' && hasValidToken;
+  const isLoading = status === 'loading';
+
+  // Función para redirigir al login
+  const redirectToLogin = useCallback(() => {
+    signIn('keycloak', { callbackUrl: window.location.pathname });
+  }, []);
+
+  // Auto-redirect cuando la sesión expira (solo si autoRedirect está habilitado)
+  useEffect(() => {
+    if (autoRedirect && !isLoading && !isAuthenticated && status === 'authenticated') {
+      // La sesión existe pero el token expiró - redirigir automáticamente
+      console.log('[useApiClientWithStatus] Session expired, redirecting to login...');
+      redirectToLogin();
+    }
+  }, [autoRedirect, isLoading, isAuthenticated, status, redirectToLogin]);
+
   return {
     apiClient,
-    isLoading: status === 'loading',
-    isAuthenticated: status === 'authenticated' && !!session?.accessToken,
+    isLoading,
+    isAuthenticated,
+    sessionError: session?.error,
+    redirectToLogin,
   };
 }
 

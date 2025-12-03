@@ -24,6 +24,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.expiresAt = account.expires_at
         token.id = user?.id
       }
+      
+      // Check if token has expired
+      if (token.expiresAt && Date.now() >= (token.expiresAt as number) * 1000) {
+        console.log("[auth] JWT callback - Token expired, marking session as expired")
+        token.error = "TokenExpired"
+      }
+      
       return token
     },
     async session({ session, token }) {
@@ -39,6 +46,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async authorized({ auth, request }) {
       // Este callback es llamado por el middleware
       const isLoggedIn = !!auth?.user
+      const hasValidToken = !!auth?.accessToken && auth?.error !== "TokenExpired"
       const isOnAdmin = request.nextUrl.pathname.startsWith('/admin')
       const isOnAuth = request.nextUrl.pathname.startsWith('/auth')
       const isApiAuth = request.nextUrl.pathname.startsWith('/api/auth')
@@ -48,9 +56,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return true
       }
       
-      // Proteger /admin
+      // Proteger /admin - requiere usuario logueado Y token válido
       if (isOnAdmin) {
-        if (isLoggedIn) return true
+        if (isLoggedIn && hasValidToken) return true
+        console.log("[auth] Redirecting to login - isLoggedIn:", isLoggedIn, "hasValidToken:", hasValidToken)
         return false // Redirect to login
       }
       

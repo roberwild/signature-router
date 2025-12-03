@@ -8,6 +8,7 @@ import type {
   IApiClient,
   DashboardMetrics,
   Provider,
+  ProviderMetrics,
   PaginatedSignatures,
   PaginatedSignatureRequests,
   Signature,
@@ -340,6 +341,14 @@ export class RealApiClient implements IApiClient {
   async getProviderTemplates(type?: string): Promise<any[]> {
     const query = type ? `?type=${type}` : '';
     return this.fetch(`/admin/providers/templates${query}`);
+  }
+
+  // ========================================
+  // Provider Metrics (Epic 14 - MuleSoft Integration Ready)
+  // ========================================
+
+  async getProviderMetrics(providerId: string): Promise<ProviderMetrics> {
+    return this.fetch(`/admin/providers/${providerId}/metrics`);
   }
 }
 

@@ -8,6 +8,7 @@ import type {
   IApiClient,
   DashboardMetrics,
   Provider,
+  ProviderMetrics,
   PaginatedSignatures,
   PaginatedSignatureRequests,
   Signature,
@@ -537,6 +538,50 @@ export class MockApiClient implements IApiClient {
     }
 
     return this.delay(templates);
+  }
+
+  // ========================================
+  // Provider Metrics (Epic 14 - MuleSoft Integration Ready)
+  // ========================================
+
+  async getProviderMetrics(providerId: string): Promise<ProviderMetrics> {
+    this.log('GET', `/api/v1/admin/providers/${providerId}/metrics`);
+    
+    // Generate realistic mock metrics
+    const mockMetrics: ProviderMetrics = {
+      provider_id: providerId,
+      provider_name: 'Mock Provider',
+      
+      // Request Metrics
+      requests_today: Math.floor(Math.random() * 10000) + 500,
+      requests_7d: Math.floor(Math.random() * 50000) + 5000,
+      requests_30d: Math.floor(Math.random() * 200000) + 20000,
+      success_rate: 95 + Math.random() * 4.9,
+      failed_requests_today: Math.floor(Math.random() * 100),
+      
+      // Latency Metrics
+      avg_response_time: 0.8 + Math.random() * 1.5,
+      latency_p50_ms: 80 + Math.floor(Math.random() * 50),
+      latency_p95_ms: 200 + Math.floor(Math.random() * 100),
+      latency_p99_ms: 400 + Math.floor(Math.random() * 150),
+      
+      // Availability Metrics
+      uptime: 99 + Math.random() * 0.9,
+      health_check_failures_24h: Math.floor(Math.random() * 3),
+      seconds_since_last_health_check: 30 + Math.floor(Math.random() * 90),
+      
+      // Cost Metrics
+      cost_per_request_eur: 0.01 + Math.random() * 0.09,
+      total_cost_today_eur: 50 + Math.random() * 450,
+      total_cost_month_eur: 1500 + Math.random() * 13500,
+      
+      // MuleSoft Integration
+      mulesoft_integrated: false,
+      mulesoft_provider_id: null,
+      calculated_at: new Date().toISOString(),
+    };
+    
+    return this.delay(mockMetrics);
   }
 }
 

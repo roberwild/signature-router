@@ -4,9 +4,11 @@ import com.bank.signature.application.dto.request.CreateProviderRequest;
 import com.bank.signature.application.dto.request.TestProviderRequest;
 import com.bank.signature.application.dto.request.UpdateProviderRequest;
 import com.bank.signature.application.dto.response.ProviderListResponse;
+import com.bank.signature.application.dto.response.ProviderMetricsResponse;
 import com.bank.signature.application.dto.response.ProviderResponse;
 import com.bank.signature.application.dto.response.TestProviderResponse;
 import com.bank.signature.application.mapper.ProviderDtoMapper;
+import com.bank.signature.application.service.ProviderMetricsService;
 import com.bank.signature.application.usecase.provider.*;
 import com.bank.signature.domain.model.ProviderConfig;
 import com.bank.signature.domain.model.ProviderType;
@@ -52,6 +54,7 @@ public class ProviderManagementController {
     private final GetProviderUseCase getProviderUseCase;
     private final ListProvidersUseCase listProvidersUseCase;
     private final TestProviderUseCase testProviderUseCase;
+    private final ProviderMetricsService providerMetricsService;
     private final ProviderDtoMapper mapper;
     
     @GetMapping
@@ -161,6 +164,35 @@ public class ProviderManagementController {
         );
         
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/{id}/metrics")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('SUPPORT')")
+    @Operation(
+        summary = "Get provider metrics", 
+        description = """
+            Retrieve operational metrics for a specific provider.
+            
+            **Internal Metrics (from database):**
+            - Request counts (today, 7d, 30d)
+            - Success rate
+            - Failed requests
+            
+            **External Metrics (from MuleSoft - mocked until integration):**
+            - Response times and latency percentiles (P50, P95, P99)
+            - Uptime and availability
+            - Cost per request and totals
+            
+            **Note:** The `mulesoft_integrated` field indicates whether metrics 
+            come from real MuleSoft data or mock data.
+            """
+    )
+    public ResponseEntity<ProviderMetricsResponse> getProviderMetrics(@PathVariable UUID id) {
+        log.info("GET /api/v1/admin/providers/{}/metrics", id);
+        
+        return providerMetricsService.getMetrics(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
     }
 }
 

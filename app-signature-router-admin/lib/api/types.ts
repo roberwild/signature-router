@@ -80,6 +80,47 @@ export interface Provider {
   };
 }
 
+/**
+ * Provider Metrics - Epic 14
+ * Operational metrics for a signature provider including:
+ * - Request counts and success rates (internal metrics)
+ * - Response times and latency (from MuleSoft when available)
+ * - Uptime and availability (from MuleSoft health checks)
+ * - Cost information (from MuleSoft when available)
+ */
+export interface ProviderMetrics {
+  provider_id: string;
+  provider_name: string;
+  
+  // Request Metrics (Internal)
+  requests_today: number;
+  requests_7d: number;
+  requests_30d: number;
+  success_rate: number;
+  failed_requests_today: number;
+  
+  // Latency Metrics (From MuleSoft)
+  avg_response_time: number;
+  latency_p50_ms: number;
+  latency_p95_ms: number;
+  latency_p99_ms: number;
+  
+  // Availability Metrics (From MuleSoft)
+  uptime: number;
+  health_check_failures_24h: number;
+  seconds_since_last_health_check: number;
+  
+  // Cost Metrics (From MuleSoft)
+  cost_per_request_eur: number;
+  total_cost_today_eur: number;
+  total_cost_month_eur: number;
+  
+  // MuleSoft Integration Metadata
+  mulesoft_integrated: boolean;
+  mulesoft_provider_id: string | null;
+  calculated_at: string;
+}
+
 // ============================================
 // Signature Types
 // ============================================
@@ -425,5 +466,8 @@ export interface IApiClient {
   deleteProvider(id: string): Promise<void>;
   testProvider(id: string, data: { test_destination: string; test_message?: string }): Promise<any>;
   getProviderTemplates(type?: string): Promise<any[]>;
+  
+  // Provider Metrics (Epic 14 - MuleSoft Integration Ready)
+  getProviderMetrics(providerId: string): Promise<ProviderMetrics>;
 }
 
