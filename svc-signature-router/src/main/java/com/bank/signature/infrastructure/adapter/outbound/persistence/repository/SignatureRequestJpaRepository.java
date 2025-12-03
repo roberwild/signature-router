@@ -325,5 +325,102 @@ public interface SignatureRequestJpaRepository extends JpaRepository<SignatureRe
         @Param("from") Instant from,
         @Param("to") Instant to
     );
+    
+    // ========================================
+    // Channel Metrics via Challenges
+    // Story 12.5: Dashboard Channel Distribution
+    // ========================================
+    
+    /**
+     * Count challenges by channel type created between two timestamps.
+     * Uses challenges table since SignatureRequest doesn't have channel field.
+     * 
+     * @param channelType Channel type (e.g., "SMS", "PUSH", "VOICE", "BIOMETRIC")
+     * @param from        Start timestamp (inclusive)
+     * @param to          End timestamp (exclusive)
+     * @return Count of challenges for the channel
+     * @since Story 12.5
+     */
+    @Query("""
+        SELECT COUNT(c) FROM SignatureChallengeEntity c
+        WHERE c.channelType = :channelType
+        AND c.sentAt IS NOT NULL
+        AND c.sentAt >= :from
+        AND c.sentAt < :to
+        """)
+    long countChallengesByChannelAndSentAtBetween(
+        @Param("channelType") String channelType,
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
+    
+    /**
+     * Count successful challenges (COMPLETED status) by channel type.
+     * 
+     * @param channelType Channel type
+     * @param from        Start timestamp (inclusive)
+     * @param to          End timestamp (exclusive)
+     * @return Count of successful challenges for the channel
+     * @since Story 12.5
+     */
+    @Query("""
+        SELECT COUNT(c) FROM SignatureChallengeEntity c
+        WHERE c.channelType = :channelType
+        AND c.status = 'COMPLETED'
+        AND c.completedAt IS NOT NULL
+        AND c.completedAt >= :from
+        AND c.completedAt < :to
+        """)
+    long countSuccessfulChallengesByChannelAndCompletedAtBetween(
+        @Param("channelType") String channelType,
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
+    
+    /**
+     * Get channel distribution summary - count of challenges per channel.
+     * Returns Object[] with [channelType, count].
+     * 
+     * @param from Start timestamp (inclusive)
+     * @param to   End timestamp (exclusive)
+     * @return List of [channelType, count] arrays
+     * @since Story 12.5
+     */
+    @Query("""
+        SELECT c.channelType, COUNT(c) 
+        FROM SignatureChallengeEntity c
+        WHERE c.sentAt IS NOT NULL
+        AND c.sentAt >= :from
+        AND c.sentAt < :to
+        GROUP BY c.channelType
+        """)
+    List<Object[]> getChannelDistribution(
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
+    
+    /**
+     * Get channel success rates - count of successful vs total challenges per channel.
+     * Returns Object[] with [channelType, totalCount, successCount].
+     * 
+     * @param from Start timestamp (inclusive)
+     * @param to   End timestamp (exclusive)
+     * @return List of [channelType, totalCount, successCount] arrays
+     * @since Story 12.5
+     */
+    @Query("""
+        SELECT c.channelType, 
+               COUNT(c), 
+               SUM(CASE WHEN c.status = 'COMPLETED' THEN 1 ELSE 0 END)
+        FROM SignatureChallengeEntity c
+        WHERE c.sentAt IS NOT NULL
+        AND c.sentAt >= :from
+        AND c.sentAt < :to
+        GROUP BY c.channelType
+        """)
+    List<Object[]> getChannelSuccessRates(
+        @Param("from") Instant from,
+        @Param("to") Instant to
+    );
 }
 

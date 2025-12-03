@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -374,6 +376,58 @@ public class SignatureRequestRepositoryAdapter implements SignatureRequestReposi
         return jpaRepository.findWithSentChallengesBetween(from, to).stream()
             .map(mapper::toDomain)
             .collect(Collectors.toList());
+    }
+    
+    // ========================================
+    // Channel Metrics via Challenges
+    // Story 12.5: Dashboard Channel Distribution
+    // ========================================
+    
+    /**
+     * Get channel distribution - count of challenges per channel type.
+     * 
+     * @param from Start timestamp (inclusive)
+     * @param to   End timestamp (exclusive)
+     * @return Map of channel name to count
+     * @since Story 12.5
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, Long> getChannelDistribution(Instant from, Instant to) {
+        List<Object[]> results = jpaRepository.getChannelDistribution(from, to);
+        Map<String, Long> distribution = new HashMap<>();
+        
+        for (Object[] row : results) {
+            String channelType = (String) row[0];
+            Long count = (Long) row[1];
+            distribution.put(channelType, count);
+        }
+        
+        return distribution;
+    }
+    
+    /**
+     * Get channel success rates - total and successful challenges per channel.
+     * 
+     * @param from Start timestamp (inclusive)
+     * @param to   End timestamp (exclusive)
+     * @return Map of channel name to ChannelStats record
+     * @since Story 12.5
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<String, ChannelStats> getChannelSuccessRates(Instant from, Instant to) {
+        List<Object[]> results = jpaRepository.getChannelSuccessRates(from, to);
+        Map<String, ChannelStats> rates = new HashMap<>();
+        
+        for (Object[] row : results) {
+            String channelType = (String) row[0];
+            Long totalCount = (Long) row[1];
+            Long successCount = ((Number) row[2]).longValue();
+            rates.put(channelType, new ChannelStats(totalCount, successCount));
+        }
+        
+        return rates;
     }
 }
 
