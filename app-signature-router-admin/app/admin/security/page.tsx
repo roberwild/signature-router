@@ -5,11 +5,11 @@ import { Shield, Lock, Key, UserCheck, AlertTriangle, CheckCircle2, RefreshCw } 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useApiClient } from '@/lib/api/use-api-client';
+import { useApiClientWithStatus } from '@/lib/api/use-api-client';
 import type { SecurityOverview, AccessEvent } from '@/lib/api/types';
 
 export default function SecurityPage() {
-  const apiClient = useApiClient();
+  const { apiClient, isAuthenticated } = useApiClientWithStatus();
   const [overview, setOverview] = useState<SecurityOverview | null>(null);
   const [accessEvents, setAccessEvents] = useState<AccessEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,6 +17,7 @@ export default function SecurityPage() {
 
   // Cargar datos de seguridad
   const loadSecurityData = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
@@ -35,11 +36,12 @@ export default function SecurityPage() {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     loadSecurityData();
     // Auto-refresh cada 30 segundos
     const interval = setInterval(loadSecurityData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isAuthenticated]);
 
   const formatTimeAgo = (timestamp: string) => {
     const diff = Date.now() - new Date(timestamp).getTime();

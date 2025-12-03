@@ -15,11 +15,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useApiClient } from '@/lib/api/use-api-client';
+import { useApiClientWithStatus } from '@/lib/api/use-api-client';
 import type { User } from '@/lib/api/types';
 
 export default function UsersPage() {
-  const apiClient = useApiClient();
+  const { apiClient, isAuthenticated } = useApiClientWithStatus();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +28,7 @@ export default function UsersPage() {
 
   // Cargar usuarios
   const loadUsers = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
@@ -43,8 +44,10 @@ export default function UsersPage() {
   };
 
   useEffect(() => {
-    loadUsers();
-  }, []);
+    if (isAuthenticated) {
+      loadUsers();
+    }
+  }, [isAuthenticated]);
 
   // Filtrar usuarios por búsqueda
   const filteredUsers = users.filter(user => 

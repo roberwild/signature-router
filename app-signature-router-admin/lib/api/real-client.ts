@@ -70,10 +70,8 @@ export class RealApiClient implements IApiClient {
         // Handle 401 Unauthorized
         if (response.status === 401) {
           console.error('❌ Unauthorized - Token inválido o expirado');
-          // Redirigir al login (esto será manejado por el middleware)
-          if (typeof window !== 'undefined') {
-            window.location.href = '/auth/signin?error=SessionExpired';
-          }
+          // NO redirigir aquí - dejar que el middleware de NextAuth maneje la sesión
+          // Solo lanzar error para que el componente lo maneje
           throw new Error('Sesión expirada o no autorizada');
         }
 

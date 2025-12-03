@@ -5,11 +5,11 @@ import { Bell, AlertTriangle, Info, CheckCircle2, XCircle, Clock, RefreshCw } fr
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useApiClient } from '@/lib/api/use-api-client';
+import { useApiClientWithStatus } from '@/lib/api/use-api-client';
 import type { Alert, AlertFilters } from '@/lib/api/types';
 
 export default function AlertsPage() {
-  const apiClient = useApiClient();
+  const { apiClient, isAuthenticated } = useApiClientWithStatus();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +18,7 @@ export default function AlertsPage() {
 
   // Cargar alertas
   const loadAlerts = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
@@ -32,11 +33,12 @@ export default function AlertsPage() {
   };
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     loadAlerts();
     // Auto-refresh cada 60 segundos
     const interval = setInterval(loadAlerts, 60000);
     return () => clearInterval(interval);
-  }, [filter]);
+  }, [filter, isAuthenticated]);
 
   // Reconocer alerta
   const handleAcknowledge = async (id: string) => {

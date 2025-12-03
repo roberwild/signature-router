@@ -118,6 +118,12 @@ public class ProviderHealthIndicator implements HealthIndicator {
             String beanName = entry.getKey();
             SignatureProviderPort provider = entry.getValue();
             
+            // Skip meta-adapters (SignatureProviderAdapter is a router, not a real provider)
+            if (beanName.equals("signatureProviderAdapter")) {
+                log.debug("Skipping meta-adapter: {}", beanName);
+                continue;
+            }
+            
             CompletableFuture<HealthCheckResult> future = CompletableFuture.supplyAsync(
                 () -> checkProvider(beanName, provider),
                 executor

@@ -3,18 +3,23 @@ package com.bank.signature.application.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Dashboard Metrics Response DTO
  * Story 12.1: Dashboard Metrics Endpoint
+ * Epic 14: Frontend-Backend Complete Integration
  * 
  * Comprehensive metrics for admin dashboard including:
  * - Overview statistics (total signatures, success rate, latency, providers)
  * - Channel breakdown (SMS, PUSH, VOICE, BIOMETRIC)
  * - Latency timeline (P50, P95, P99)
  * - Error rate timeline
+ * - Provider health status
+ * - Recent activity feed
+ * - Hourly traffic data
  */
 @Builder
 @Schema(description = "Dashboard metrics aggregated data")
@@ -30,7 +35,16 @@ public record DashboardMetricsResponse(
     List<LatencyTimelinePoint> latencyTimeline,
     
     @Schema(description = "Error rate timeline for the last 7 days")
-    List<ErrorTimelinePoint> errorTimeline
+    List<ErrorTimelinePoint> errorTimeline,
+    
+    @Schema(description = "Provider health status list")
+    List<ProviderHealthStatus> providerHealth,
+    
+    @Schema(description = "Recent activity feed (last 10 events)")
+    List<RecentActivityItem> recentActivity,
+    
+    @Schema(description = "Hourly traffic data for last 24 hours")
+    List<HourlyDataPoint> hourlyData
 ) {
     
     /**
@@ -58,7 +72,19 @@ public record DashboardMetricsResponse(
         int activeProviders,
         
         @Schema(description = "Total number of providers", example = "4")
-        int totalProviders
+        int totalProviders,
+        
+        @Schema(description = "Number of signatures currently in progress", example = "47")
+        long activeSignatures,
+        
+        @Schema(description = "Number of active routing rules", example = "12")
+        int routingRulesCount,
+        
+        @Schema(description = "Number of circuit breakers in OPEN state", example = "0")
+        int circuitBreakersOpen,
+        
+        @Schema(description = "Failed signatures in last 24 hours", example = "3")
+        long failedSignatures24h
     ) {}
     
     /**
@@ -107,6 +133,66 @@ public record DashboardMetricsResponse(
         
         @Schema(description = "Error rate percentage", example = "5.2")
         double errorRate
+    ) {}
+    
+    /**
+     * Provider Health Status - For dashboard provider list
+     */
+    @Builder
+    @Schema(description = "Health status of a provider")
+    public record ProviderHealthStatus(
+        @Schema(description = "Provider display name", example = "Twilio SMS")
+        String name,
+        
+        @Schema(description = "Provider type", example = "SMS")
+        String type,
+        
+        @Schema(description = "Health status: healthy, degraded, down", example = "healthy")
+        String status,
+        
+        @Schema(description = "Uptime percentage", example = "99.9")
+        double uptime,
+        
+        @Schema(description = "Circuit breaker state: CLOSED, OPEN, HALF_OPEN", example = "CLOSED")
+        String circuitState
+    ) {}
+    
+    /**
+     * Recent Activity Item - For activity feed
+     */
+    @Builder
+    @Schema(description = "Recent activity item")
+    public record RecentActivityItem(
+        @Schema(description = "Unique identifier")
+        String id,
+        
+        @Schema(description = "Activity type: success, warning, error, info", example = "success")
+        String type,
+        
+        @Schema(description = "Human readable message", example = "Firma SMS completada - Cliente #45231")
+        String message,
+        
+        @Schema(description = "Timestamp of the activity")
+        Instant timestamp,
+        
+        @Schema(description = "Relative time string", example = "Hace 2 min")
+        String relativeTime
+    ) {}
+    
+    /**
+     * Hourly Data Point - For traffic chart
+     */
+    @Builder
+    @Schema(description = "Hourly traffic data point")
+    public record HourlyDataPoint(
+        @Schema(description = "Hour in HH:00 format", example = "08:00")
+        String hour,
+        
+        @Schema(description = "Total signatures in this hour", example = "189")
+        long total,
+        
+        @Schema(description = "Successful signatures in this hour", example = "186")
+        long successful
     ) {}
 }
 

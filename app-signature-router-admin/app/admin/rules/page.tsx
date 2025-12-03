@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/table';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
 import { RuleEditorDialog } from '@/components/admin/rule-editor-dialog';
-import { useApiClient } from '@/lib/api/use-api-client';
+import { useApiClientWithStatus } from '@/lib/api/use-api-client';
 import type { RoutingRule, CreateRuleDto, UpdateRuleDto } from '@/lib/api/types';
 
 // Interfaz extendida para UI (incluye campos opcionales de métricas)
@@ -41,7 +41,7 @@ interface RuleWithMetrics extends RoutingRule {
 }
 
 export default function RoutingRulesPage() {
-  const apiClient = useApiClient();
+  const { apiClient, isAuthenticated } = useApiClientWithStatus();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<RuleWithMetrics | undefined>();
   const [rules, setRules] = useState<RuleWithMetrics[]>([]);
@@ -51,6 +51,7 @@ export default function RoutingRulesPage() {
 
   // Cargar reglas desde el backend
   const loadRules = async () => {
+    if (!isAuthenticated) return;
     setLoading(true);
     setError(null);
     try {
@@ -72,8 +73,10 @@ export default function RoutingRulesPage() {
   };
 
   useEffect(() => {
-    loadRules();
-  }, []);
+    if (isAuthenticated) {
+      loadRules();
+    }
+  }, [isAuthenticated]);
 
   const handleCreateRule = () => {
     setEditingRule(undefined);

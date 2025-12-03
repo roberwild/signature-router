@@ -15,6 +15,11 @@ export interface DashboardMetrics {
     avgLatency: number;
     activeProviders: number;
     totalProviders: number;
+    // Epic 14: New fields for complete dashboard integration
+    activeSignatures: number;
+    routingRulesCount: number;
+    circuitBreakersOpen: number;
+    failedSignatures24h: number;
   };
   byChannel: {
     [key: string]: {
@@ -32,6 +37,26 @@ export interface DashboardMetrics {
   errorTimeline: Array<{
     date: string;
     errorRate: number;
+  }>;
+  // Epic 14: New fields for complete dashboard integration
+  providerHealth: Array<{
+    name: string;
+    type: string;
+    status: 'healthy' | 'degraded' | 'down';
+    uptime: number;
+    circuitState: string;
+  }>;
+  recentActivity: Array<{
+    id: string;
+    type: 'success' | 'warning' | 'error' | 'info';
+    message: string;
+    timestamp: string;
+    relativeTime: string;
+  }>;
+  hourlyData: Array<{
+    hour: string;
+    total: number;
+    successful: number;
   }>;
 }
 

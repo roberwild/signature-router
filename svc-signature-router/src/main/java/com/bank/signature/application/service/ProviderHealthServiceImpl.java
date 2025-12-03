@@ -63,6 +63,12 @@ public class ProviderHealthServiceImpl implements ProviderHealthService {
             String beanName = entry.getKey();
             SignatureProviderPort provider = entry.getValue();
             
+            // Skip meta-adapters (SignatureProviderAdapter is a router, not a real provider)
+            if (beanName.equals("signatureProviderAdapter")) {
+                log.debug("Skipping meta-adapter: {}", beanName);
+                continue;
+            }
+            
             ProviderHealthResponse healthResponse = checkProviderHealth(beanName, provider);
             healthResponses.add(healthResponse);
         }

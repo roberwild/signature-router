@@ -33,6 +33,11 @@ export const mockDashboardMetrics: DashboardMetrics = {
     avgLatency: 245,
     activeProviders: 3,
     totalProviders: 4,
+    // Epic 14: New fields
+    activeSignatures: 47,
+    routingRulesCount: 12,
+    circuitBreakersOpen: 0,
+    failedSignatures24h: 3,
   },
   byChannel: {
     SMS: {
@@ -73,6 +78,27 @@ export const mockDashboardMetrics: DashboardMetrics = {
     { date: '2025-11-28', errorRate: 5.0 },
     { date: '2025-11-29', errorRate: 5.3 },
     { date: '2025-11-30', errorRate: 5.5 },
+  ],
+  // Epic 14: New fields
+  providerHealth: [
+    { name: 'Twilio SMS', type: 'SMS', status: 'healthy', uptime: 99.9, circuitState: 'CLOSED' },
+    { name: 'OneSignal Push', type: 'PUSH', status: 'healthy', uptime: 99.8, circuitState: 'CLOSED' },
+    { name: 'Vonage Voice', type: 'VOICE', status: 'degraded', uptime: 95.2, circuitState: 'HALF_OPEN' },
+    { name: 'BioCatch', type: 'BIOMETRIC', status: 'healthy', uptime: 99.7, circuitState: 'CLOSED' },
+  ],
+  recentActivity: [
+    { id: '1', type: 'success', message: 'Firma SMS completada - Cliente #45231', timestamp: new Date(Date.now() - 2 * 60 * 1000).toISOString(), relativeTime: 'Hace 2 min' },
+    { id: '2', type: 'warning', message: 'Fallback activado - Twilio → AWS SNS', timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(), relativeTime: 'Hace 5 min' },
+    { id: '3', type: 'success', message: 'Firma PUSH completada - Cliente #45229', timestamp: new Date(Date.now() - 8 * 60 * 1000).toISOString(), relativeTime: 'Hace 8 min' },
+    { id: '4', type: 'info', message: 'Nueva regla de routing activada', timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(), relativeTime: 'Hace 15 min' },
+  ],
+  hourlyData: [
+    { hour: '00:00', total: 45, successful: 44 },
+    { hour: '04:00', total: 32, successful: 31 },
+    { hour: '08:00', total: 189, successful: 186 },
+    { hour: '12:00', total: 234, successful: 230 },
+    { hour: '16:00', total: 198, successful: 195 },
+    { hour: '20:00', total: 156, successful: 153 },
   ],
 };
 

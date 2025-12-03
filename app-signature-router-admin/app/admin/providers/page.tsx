@@ -57,8 +57,6 @@ interface Provider {
   avgResponseTime: number;
   requestsToday: number;
   successRate: number;
-  costPerRequest: number;
-  totalCostToday: number;
   circuitBreakerStatus: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
   lastHealthCheck: string;
   endpoint: string;
@@ -95,8 +93,6 @@ export default function ProvidersPage() {
         avgResponseTime: 1.5,
         requestsToday: Math.floor(Math.random() * 10000),
         successRate: p.health_status === 'UP' ? 98.9 : 85.0,
-        costPerRequest: 0.01,
-        totalCostToday: Math.floor(Math.random() * 100),
         circuitBreakerStatus: p.circuit_breaker_status || 'CLOSED',
         lastHealthCheck: p.last_health_check || new Date().toISOString(),
         endpoint: p.endpoint_url,
@@ -125,8 +121,6 @@ export default function ProvidersPage() {
       avgResponseTime: 1.2,
       requestsToday: 8521,
       successRate: 98.9,
-      costPerRequest: 0.0075,
-      totalCostToday: 63.91,
       circuitBreakerStatus: 'CLOSED',
       lastHealthCheck: '2024-11-29 14:32:00',
       endpoint: 'https://api.twilio.com/2010-04-01',
@@ -140,8 +134,6 @@ export default function ProvidersPage() {
       avgResponseTime: 0.8,
       requestsToday: 2134,
       successRate: 98.3,
-      costPerRequest: 0.001,
-      totalCostToday: 2.13,
       circuitBreakerStatus: 'CLOSED',
       lastHealthCheck: '2024-11-29 14:31:45',
       endpoint: 'https://onesignal.com/api/v1',
@@ -155,8 +147,6 @@ export default function ProvidersPage() {
       avgResponseTime: 3.5,
       requestsToday: 1543,
       successRate: 94.5,
-      costPerRequest: 0.025,
-      totalCostToday: 38.58,
       circuitBreakerStatus: 'HALF_OPEN',
       lastHealthCheck: '2024-11-29 14:30:15',
       endpoint: 'https://api.nexmo.com/v1',
@@ -170,8 +160,6 @@ export default function ProvidersPage() {
       avgResponseTime: 2.1,
       requestsToday: 345,
       successRate: 99.1,
-      costPerRequest: 0.05,
-      totalCostToday: 17.25,
       circuitBreakerStatus: 'CLOSED',
       lastHealthCheck: '2024-11-29 14:32:10',
       endpoint: 'https://api.biocatch.com/v2',
@@ -185,8 +173,6 @@ export default function ProvidersPage() {
       avgResponseTime: 1.5,
       requestsToday: 234,
       successRate: 99.6,
-      costPerRequest: 0.0065,
-      totalCostToday: 1.52,
       circuitBreakerStatus: 'CLOSED',
       lastHealthCheck: '2024-11-29 14:31:55',
       endpoint: 'https://sns.us-east-1.amazonaws.com',
@@ -244,7 +230,6 @@ export default function ProvidersPage() {
 
   const totalStats = {
     totalRequests: providers.reduce((acc, p) => acc + p.requestsToday, 0),
-    totalCost: providers.reduce((acc, p) => acc + p.totalCostToday, 0),
     avgSuccessRate:
       providers.reduce((acc, p) => acc + p.successRate, 0) / providers.length,
     avgResponseTime:
@@ -252,11 +237,6 @@ export default function ProvidersPage() {
   };
 
   // Datos para gráficas
-  const costData = providers.map(p => ({
-    name: p.name,
-    costo: p.totalCostToday,
-  }));
-
   const responseTimeData = providers.map(p => ({
     name: p.name.replace(' ', '\n'),
     tiempo: p.avgResponseTime,
@@ -348,18 +328,6 @@ export default function ProvidersPage() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Costo Total</p>
-                  <p className="text-2xl font-bold">${totalStats.totalCost.toFixed(2)}</p>
-                </div>
-                <BarChart3 className="h-8 w-8 text-primary/20" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white dark:bg-card shadow-sm">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
                   <p className="text-sm font-medium text-muted-foreground">Éxito Promedio</p>
                   <p className="text-2xl font-bold text-green-600">
                     {totalStats.avgSuccessRate.toFixed(1)}%
@@ -385,44 +353,6 @@ export default function ProvidersPage() {
 
         {/* Analytics Charts */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Cost Distribution */}
-          <Card className="bg-white dark:bg-card shadow-sm">
-            <CardHeader>
-              <CardTitle>Distribución de Costos</CardTitle>
-              <CardDescription>Costo total por proveedor hoy</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={costData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name.split(' ')[0]} ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="costo"
-                    animationBegin={0}
-                    animationDuration={1500}
-                  >
-                    {costData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    formatter={(value: number) => `$${value.toFixed(2)}`}
-                    contentStyle={{
-                      backgroundColor: '#fff',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
           {/* Response Time Comparison */}
           <Card className="bg-white dark:bg-card shadow-sm">
             <CardHeader>
@@ -601,10 +531,6 @@ export default function ProvidersPage() {
                       <p className="text-sm text-muted-foreground">Requests Hoy</p>
                       <p className="text-2xl font-bold">{provider.requestsToday.toLocaleString()}</p>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Costo Hoy</p>
-                      <p className="text-2xl font-bold">${provider.totalCostToday.toFixed(2)}</p>
-                    </div>
                   </div>
 
                   {/* Success Rate Progress */}
@@ -642,14 +568,6 @@ export default function ProvidersPage() {
                         </p>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Cost per Request */}
-                  <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                    <span className="text-sm text-muted-foreground">Costo por Request</span>
-                    <span className="text-sm font-mono font-medium">
-                      ${provider.costPerRequest.toFixed(4)}
-                    </span>
                   </div>
 
                   {/* Actions */}
@@ -702,47 +620,6 @@ export default function ProvidersPage() {
             );
           })}
         </div>
-
-        {/* Cost Analysis */}
-        <Card className="bg-white dark:bg-card shadow-sm">
-          <CardHeader>
-            <CardTitle>Análisis de Costos por Proveedor</CardTitle>
-            <CardDescription>Distribución de costos del día de hoy</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...providers]
-                .sort((a, b) => b.totalCostToday - a.totalCostToday)
-                .map((provider) => {
-                  const percentage = (provider.totalCostToday / totalStats.totalCost) * 100;
-                  return (
-                    <div key={provider.id}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{provider.name}</span>
-                          <Badge variant="outline" className={getTypeColor(provider.type)}>
-                            {provider.type}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm text-muted-foreground">
-                            {provider.requestsToday.toLocaleString()} requests
-                          </span>
-                          <span className="text-sm font-bold min-w-[80px] text-right">
-                            ${provider.totalCostToday.toFixed(2)}
-                          </span>
-                          <span className="text-xs text-muted-foreground min-w-[50px] text-right">
-                            {percentage.toFixed(1)}%
-                          </span>
-                        </div>
-                      </div>
-                      <Progress value={percentage} className="h-2" />
-                    </div>
-                  );
-                })}
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {/* Modales CRUD */}
