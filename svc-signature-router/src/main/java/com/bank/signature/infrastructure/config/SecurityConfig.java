@@ -1,8 +1,7 @@
 package com.bank.signature.infrastructure.config;
 
-import com.bank.signature.infrastructure.filter.UserProfileSyncFilter;
-import com.bank.signature.infrastructure.security.CustomAccessDeniedHandler;
-import com.bank.signature.infrastructure.security.KeycloakJwtAuthenticationConverter;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -15,7 +14,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import com.bank.signature.infrastructure.filter.UserProfileSyncFilter;
+import com.bank.signature.infrastructure.security.CustomAccessDeniedHandler;
+import com.bank.signature.infrastructure.security.KeycloakJwtAuthenticationConverter;
 
 /**
  * Security configuration for OAuth2 Resource Server with JWT validation.
