@@ -67,6 +67,13 @@ public interface UserProfileRepository {
     Page<UserProfile> findAll(Pageable pageable);
     
     /**
+     * Find all user profiles (no pagination).
+     * 
+     * @return List of all user profiles
+     */
+    List<UserProfile> findAll();
+    
+    /**
      * Find all active user profiles.
      * 
      * @return List of active user profiles

@@ -1,5 +1,13 @@
 # User Source Configuration Guide
 
+> ⚠️ **DOCUMENTO OBSOLETO PARA PRODUCCIÓN**  
+> Este documento describe configuraciones alternativas (MOCK/LOCAL/ACTIVE_DIRECTORY modes) que **NO están implementadas en producción**.  
+> 
+> **Arquitectura Real en Producción:** [USER-AUDIT-ARCHITECTURE.md](../USER-AUDIT-ARCHITECTURE.md)  
+> 
+> Los usuarios se registran automáticamente vía JWT en cada login. NO hay sincronización con Active Directory.  
+> Este documento se mantiene solo como referencia para desarrollo/testing local.
+
 **Proyecto:** Signature Router  
 **Epic:** Epic 12 - Admin Panel Integration  
 **Fecha:** 30 de noviembre de 2025

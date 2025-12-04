@@ -1,5 +1,13 @@
 # Keycloak User Federation - Active Directory Setup
 
+> ⚠️ **DOCUMENTO OBSOLETO PARA PRODUCCIÓN**  
+> Este documento describe la configuración de sincronización LDAP con Active Directory, la cual **NO se usa en producción**.  
+> 
+> **Arquitectura Real en Producción:** [USER-AUDIT-ARCHITECTURE.md](../USER-AUDIT-ARCHITECTURE.md)  
+> 
+> En producción NO hay sincronización de usuarios desde AD. Los usuarios se registran automáticamente cuando inician sesión (datos del JWT).  
+> Este documento se mantiene solo como referencia técnica.
+
 **Proyecto:** Signature Router  
 **Epic:** Epic 12 - Admin Panel Integration  
 **Fecha:** 30 de noviembre de 2025  

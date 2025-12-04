@@ -37,7 +37,7 @@ export default function UsersPage() {
       setLastSync(new Date());
     } catch (err) {
       console.error('Error loading users:', err);
-      setError('Error al cargar usuarios desde Active Directory');
+      setError('Error al cargar usuarios');
     } finally {
       setLoading(false);
     }
@@ -132,13 +132,13 @@ export default function UsersPage() {
               <div>
                 <h1 className="text-2xl font-bold">Usuarios</h1>
                 <p className="text-sm text-muted-foreground">
-                  Usuarios sincronizados desde Active Directory (Solo lectura)
+                  Auditoría de accesos - Usuarios recopilados automáticamente al iniciar sesión
                 </p>
               </div>
             </div>
             <Button variant="outline" onClick={loadUsers} disabled={loading}>
               <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-              Sincronizar desde AD
+              Actualizar
             </Button>
           </div>
         </div>
@@ -155,19 +155,18 @@ export default function UsersPage() {
           </Card>
         )}
 
-        {/* Active Directory Notice */}
+        {/* Auditoría de Accesos Notice */}
         <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
               <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-blue-900 dark:text-blue-100">
-                  Usuarios gestionados desde Active Directory
+                  Auditoría automática de accesos
                 </h3>
                 <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                  Los usuarios se sincronizan automáticamente desde Active Directory. 
-                  Para crear, editar o eliminar usuarios, utiliza las herramientas de gestión de Active Directory. 
-                  Los cambios se reflejarán automáticamente en este panel.
+                  Esta pantalla muestra los usuarios que han accedido a la aplicación. Los datos se obtienen automáticamente del JWT en cada inicio de sesión.
+                  No hay sincronización con sistemas externos - toda la información proviene de los tokens de autenticación.
                 </p>
               </div>
             </div>
@@ -186,7 +185,7 @@ export default function UsersPage() {
             <CardContent>
               <div className="text-2xl font-bold">{totalUsers}</div>
               <p className="text-xs text-muted-foreground mt-1">
-                Sincronizados desde AD
+                Han accedido a la aplicación
               </p>
             </CardContent>
           </Card>
@@ -249,7 +248,7 @@ export default function UsersPage() {
             />
           </div>
           <Badge variant="secondary">
-            Última sincronización: {lastSync.toLocaleTimeString('es-ES')}
+            Actualizado: {lastSync.toLocaleTimeString('es-ES')}
           </Badge>
         </div>
 
@@ -258,21 +257,26 @@ export default function UsersPage() {
           <CardHeader>
             <CardTitle>Lista de Usuarios</CardTitle>
             <CardDescription>
-              Vista de solo lectura de usuarios sincronizados desde Active Directory
+              Registro de usuarios que han accedido a la aplicación (datos extraídos del JWT)
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading && users.length === 0 ? (
               <div className="flex items-center justify-center py-8">
                 <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                <span className="ml-2 text-muted-foreground">Cargando usuarios desde AD...</span>
+                <span className="ml-2 text-muted-foreground">Cargando usuarios...</span>
               </div>
             ) : filteredUsers.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="h-12 w-12 mx-auto text-muted-foreground mb-2" />
                 <p className="text-muted-foreground">
-                  {searchTerm ? 'No se encontraron usuarios' : 'No hay usuarios sincronizados'}
+                  {searchTerm ? 'No se encontraron usuarios' : 'No hay usuarios registrados aún'}
                 </p>
+                {!searchTerm && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Los usuarios aparecerán aquí cuando inicien sesión en la aplicación
+                  </p>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -348,7 +352,7 @@ export default function UsersPage() {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem disabled className="text-xs text-muted-foreground">
-                          Gestión desde Active Directory
+                          Solo lectura - datos del JWT
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -449,17 +453,17 @@ export default function UsersPage() {
           <CardContent className="pt-6">
             <div className="text-center space-y-2">
               <Shield className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Integración con Active Directory</h3>
+              <h3 className="text-lg font-semibold">Auditoría basada en JWT</h3>
               <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-                Los usuarios y roles se sincronizan automáticamente desde Active Directory. 
-                Para gestionar usuarios (crear, editar, desactivar), utiliza las herramientas de administración de Active Directory de tu organización.
-                Los grupos de seguridad de AD se mapean automáticamente a roles en el sistema (Admin, Operator, Viewer).
+                Los usuarios se registran automáticamente cuando inician sesión. La información (nombre, email, roles) se extrae del token JWT.
+                Los roles provienen de Active Directory a través de Keycloak, pero no hay sincronización activa de usuarios.
+                Esta pantalla funciona como un registro de auditoría de accesos, mostrando quién ha usado la aplicación y cuándo.
               </p>
               <div className="flex items-center justify-center gap-4 mt-4">
                 <Badge variant="secondary">
-                  Última sincronización: {lastSync.toLocaleString('es-ES')}
+                  Datos actualizados: {lastSync.toLocaleString('es-ES')}
                 </Badge>
-                <Badge variant="outline">Integración AD Activa</Badge>
+                <Badge variant="outline">Auditoría automática activa</Badge>
               </div>
             </div>
           </CardContent>

@@ -113,6 +113,12 @@ public class UserProfileServiceImpl implements UserProfileService {
     
     @Override
     @Transactional(readOnly = true)
+    public List<UserProfile> getAllUsers() {
+        return userProfileRepository.findAll();
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public List<UserProfile> getAllActive() {
         return userProfileRepository.findAllActive();
     }

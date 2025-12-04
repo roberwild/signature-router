@@ -1,0 +1,233 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0016-create-user-profiles-table
+      author: bmad-dev-agent <dev@signature-router.com>
+      labels: story-16.1,epic-16
+      context: dev,uat,prod
+      comment: "Crear tabla user_profiles para auditoría automática de usuarios basada en JWT. Los usuarios se registran al hacer login, extrayendo datos de JWT claims (no sincronización AD)."
+      changes:
+        - createTable:
+            tableName: user_profiles
+            remarks: "Registro de auditoría de usuarios que han accedido a la aplicación. Datos extraídos de JWT claims en cada login. NO es sincronización con Active Directory - es registro pasivo basado en eventos de autenticación."
+            columns:
+              # =====================
+              # COLUMNAS OBLIGATORIAS (Arquitectura Organizacional)
+              # =====================
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7 ordenable temporalmente"
+              
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de creación del registro (primer login del usuario)"
+              
+              - column:
+                  name: updated_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de última actualización (último login registrado)"
+              
+              # =====================
+              # COLUMNAS DE NEGOCIO - Datos de Usuario (del JWT)
+              # =====================
+              - column:
+                  name: keycloak_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Subject ID del JWT (claim 'sub'). Identificador único de Keycloak/AD. Index único para búsquedas rápidas."
+              
+              - column:
+                  name: username
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Username del usuario (claim 'preferred_username' del JWT). Usado para display y búsqueda."
+              
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Email corporativo del usuario (claim 'email' del JWT). Nullable porque algunos usuarios AD pueden no tener email."
+              
+              - column:
+                  name: full_name
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+                  remarks: "Nombre completo del usuario (claim 'name' del JWT, o construido de given_name + family_name). Usado para display."
+              
+              - column:
+                  name: first_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Primer nombre (claim 'given_name' del JWT)."
+              
+              - column:
+                  name: last_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Apellido (claim 'family_name' del JWT)."
+              
+              - column:
+                  name: roles
+                  type: jsonb
+                  constraints:
+                    nullable: true
+                  remarks: "Roles del usuario como array JSON (claim 'realm_access.roles' del JWT). Ejemplo: ['ADMIN', 'OPERATOR']. Se actualiza en cada login si cambian en AD."
+              
+              - column:
+                  name: department
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Departamento del usuario (claim 'department' del JWT si existe). Opcional."
+              
+              # =====================
+              # COLUMNAS DE AUDITORÍA - Actividad del Usuario
+              # =====================
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+                  remarks: "Indica si el usuario está activo. Default true. Puede derivarse de logins recientes o establecerse manualmente."
+              
+              - column:
+                  name: first_login_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp del primer login registrado. Establecido al crear el registro, nunca se actualiza."
+              
+              - column:
+                  name: last_login_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp del último login registrado. Se actualiza en cada login (throttled cada 5 min)."
+              
+              - column:
+                  name: login_count
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+                  remarks: "Contador incremental de logins. Se incrementa en cada login exitoso."
+              
+              - column:
+                  name: last_login_ip
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+                  remarks: "Dirección IP del último login (obtenida de X-Forwarded-For o RemoteAddr). Para auditoría de seguridad."
+        
+        # =====================
+        # ÍNDICES PARA BÚSQUEDAS RÁPIDAS
+        # =====================
+        - createIndex:
+            indexName: idx_user_profiles_keycloak_id
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: keycloak_id
+            unique: true
+            remarks: "Índice único para búsqueda rápida por Keycloak ID (usado en UserProfileSyncFilter)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_username
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: username
+            remarks: "Índice para búsquedas por username (usado en búsqueda del Admin Panel)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_email
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: email
+            remarks: "Índice para búsquedas por email (usado en búsqueda del Admin Panel)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_last_login_at
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: last_login_at
+                  descending: true
+            remarks: "Índice para ordenar por último login (default sort en Admin Panel)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_active
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: active
+            remarks: "Índice para filtrar usuarios activos/inactivos (usado en stats)"
+      
+      # =====================
+      # ROLLBACK OBLIGATORIO
+      # =====================
+      rollback:
+        - dropTable:
+            tableName: user_profiles
+            cascadeConstraints: true
+
+# =============================================================================
+# NOTAS DE IMPLEMENTACIÓN
+# =============================================================================
+#
+# PROPÓSITO:
+# - Tabla para auditoría automática de usuarios que acceden a la aplicación
+# - Datos provienen EXCLUSIVAMENTE de JWT claims (no sincronización AD)
+# - Registro pasivo: usuarios se crean/actualizan al hacer login
+#
+# ARQUITECTURA:
+# - UserProfileSyncFilter intercepta requests autenticados
+# - Extrae claims del JWT (sub, username, email, roles, etc.)
+# - Invoca UserProfileService.recordLogin()
+# - Service hace upsert: crea nuevo usuario o actualiza existente
+#
+# THROTTLING:
+# - Sync limitado a 1 vez cada 5 minutos por usuario (cache in-memory)
+# - Evita writes excesivos en cada request
+#
+# QUERIES FRECUENTES:
+# 1. findByKeycloakId() - Búsqueda en UserProfileSyncFilter
+# 2. findAll(Pageable) - Lista paginada en Admin Panel
+# 3. search(term, Pageable) - Búsqueda por username/email/fullName
+# 4. countByActive() - Stats de usuarios activos
+# 5. ORDER BY last_login_at DESC - Default sort
+#
+# GDPR/COMPLIANCE:
+# - No almacena contraseñas
+# - No almacena datos sensibles adicionales
+# - Solo datos del JWT (públicos dentro del sistema)
+# - IP almacenada para auditoría de seguridad
+#
+# DIFERENCIA CON SINCRONIZACIÓN AD:
+# - NO hay queries LDAP periódicas
+# - NO se importan todos los usuarios de AD
+# - Solo se registran usuarios que HAN HECHO LOGIN
+# - Datos siempre frescos (del JWT en cada acceso)
+#
+# =============================================================================
+

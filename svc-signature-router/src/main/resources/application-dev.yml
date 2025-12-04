@@ -7,11 +7,12 @@ spring:
     active: dev
 
 # Epic 12: Admin Portal - Development Mode
+# Epic 16: User Audit Trail - JWT-Based Registration
 admin:
   portal:
     user-management:
-      # Development uses MOCK mode - no real Keycloak needed
-      mode: MOCK
+      # LOCAL mode: Uses local user_profiles table populated from JWT
+      mode: LOCAL
     alerts:
       # Development uses mock alerts - no AlertManager needed
       mock: true

@@ -43,12 +43,17 @@ import java.util.stream.Collectors;
  * @since Story 8.2
  */
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     private final ObjectMapper objectMapper;
     private final AuditService auditService;
+    
+    public CustomAccessDeniedHandler(ObjectMapper objectMapper, 
+                                    @org.springframework.beans.factory.annotation.Autowired(required = false) AuditService auditService) {
+        this.objectMapper = objectMapper;
+        this.auditService = auditService;
+    }
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -74,17 +79,21 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         log.warn("Access denied: user={}, path={}, method={}, roles={}, remoteAddr={}, reason={}",
                 username, path, method, roles, remoteAddr, accessDeniedException.getMessage());
 
-        // Story 8.4: Persist to immutable audit_log table
-        AuditEvent auditEvent = AuditEvent.accessDenied(
-                username,
-                roles,
-                path,
-                method,
-                remoteAddr,
-                userAgent,
-                traceId
-        );
-        auditService.log(auditEvent);
+        // Story 8.4: Persist to immutable audit_log table (optional - Epic 8)
+        if (auditService != null) {
+            AuditEvent auditEvent = AuditEvent.accessDenied(
+                    username,
+                    roles,
+                    path,
+                    method,
+                    remoteAddr,
+                    userAgent,
+                    traceId
+            );
+            auditService.log(auditEvent);
+        } else {
+            log.debug("AuditService not available (Epic 8 not configured)");
+        }
 
         // Return HTTP 403 Forbidden with JSON error response
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);

@@ -41,7 +41,6 @@ import java.util.Objects;
  * @since Story 8.5
  */
 @Service
-@RequiredArgsConstructor
 @Slf4j
 @ConditionalOnProperty(prefix = "spring.cloud.vault", name = "enabled", havingValue = "true")
 public class VaultSecretRotationServiceImpl implements SecretRotationService {
@@ -55,6 +54,17 @@ public class VaultSecretRotationServiceImpl implements SecretRotationService {
     private final AuditService auditService;
     private final CacheManager cacheManager;
     private final ContextRefresher contextRefresher;
+    
+    public VaultSecretRotationServiceImpl(
+            VaultTemplate vaultTemplate,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) AuditService auditService,
+            CacheManager cacheManager,
+            ContextRefresher contextRefresher) {
+        this.vaultTemplate = vaultTemplate;
+        this.auditService = auditService;
+        this.cacheManager = cacheManager;
+        this.contextRefresher = contextRefresher;
+    }
     
     @Override
     public int rotatePseudonymizationKey() {
@@ -94,27 +104,29 @@ public class VaultSecretRotationServiceImpl implements SecretRotationService {
             
             log.info("✅ Cache evicted and context refreshed");
             
-            // 6. Audit log the rotation
-            auditService.log(new AuditEvent(
-                AuditEventType.SECRET_ROTATED,
-                "PSEUDONYMIZATION_KEY",
-                null, // entityId - not applicable for system-wide secrets
-                AuditAction.UPDATE,
-                "SYSTEM",
-                "SYSTEM",
-                Map.of(
-                    "vault_path", PSEUDO_KEY_PATH,
-                    "old_version", currentVersion,
-                    "new_version", newVersion,
-                    "rotation_period_days", ROTATION_PERIOD_DAYS,
-                    "grace_period_days", GRACE_PERIOD_DAYS,
-                    "old_key_hash", hashKey(oldKey),
-                    "new_key_hash", hashKey(newKey)
-                ),
-                "127.0.0.1",
-                "VaultSecretRotationService",
-                "rotation-" + Instant.now().toEpochMilli()
-            ));
+            // 6. Audit log the rotation (Epic 8 - optional)
+            if (auditService != null) {
+                auditService.log(new AuditEvent(
+                    AuditEventType.SECRET_ROTATED,
+                    "PSEUDONYMIZATION_KEY",
+                    null, // entityId - not applicable for system-wide secrets
+                    AuditAction.UPDATE,
+                    "SYSTEM",
+                    "SYSTEM",
+                    Map.of(
+                        "vault_path", PSEUDO_KEY_PATH,
+                        "old_version", currentVersion,
+                        "new_version", newVersion,
+                        "rotation_period_days", ROTATION_PERIOD_DAYS,
+                        "grace_period_days", GRACE_PERIOD_DAYS,
+                        "old_key_hash", hashKey(oldKey),
+                        "new_key_hash", hashKey(newKey)
+                    ),
+                    "127.0.0.1",
+                    "VaultSecretRotationService",
+                    "rotation-" + Instant.now().toEpochMilli()
+                ));
+            }
             
             log.info("🎉 Pseudonymization key rotation completed successfully");
             
@@ -123,19 +135,21 @@ public class VaultSecretRotationServiceImpl implements SecretRotationService {
         } catch (Exception e) {
             log.error("❌ Failed to rotate pseudonymization key: {}", e.getMessage(), e);
             
-            // Audit log the failure
-            auditService.log(new AuditEvent(
-                AuditEventType.SECRET_ROTATION_FAILED,
-                "PSEUDONYMIZATION_KEY",
-                null, // entityId - not applicable for system-wide secrets
-                AuditAction.UPDATE,
-                "SYSTEM",
-                "SYSTEM",
-                Map.of("vault_path", PSEUDO_KEY_PATH, "error", e.getMessage()),
-                "127.0.0.1",
-                "VaultSecretRotationService",
-                "rotation-failed-" + Instant.now().toEpochMilli()
-            ));
+            // Audit log the failure (Epic 8 - optional)
+            if (auditService != null) {
+                auditService.log(new AuditEvent(
+                    AuditEventType.SECRET_ROTATION_FAILED,
+                    "PSEUDONYMIZATION_KEY",
+                    null, // entityId - not applicable for system-wide secrets
+                    AuditAction.UPDATE,
+                    "SYSTEM",
+                    "SYSTEM",
+                    Map.of("vault_path", PSEUDO_KEY_PATH, "error", e.getMessage()),
+                    "127.0.0.1",
+                    "VaultSecretRotationService",
+                    "rotation-failed-" + Instant.now().toEpochMilli()
+                ));
+            }
             
             throw new SecretRotationException("Failed to rotate pseudonymization key", e);
         }

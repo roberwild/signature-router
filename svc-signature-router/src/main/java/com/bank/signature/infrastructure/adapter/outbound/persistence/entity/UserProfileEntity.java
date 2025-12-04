@@ -14,18 +14,18 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * JPA entity for user_profile table.
+ * JPA entity for user_profiles table.
  * 
  * <p>Stores user profile information extracted from JWT tokens during login.</p>
  * 
  * @since Story 14.2 - Users Page Backend Integration
  */
 @Entity
-@Table(name = "user_profile", indexes = {
-    @Index(name = "idx_user_profile_keycloak_id", columnList = "keycloak_id", unique = true),
-    @Index(name = "idx_user_profile_username", columnList = "username"),
-    @Index(name = "idx_user_profile_email", columnList = "email"),
-    @Index(name = "idx_user_profile_active", columnList = "active")
+@Table(name = "user_profiles", indexes = {
+    @Index(name = "idx_user_profiles_keycloak_id", columnList = "keycloak_id", unique = true),
+    @Index(name = "idx_user_profiles_username", columnList = "username"),
+    @Index(name = "idx_user_profiles_email", columnList = "email"),
+    @Index(name = "idx_user_profiles_active", columnList = "active")
 })
 @Data
 @Builder

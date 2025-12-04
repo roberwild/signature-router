@@ -67,6 +67,14 @@ public class UserProfileRepositoryAdapter implements UserProfileRepository {
     
     @Override
     @Transactional(readOnly = true)
+    public List<UserProfile> findAll() {
+        return jpaRepository.findAll().stream()
+            .map(mapper::toDomain)
+            .collect(java.util.stream.Collectors.toList());
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
     public List<UserProfile> findAllActive() {
         return jpaRepository.findByActiveTrue().stream()
             .map(mapper::toDomain)

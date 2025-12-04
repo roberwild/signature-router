@@ -17,7 +17,7 @@ import java.util.Map;
 /**
  * Implementation of SpelValidatorService using Spring Expression Language.
  * Story 2.2: Routing Rules - CRUD API
- * 
+ *
  * Uses SimpleEvaluationContext (not StandardEvaluationContext) for security:
  * - Prevents T() type references
  * - Prevents reflection
@@ -27,13 +27,13 @@ import java.util.Map;
 @Service
 @Slf4j
 public class SpelValidatorServiceImpl implements SpelValidatorService {
-    
+
     private final ExpressionParser parser;
-    
+
     public SpelValidatorServiceImpl() {
         this.parser = new SpelExpressionParser();
     }
-    
+
     @Override
     public void validate(String spelExpression) {
         ValidationResult result = validateWithResult(spelExpression);
@@ -41,21 +41,21 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
             throw new InvalidSpelExpressionException(result.errorMessage(), result.errorPosition());
         }
     }
-    
+
     @Override
     public ValidationResult validateWithResult(String spelExpression) {
         if (spelExpression == null || spelExpression.isBlank()) {
             return ValidationResult.failure("SpEL expression cannot be null or blank", 0);
         }
-        
+
         try {
             // 1. Parse the expression (syntax validation)
             Expression expression = parser.parseExpression(spelExpression);
             log.debug("SpEL expression parsed successfully: {}", spelExpression);
-            
+
             // 2. Check for prohibited features (Story 10.6: Enhanced security)
             String lowerExpr = spelExpression.toLowerCase();
-            
+
             // Check for dangerous class references
             String[] dangerousClasses = {
                 "runtime", "processbuilder", "process",
@@ -65,7 +65,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
                 "reflection", "method.invoke",
                 "exec(", "eval(", "compile("
             };
-            
+
             for (String dangerous : dangerousClasses) {
                 if (lowerExpr.contains(dangerous)) {
                     int pos = lowerExpr.indexOf(dangerous);
@@ -75,7 +75,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
                     );
                 }
             }
-            
+
             // Check T() type references - only allow whitelisted types
             if (lowerExpr.contains("t(")) {
                 if (!isWhitelistedTypeReference(spelExpression)) {
@@ -97,7 +97,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
                     spelExpression.indexOf("#")
                 );
             }
-            
+
             // 3. Evaluate with sample context to ensure it works
             // NOTE: There's a known limitation with SimpleEvaluationContext and nested Map property access
             // when using withRootObject. The evaluation may fail with "Property or field 'context' cannot be found"
@@ -106,11 +106,11 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
             // structure and it works there. The tests that validate expression evaluation are marked as
             // potentially flaky due to this Spring framework limitation.
             SimpleEvaluationContext evalContext = createSafeEvaluationContext();
-            
+
             try {
                 // Evaluate expression with context (same as RoutingServiceImpl)
                 Object result = expression.getValue(evalContext);
-                
+
                 // 4. Ensure result is Boolean (routing rules must return boolean)
                 if (result != null && !(result instanceof Boolean)) {
                     return ValidationResult.failure(
@@ -118,7 +118,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
                         -1
                     );
                 }
-                
+
                 log.info("SpEL expression validated successfully: {} -> {}", spelExpression, result);
                 return ValidationResult.success();
             } catch (org.springframework.expression.spel.SpelEvaluationException e) {
@@ -126,7 +126,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
                 log.debug("SpEL evaluation exception: {}", e.getMessage(), e);
                 throw e; // Re-throw to be caught by outer catch block
             }
-            
+
         } catch (ParseException e) {
             log.warn("SpEL parse error at position {}: {}", e.getPosition(), e.getMessage());
             return ValidationResult.failure(
@@ -136,7 +136,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
         } catch (Exception e) {
             log.warn("SpEL evaluation error: {}", e.getMessage(), e);
             String errorMsg = e.getMessage();
-            
+
             // Check if it's a property access error - might be context setup issue
             if (errorMsg != null && errorMsg.contains("Property or field") && errorMsg.contains("cannot be found")) {
                 // Log the full error for debugging
@@ -145,7 +145,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
                 // as the expression can't be evaluated with our test context
                 return ValidationResult.failure(
                     "Evaluation error: Expression cannot be evaluated with test context. " +
-                    "Ensure expression uses 'context.amount.value', 'context.merchantId', etc. " +
+                    "Ensure expression uses 'amount.value', 'amount.currency', 'merchantId', 'orderId', or 'description'. " +
                     "Error: " + errorMsg,
                     -1
                 );
@@ -156,11 +156,11 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
             );
         }
     }
-    
+
     /**
      * Check if T() type reference is to a whitelisted class.
      * Story 10.6: Whitelist TypeLocator
-     * 
+     *
      * @param expression SpEL expression
      * @return true if T() references whitelisted class, false otherwise
      */
@@ -170,7 +170,7 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
         if (tIndex == -1) {
             return true; // No T() references
         }
-        
+
         // Whitelisted type patterns (Story 10.6)
         String[] whitelistedPatterns = {
             "t(java.lang.math)",
@@ -178,43 +178,46 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
             "t(com.bank.signature.domain.model.valueobject.transactioncontext)",
             "t(com.bank.signature.domain.model.valueobject.money)"
         };
-        
+
         // Check if any T() reference matches whitelist
         for (String pattern : whitelistedPatterns) {
             if (lowerExpr.contains(pattern)) {
                 return true;
             }
         }
-        
+
         // If T() exists but doesn't match whitelist, reject
         return false;
     }
-    
+
     /**
      * Creates a safe evaluation context with sample transaction data.
      * Uses SimpleEvaluationContext for security (no reflection, T(), etc.)
-     * 
+     *
      * @return SimpleEvaluationContext with sample context variables
      */
     private SimpleEvaluationContext createSafeEvaluationContext() {
         // Create sample transaction context for validation
-        // Match the structure used in RoutingServiceImpl exactly
-        Map<String, Object> amount = new HashMap<>();
-        amount.put("value", new BigDecimal("100.00"));
-        amount.put("currency", "EUR");
-        
-        Map<String, Object> context = new HashMap<>();
-        context.put("amount", amount);
-        context.put("merchantId", "merchant-123");
-        context.put("orderId", "order-456");
-        context.put("description", "Test transaction");
-        
-        // Build SimpleEvaluationContext (secure, no reflection)
-        // Use Map.of() exactly like RoutingServiceImpl - it works there
-        // The key difference: RoutingServiceImpl uses forReadOnlyDataBinding() and it works
-        // We'll use the same approach to ensure consistency
+        // CRITICAL: SimpleEvaluationContext.forReadOnlyDataBinding() CANNOT access Map properties
+        // even with public getters. It ONLY works with POJOs (Plain Old Java Objects).
+        // Solution: Use a POJO with proper getters instead of HashMap
+
+        TransactionTestContext.Amount amount = new TransactionTestContext.Amount(
+            new BigDecimal("100.00"),
+            "EUR"
+        );
+
+        TransactionTestContext context = new TransactionTestContext(
+            amount,
+            "merchant-123",
+            "order-456",
+            "Test transaction"
+        );
+
+        // Build SimpleEvaluationContext with POJO as root object
+        // Now "amount.value", "merchantId", etc. will work because they are POJO properties
         return SimpleEvaluationContext.forReadOnlyDataBinding()
-            .withRootObject(Map.of("context", context))
+            .withRootObject(context)
             .build();
     }
 }

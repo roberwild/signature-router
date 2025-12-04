@@ -3,6 +3,7 @@ package com.bank.signature.infrastructure;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -18,12 +19,14 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * </ul>
  * 
  * <p><b>Scheduling:</b> Enabled for background jobs (Story 2.9: Challenge Expiration)</p>
+ * <p><b>AOP:</b> Enabled for audit trail (Epic 17: Comprehensive Audit Trail)</p>
  * 
  * @since 0.1.0
  */
 @SpringBootApplication
 @ComponentScan(basePackages = "com.bank.signature")
 @EnableScheduling
+@EnableAspectJAutoProxy
 public class SignatureRouterApplication {
 
     public static void main(String[] args) {

@@ -152,8 +152,9 @@ public class RoutingServiceImpl implements RoutingService {
         context.put("description", transactionContext.description());
         
         // Build SimpleEvaluationContext (secure, no reflection)
+        // Set context map as root object so expressions can use "amount.value", "merchantId", etc.
         return SimpleEvaluationContext.forReadOnlyDataBinding()
-            .withRootObject(Map.of("context", context))
+            .withRootObject(context)
             .build();
     }
     

@@ -98,10 +98,21 @@ export function RuleEditorDialog({
   const validateSpEL = (expression: string) => {
     // Simulación de validación SpEL
     // En producción, esto haría una llamada al backend
-    const hasValidSyntax = !expression.includes('==') || expression.split('==').length === 2;
-    const hasValidVariables = /^[a-zA-Z0-9\s.'"()!=<>&|]+$/.test(expression);
     
-    if (!hasValidSyntax || !hasValidVariables) {
+    // Verificar caracteres permitidos (letras, números, espacios, operadores, comillas, paréntesis)
+    const hasValidCharacters = /^[a-zA-Z0-9\s.'"()!=<>&|]+$/.test(expression);
+    
+    // Verificar balanceo de comillas
+    const singleQuotes = (expression.match(/'/g) || []).length;
+    const doubleQuotes = (expression.match(/"/g) || []).length;
+    const hasBalancedQuotes = singleQuotes % 2 === 0 && doubleQuotes % 2 === 0;
+    
+    // Verificar balanceo de paréntesis
+    const openParens = (expression.match(/\(/g) || []).length;
+    const closeParens = (expression.match(/\)/g) || []).length;
+    const hasBalancedParens = openParens === closeParens;
+    
+    if (!hasValidCharacters || !hasBalancedQuotes || !hasBalancedParens) {
       setSpelValidation({
         isValid: false,
         message: 'Sintaxis SpEL inválida. Verifica los operadores y variables.',
@@ -122,20 +133,20 @@ export function RuleEditorDialog({
 
   const spelExamples = [
     {
-      name: 'Cliente Premium SMS',
-      code: "customer.tier == 'PREMIUM' && channel == 'SMS'",
+      name: 'Transacciones Grandes',
+      code: "amount.value > 1000",
     },
     {
-      name: 'Alta Prioridad Push',
-      code: "channel == 'PUSH' && priority == 'HIGH'",
+      name: 'Merchant Específico',
+      code: "merchantId == 'merchant-premium-001'",
     },
     {
-      name: 'Fallback Voice',
-      code: "channel == 'VOICE' && provider.primary.status == 'DOWN'",
+      name: 'Monto y Currency',
+      code: "amount.value >= 500 && amount.currency == 'EUR'",
     },
     {
-      name: 'Horario No Laboral',
-      code: 'time.hour < 8 || time.hour > 20',
+      name: 'Descripción Contiene',
+      code: "description.contains('urgent')",
     },
   ];
 
@@ -260,7 +271,7 @@ export function RuleEditorDialog({
             <div className="relative">
               <Textarea
                 id="condition"
-                placeholder="customer.tier == 'PREMIUM' && channel == 'SMS'"
+                placeholder="context.amount.value > 1000 && context.amount.currency == 'EUR'"
                 rows={4}
                 className="font-mono text-sm"
                 {...register('condition')}
@@ -306,25 +317,19 @@ export function RuleEditorDialog({
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">
-                customer.tier
+                amount.value
               </Badge>
               <Badge variant="outline">
-                customer.id
+                amount.currency
               </Badge>
               <Badge variant="outline">
-                channel
+                merchantId
               </Badge>
               <Badge variant="outline">
-                priority
+                orderId
               </Badge>
               <Badge variant="outline">
-                provider.primary.status
-              </Badge>
-              <Badge variant="outline">
-                time.hour
-              </Badge>
-              <Badge variant="outline">
-                time.dayOfWeek
+                description
               </Badge>
             </div>
           </div>

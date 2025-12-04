@@ -74,6 +74,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
     maxAge: 30 * 60, // 30 minutes (mismo que Keycloak)
   },
+  events: {
+    async signOut({ token }) {
+      // Logout from Keycloak when user signs out
+      if (token?.accessToken) {
+        try {
+          const issuerUrl = process.env.KEYCLOAK_ISSUER;
+          const logoutUrl = `${issuerUrl}/protocol/openid-connect/logout`;
+          
+          await fetch(logoutUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({
+              client_id: process.env.KEYCLOAK_CLIENT_ID!,
+              client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
+              refresh_token: token.refreshToken as string,
+            }),
+          });
+          
+          console.log("[auth] Successfully logged out from Keycloak");
+        } catch (error) {
+          console.error("[auth] Error logging out from Keycloak:", error);
+        }
+      }
+    },
+  },
   trustHost: true,
   debug: process.env.NODE_ENV === "development",
 })

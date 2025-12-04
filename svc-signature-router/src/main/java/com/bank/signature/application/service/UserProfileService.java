@@ -56,6 +56,11 @@ public interface UserProfileService {
     Page<UserProfile> getAll(Pageable pageable);
     
     /**
+     * Get all user profiles (no pagination).
+     */
+    List<UserProfile> getAllUsers();
+    
+    /**
      * Get all active user profiles.
      */
     List<UserProfile> getAllActive();

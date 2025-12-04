@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { signOut } from 'next-auth/react';
+import { performKeycloakLogout } from '@/lib/auth-utils';
 import {
   LayoutDashboard,
   Settings,
@@ -20,6 +20,7 @@ import {
   Moon,
   Sun,
   LogOut,
+  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -131,7 +132,7 @@ export function AdminSidebar() {
             <Shield className="h-6 w-6 text-primary" />
           </div>
         )}
-        
+
         {/* Botón de Colapsar/Expandir */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -166,7 +167,7 @@ export function AdminSidebar() {
           // Para Dashboard (/admin), solo activar si es exactamente esa ruta
           // Para otras rutas, activar si coincide exactamente o si empieza con la ruta + '/'
           const isActive = mounted && (
-            item.href === '/admin' 
+            item.href === '/admin'
               ? pathname === '/admin'
               : pathname === item.href || pathname?.startsWith(item.href + '/')
           );
@@ -248,7 +249,7 @@ export function AdminSidebar() {
         {/* Cerrar Sesión */}
         {!collapsed ? (
           <button
-            onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+            onClick={() => performKeycloakLogout()}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-colors text-sm text-muted-foreground"
           >
             <LogOut className="h-4 w-4" />
@@ -258,7 +259,7 @@ export function AdminSidebar() {
           <Tooltip>
             <TooltipTrigger asChild>
               <button
-                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                onClick={() => performKeycloakLogout()}
                 className="w-full flex justify-center py-2 rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-colors"
               >
                 <LogOut className="h-4 w-4" />
@@ -307,7 +308,7 @@ export function AdminSidebar() {
             </TooltipContent>
           </Tooltip>
         )}
-        
+
         {/* Estado del Sistema */}
         {!collapsed ? (
           <div className="rounded-lg bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 p-3">

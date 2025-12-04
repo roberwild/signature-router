@@ -48,7 +48,7 @@ public interface UserProfileJpaRepository extends JpaRepository<UserProfileEntit
     /**
      * Count users by role (using JSONB contains).
      */
-    @Query(value = "SELECT COUNT(*) FROM user_profile WHERE roles @> :role::jsonb", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM user_profiles WHERE roles @> CAST(:role AS jsonb)", nativeQuery = true)
     long countByRoleNative(@Param("role") String roleJson);
     
     /**
