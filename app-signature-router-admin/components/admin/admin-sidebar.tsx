@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import { signOut } from 'next-auth/react';
 import {
   LayoutDashboard,
   Settings,
@@ -18,6 +19,7 @@ import {
   ChevronRight,
   Moon,
   Sun,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -243,6 +245,31 @@ export function AdminSidebar() {
 
       {/* Footer */}
       <div className="border-t border-border p-3 flex-shrink-0 space-y-2">
+        {/* Cerrar Sesión */}
+        {!collapsed ? (
+          <button
+            onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-colors text-sm text-muted-foreground"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>Cerrar Sesión</span>
+          </button>
+        ) : (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                className="w-full flex justify-center py-2 rounded-lg hover:bg-destructive hover:text-destructive-foreground transition-colors"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              Cerrar Sesión
+            </TooltipContent>
+          </Tooltip>
+        )}
+
         {/* Toggle Modo Oscuro */}
         {!collapsed ? (
           <button

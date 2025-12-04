@@ -129,7 +129,7 @@ public class GetDashboardMetricsUseCaseImpl implements GetDashboardMetricsUseCas
 
         // Success rate (last 30 days)
         long successfulCount = signatureRequestRepository.countByStatusAndCreatedAtBetween(
-                SignatureStatus.VALIDATED, last30d, now);
+                SignatureStatus.SIGNED, last30d, now);
         double successRate = total30d > 0 ? (successfulCount * 100.0 / total30d) : 0.0;
 
         // Failed signatures in last 24h
