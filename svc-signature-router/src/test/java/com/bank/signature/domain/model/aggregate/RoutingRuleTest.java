@@ -349,8 +349,10 @@ class RoutingRuleTest {
         // When
         rule.update(
             "Updated Name",
+            "Updated description",
             "context.amount.value > 2000.00",
             ChannelType.PUSH,
+            null, // providerId
             5,
             "admin2"
         );
@@ -383,8 +385,10 @@ class RoutingRuleTest {
         // When/Then
         assertThatThrownBy(() -> rule.update(
             "Updated Name",
+            "Updated description",
             "context.amount.value > 2000.00",
             ChannelType.PUSH,
+            null, // providerId
             5,
             "admin2"
         )).isInstanceOf(IllegalStateException.class)

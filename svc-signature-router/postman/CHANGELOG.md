@@ -4,6 +4,55 @@ Registro de cambios en la colección de Postman para Signature Router API.
 
 ---
 
+## [v2.0.1] - 2025-12-04
+
+### 🔧 Correcciones Críticas
+
+#### **Revert SpEL Context Changes** 🔄
+- ✅ **Revertido `transactionContext` a su estado original**
+  - **Problema detectado:** Los cambios de v2.1.0 rompían el backend existente
+  - **Causa raíz:** El domain model `TransactionContext` NO tiene campos `customer`, `channel`, `deviceInfo`
+  - **Solución:** Revertir Postman + Actualizar reglas SpEL en seed script
+  - **Contexto actual:** `amount`, `merchantId`, `orderId`, `description` (campos que SÍ existen)
+  
+**Cambios en seed script (`seed-test-data.sql`):**
+```sql
+-- Reglas SpEL actualizadas para usar propiedades disponibles:
+-- ✅ 'amount.value > 1000.00' → SMS (transacciones premium)
+-- ✅ 'amount.value >= 100.00 && amount.value <= 1000.00' → PUSH (transacciones medias)
+-- ✅ 'amount.value < 100.00' → VOICE (transacciones pequeñas)
+-- ✅ 'description matches ''.*urgente.*''' → SMS (casos urgentes)
+```
+
+**Context disponible en SpEL:**
+```json
+{
+  "amount": {
+    "value": BigDecimal,    // ← context.amount.value
+    "currency": String      // ← context.amount.currency
+  },
+  "merchantId": String,     // ← context.merchantId
+  "orderId": String,        // ← context.orderId
+  "description": String     // ← context.description
+}
+```
+
+### 🎁 Beneficios
+
+**Reglas SpEL realistas:**
+- ✅ `amount.value > 1000.00` - Transacciones altas usan SMS
+- ✅ `amount.value >= 100 && amount.value <= 1000` - Transacciones medias usan PUSH
+- ✅ `amount.value < 100.00` - Transacciones bajas usan VOICE
+- ✅ `description matches '.*urgente.*'` - Casos urgentes usan SMS
+
+**Resultado:**
+- 🟢 **Backend no modificado** (domain model intacto)
+- 🟢 **Reglas evalúan correctamente**
+- 🟢 **Tests no rotos**
+- 🟢 **Arquitectura respetada**
+
+---
+
 ## [v2.0.0] - 2025-11-30
 
 ### ✨ Nuevas Funcionalidades
@@ -97,10 +146,11 @@ Registro de cambios en la colección de Postman para Signature Router API.
 
 ### **Endpoints Totales**
 
-| Versión | Carpetas | Endpoints | Incremento |
-|---------|----------|-----------|------------|
+| Versión | Carpetas | Endpoints | Cambios |
+|---------|----------|-----------|---------|
 | v1.0.0 | 3 | 8 | - |
 | v2.0.0 | 5 | 22 | +14 (+175%) |
+| v2.0.1 | 5 | 22 | SpEL seed fix |
 
 ### **Cobertura de Epics**
 
@@ -160,6 +210,14 @@ Para actualizar la colección en Postman:
 
 ## 🐛 Bugs Corregidos
 
+### **v2.0.1**
+- ✅ **CRÍTICO:** Corregido enfoque para reglas SpEL
+  - **Problema inicial:** Reglas fallaban con `RULE_ERROR: Property 'customer' cannot be found`
+  - **Primera solución (v2.1.0 - REVERTIDA):** Intentar enriquecer el contexto (rompió el backend)
+  - **Solución correcta (v2.0.1):** Actualizar reglas SpEL para usar propiedades existentes
+  - **Fix aplicado:** Reglas en `seed-test-data.sql` ahora usan `amount.value`, `description`
+  - **Impacto:** Routing funciona SIN modificar domain model ni romper tests
+
 ### **v2.0.0**
 - ✅ Corregido endpoint de `Verify Challenge` (era POST, ahora es PATCH)
 - ✅ Corregida URL de challenge verification (faltaba `/complete`)
@@ -184,6 +242,7 @@ Si encuentras algún problema con la colección:
 
 ---
 
-**Última actualización:** 2025-11-30  
+**Última actualización:** 2025-12-04  
+**Versión Actual:** v2.0.1  
 **Mantenedor:** Signature Router Team
 

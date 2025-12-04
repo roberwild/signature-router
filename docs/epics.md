@@ -34,7 +34,7 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E8** | Security & Compliance | Cumplir compliance bancario (PCI-DSS, GDPR, SOC 2) | 8 stories | FR73-FR90, NFR-S1-S16 |
 | **E9** | Observability & SLO Tracking | Métricas, logs, traces para SLO ≥99.9% y P99 <300ms | 6 stories | NFR-O1-O14, NFR-P1-P10 |
 | **E10** | Quality & Testing Excellence (v2) | Testing coverage 75%+, exception handling, MDC logging, documentation | 4 stories | Epic v1 descartada 29-Nov-2025 |
-| **E12** | Admin Panel Frontend-Backend Integration | Implementar endpoints backend para Admin Panel + Mock/Real toggle | 8 stories | Soporta E6, E7 |
+| **E12** | Admin Panel Frontend-Backend Integration ✅ | Implementar endpoints backend para Admin Panel + Mock/Real toggle | 8 stories (DONE) | Soporta E6, E7 |
 | **E14** | Frontend-Backend Complete Integration | Completar integración de 8 páginas pendientes del Admin Panel con backend real | 8 stories | FR47-FR72, E6, E7 |
 | **E15** | Observability Platform Migration - Dynatrace | Migrar observabilidad a Dynatrace (estándar corporativo) | 8 stories | Reemplaza E9 con solución enterprise |
 | **E16** | User Audit Trail - JWT-Based Registration | Sistema de auditoría automática de usuarios basado en JWT | 5 stories | FR (nuevo): Auditoría de accesos |
@@ -44,6 +44,7 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 
 **Notes:** 
 - Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)  
+- **Epic 12 completada 2025-12-04**: Backend implementado en Epic 13 & 14, todos los endpoints disponibles
 - Epic 14 creada 2025-12-02 basada en HITO-VAULT-Y-JWT-ACTIVADOS.md (refleja estado REAL del proyecto)
 - **Epic 15 creada 2025-12-04**: Dynatrace Integration (reemplaza Prometheus stack, alineación con estándar corporativo)
 - **Epic 16 creada 2025-12-04**: User Audit Trail basado en JWT (NO sincronización AD, registro automático en login)

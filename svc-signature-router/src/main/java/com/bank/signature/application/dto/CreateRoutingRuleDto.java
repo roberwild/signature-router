@@ -7,6 +7,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 /**
  * DTO for creating a new routing rule.
  * Story 2.2: Routing Rules - CRUD API
@@ -30,10 +32,17 @@ public record CreateRoutingRuleDto(
     String name,
     
     @Schema(
+        description = "Optional detailed description of the rule purpose and usage",
+        example = "Routes high-value transactions (>1000 EUR) to voice channel for enhanced security"
+    )
+    @Size(max = 1000, message = "description must not exceed 1000 characters")
+    String description,
+    
+    @Schema(
         description = "SpEL expression condition for rule matching. " +
-                      "Available variables: context.amount.value, context.amount.currency, " +
-                      "context.merchantId, context.orderId, context.description",
-        example = "context.amount.value > 1000.00 and context.amount.currency == 'EUR'",
+                      "Available variables: amountValue, amountCurrency, " +
+                      "merchantId, orderId, description",
+        example = "amountValue > 1000.00 && amountCurrency == 'EUR'",
         required = true
     )
     @NotBlank(message = "condition is required")
@@ -47,6 +56,13 @@ public record CreateRoutingRuleDto(
     )
     @NotNull(message = "targetChannel is required")
     ChannelType targetChannel,
+    
+    @Schema(
+        description = "Optional provider ID to use for this rule. If null, the system will select a provider based on the targetChannel.",
+        example = "550e8400-e29b-41d4-a716-446655440000",
+        required = false
+    )
+    UUID providerId,
     
     @Schema(
         description = "Rule evaluation priority (lower number = higher priority)",
@@ -70,6 +86,9 @@ public record CreateRoutingRuleDto(
     public CreateRoutingRuleDto {
         if (name != null) {
             name = name.trim();
+        }
+        if (description != null && !description.isBlank()) {
+            description = description.trim();
         }
         if (condition != null) {
             condition = condition.trim();

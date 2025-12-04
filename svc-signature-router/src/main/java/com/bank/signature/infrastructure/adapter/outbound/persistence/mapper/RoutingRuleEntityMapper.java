@@ -25,8 +25,10 @@ public class RoutingRuleEntityMapper {
         return RoutingRuleEntity.builder()
             .id(rule.getId())
             .name(rule.getName())
+            .description(rule.getDescription())
             .condition(rule.getCondition())
             .targetChannel(rule.getTargetChannel())
+            .providerId(rule.getProviderId())
             .priority(rule.getPriority())
             .enabled(rule.getEnabled())
             .createdBy(rule.getCreatedBy())
@@ -53,8 +55,10 @@ public class RoutingRuleEntityMapper {
         return RoutingRule.builder()
             .id(entity.getId())
             .name(entity.getName())
+            .description(entity.getDescription())
             .condition(entity.getCondition())
             .targetChannel(entity.getTargetChannel())
+            .providerId(entity.getProviderId())
             .priority(entity.getPriority())
             .enabled(entity.getEnabled())
             .createdBy(entity.getCreatedBy())
@@ -80,8 +84,10 @@ public class RoutingRuleEntityMapper {
         }
         
         entity.setName(rule.getName());
+        entity.setDescription(rule.getDescription());
         entity.setCondition(rule.getCondition());
         entity.setTargetChannel(rule.getTargetChannel());
+        entity.setProviderId(rule.getProviderId());
         entity.setPriority(rule.getPriority());
         entity.setEnabled(rule.getEnabled());
         entity.setModifiedBy(rule.getModifiedBy());

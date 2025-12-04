@@ -15,12 +15,18 @@ public interface SpelValidatorService {
     /**
      * Validates a SpEL expression for routing rules.
      * 
-     * Allowed variables:
-     * - context.amount.value (BigDecimal)
-     * - context.amount.currency (String)
-     * - context.merchantId (String)
-     * - context.orderId (String)
-     * - context.description (String)
+     * Available properties (from RoutingContext JavaBean):
+     * - amountValue (BigDecimal) - transaction amount value
+     * - amountCurrency (String) - transaction currency (e.g., "EUR", "USD")
+     * - merchantId (String) - merchant identifier
+     * - orderId (String) - order identifier
+     * - description (String) - transaction description
+     * 
+     * Example expressions:
+     * - amountValue > 1000.00
+     * - amountValue >= 100.00 && amountValue <= 1000.00
+     * - description matches '.*urgente.*'
+     * - amountCurrency == 'EUR' && amountValue > 500
      * 
      * Allowed operators:
      * - Comparison: ==, !=, <, >, <=, >=

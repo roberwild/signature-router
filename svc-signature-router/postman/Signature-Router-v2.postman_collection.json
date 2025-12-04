@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "signature-router-002",
 		"name": "Signature Router API (With Keycloak)",
-		"description": "Colección completa con autenticación OAuth2/Keycloak para el Signature Router\n\n**Epic 13: Provider Management CRUD** ✅\n**Última actualización:** 2025-11-30",
+		"description": "Colección completa con autenticación OAuth2/Keycloak para el Signature Router\n\n**v2.0.0** ✅\n**Epic 13: Provider Management CRUD** ✅\n**Última actualización:** 2025-12-04",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [

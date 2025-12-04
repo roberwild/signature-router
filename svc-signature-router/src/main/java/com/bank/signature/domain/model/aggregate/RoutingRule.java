@@ -37,15 +37,21 @@ public class RoutingRule {
     private String name;
     
     /**
+     * Optional detailed description of the rule purpose and usage.
+     * Example: "Routes high-value transactions (>1000 EUR) to voice channel for enhanced security"
+     */
+    private String description;
+    
+    /**
      * SpEL expression condition.
-     * Example: "context.amount.value > 1000.00 and context.merchantId == 'merchant-123'"
+     * Example: "amountValue > 1000.00 && amountCurrency == 'EUR'"
      * 
      * Available variables:
-     * - context.amount.value (BigDecimal)
-     * - context.amount.currency (String)
-     * - context.merchantId (String)
-     * - context.orderId (String)
-     * - context.description (String)
+     * - amountValue (BigDecimal)
+     * - amountCurrency (String)
+     * - merchantId (String)
+     * - orderId (String)
+     * - description (String)
      */
     private String condition;
     
@@ -53,6 +59,13 @@ public class RoutingRule {
      * Target channel when rule matches.
      */
     private ChannelType targetChannel;
+    
+    /**
+     * Optional provider ID to use for this rule.
+     * If null, the system will select a provider based on the targetChannel.
+     * Example: UUID of BioCatch provider for biometric channel
+     */
+    private UUID providerId;
     
     /**
      * Priority for rule evaluation (lower = higher priority).
@@ -136,20 +149,24 @@ public class RoutingRule {
      * Business method: Update rule details.
      * 
      * @param name New name
+     * @param description New description (optional)
      * @param condition New SpEL condition
      * @param targetChannel New target channel
+     * @param providerId New provider ID (optional)
      * @param priority New priority
      * @param modifiedBy User performing the update
      */
-    public void update(String name, String condition, ChannelType targetChannel, 
-                       Integer priority, String modifiedBy) {
+    public void update(String name, String description, String condition, ChannelType targetChannel, 
+                       UUID providerId, Integer priority, String modifiedBy) {
         if (Boolean.TRUE.equals(this.deleted)) {
             throw new IllegalStateException("Cannot update a deleted rule");
         }
         
         this.name = name;
+        this.description = description;
         this.condition = condition;
         this.targetChannel = targetChannel;
+        this.providerId = providerId;
         this.priority = priority;
         this.modifiedBy = modifiedBy;
         this.modifiedAt = Instant.now();

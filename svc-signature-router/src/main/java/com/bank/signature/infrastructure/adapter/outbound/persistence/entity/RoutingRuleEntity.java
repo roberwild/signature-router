@@ -34,12 +34,18 @@ public class RoutingRuleEntity {
     @Column(name = "name", nullable = false, length = 200)
     private String name;
     
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
+    
     @Column(name = "condition", nullable = false, length = 1000)
     private String condition;
     
     @Enumerated(EnumType.STRING)
     @Column(name = "target_channel", nullable = false, length = 20)
     private ChannelType targetChannel;
+    
+    @Column(name = "provider_id", columnDefinition = "UUID")
+    private UUID providerId;
     
     @Column(name = "priority", nullable = false)
     private Integer priority;

@@ -1,0 +1,200 @@
+# ============================================================================
+# CURSOR RULES - SIGNATURE ROUTER PROJECT
+# ============================================================================
+
+## 🏗️ ARQUITECTURA DEL PROYECTO
+
+Este proyecto usa **Arquitectura Hexagonal (Puertos y Adaptadores)** + **DDD (Domain-Driven Design)**.
+
+### Capas:
+- **Domain** (`domain/`): Lógica de negocio pura, agregados, value objects, excepciones
+- **Application** (`application/`): Casos de uso, DTOs, mappers de aplicación, servicios de aplicación
+- **Infrastructure** (`infrastructure/`): Adaptadores (REST, persistence, external services), configuración
+
+---
+
+## 🔴 REGLA CRÍTICA: PROCESO OBLIGATORIO PARA AGREGAR/MODIFICAR CAMPOS
+
+Cuando agregues o modifiques un campo en cualquier entidad/agregado, **DEBES seguir este checklist completo**:
+
+### ✅ CHECKLIST OBLIGATORIO (NO SALTAR NINGÚN PASO):
+
+1. **Base de datos**
+   - [ ] Ejecutar `ALTER TABLE` o crear script de migración Liquibase
+   - [ ] Verificar que la columna se creó correctamente con `SELECT`
+
+2. **Entidad JPA** (`infrastructure/adapter/outbound/persistence/entity/`)
+   - [ ] Agregar campo con anotación `@Column`
+   - [ ] Verificar tipo de dato correcto (String, TEXT, UUID, etc.)
+
+3. **Domain Model** (`domain/model/aggregate/` o `domain/model/valueobject/`)
+   - [ ] Agregar campo al agregado/value object
+   - [ ] Actualizar métodos de negocio (`update()`, constructores, etc.)
+   - [ ] Actualizar JavaDoc si es necesario
+
+4. **DTOs** (`application/dto/`)
+   - [ ] Agregar campo a `CreateXxxDto`
+   - [ ] Agregar campo a `UpdateXxxDto`
+   - [ ] Agregar campo a `XxxResponseDto`
+   - [ ] Agregar validaciones (`@NotBlank`, `@Size`, etc.) si aplica
+   - [ ] Actualizar compact constructors si existen
+
+5. **Mapper de aplicación** (`application/mapper/`)
+   - [ ] Actualizar método `toDomain()` para mapear el campo
+   - [ ] Actualizar método `toDto()` para mapear el campo
+   - [ ] Actualizar método `updateDomain()` si existe
+
+6. **Mapper de infraestructura** (`infrastructure/adapter/outbound/persistence/mapper/`)
+   - [ ] Actualizar método `toEntity()` para mapear el campo
+   - [ ] Actualizar método `toDomain()` para mapear el campo
+   - [ ] Actualizar método `updateEntity()` para mapear el campo
+
+7. **Scripts de datos iniciales** (`scripts/seed-test-data.sql`)
+   - [ ] Agregar columna en `INSERT INTO` statements
+   - [ ] Proveer valores de ejemplo realistas
+
+8. **Frontend** (si aplica)
+   - [ ] Actualizar interfaces TypeScript en `lib/api/types.ts`
+   - [ ] Actualizar formularios si es necesario
+   - [ ] Actualizar validaciones de formulario
+
+9. **Verificación final**
+   - [ ] Ejecutar `mvn clean compile -DskipTests` sin errores
+   - [ ] Verificar linting con `read_lints` tool
+   - [ ] Reiniciar backend y probar endpoint completo
+   - [ ] Verificar frontend si aplica
+
+### ⚠️ ADVERTENCIAS CRÍTICAS:
+
+- **NUNCA** saltar ningún paso del checklist
+- **NUNCA** asumir que un paso "probablemente no es necesario"
+- **SIEMPRE** verificar cada capa después de modificarla
+- **SIEMPRE** hacer `mvn clean compile` después de cambios en entidades/dominio
+- Este proceso puede tomar 30-45 minutos, pero es **OBLIGATORIO** para evitar horas de debugging
+
+### 🎯 EJEMPLO: Agregar campo `description` a `RoutingRule`
+
+```
+1. ALTER TABLE routing_rule ADD COLUMN description TEXT;
+2. RoutingRuleEntity.java → @Column(name = "description", columnDefinition = "TEXT") private String description;
+3. RoutingRule.java → private String description; + actualizar update()
+4. CreateRoutingRuleDto.java → String description
+5. UpdateRoutingRuleDto.java → String description
+6. RoutingRuleResponseDto.java → String description
+7. RoutingRuleMapper.java → agregar .description() en todos los métodos
+8. RoutingRuleEntityMapper.java → agregar .description() en toEntity/toDomain/updateEntity
+9. seed-test-data.sql → agregar description en INSERT INTO routing_rule
+10. types.ts → agregar description?: string
+11. mvn clean compile -DskipTests
+12. Reiniciar backend
+13. Probar CRUD completo
+```
+
+---
+
+## 🗄️ CONVENCIONES DE BASE DE DATOS
+
+- Usar **UUID v7** para IDs (gen_random_uuid())
+- Columnas obligatorias: `id`, `created_at`, `created_by`, `deleted`
+- Soft delete: `deleted` (boolean), `deleted_at`, `deleted_by`
+- Audit: `modified_at`, `modified_by`
+- TEXT para descripciones largas, VARCHAR(N) para campos cortos
+
+---
+
+## 🎨 CONVENCIONES DE CÓDIGO
+
+- **DTOs**: Usar Java Records
+- **Mappers**: Componentes Spring (`@Component`)
+- **Validaciones**: Usar Jakarta Validation (`@NotBlank`, `@Size`, etc.)
+- **Logging**: SLF4J con Lombok `@Slf4j`
+- **Documentación API**: Swagger/OpenAPI con `@Schema`
+
+---
+
+## 🚫 PROHIBICIONES
+
+- ❌ NO modificar solo la entidad JPA sin actualizar el dominio
+- ❌ NO modificar solo el dominio sin actualizar los DTOs
+- ❌ NO modificar DTOs sin actualizar mappers
+- ❌ NO olvidar actualizar scripts de seed
+- ❌ NO asumir que el IDE sincronizará automáticamente - siempre hacer `mvn clean compile`
+
+---
+
+## 🔄 FLUJO DE DATOS TÍPICO
+
+```
+Frontend Request
+    ↓
+REST Controller (infrastructure/adapter/inbound/rest)
+    ↓
+DTO (application/dto)
+    ↓
+Mapper (application/mapper) → Domain Model
+    ↓
+Use Case (application/usecase) → Lógica de negocio
+    ↓
+Domain Model (domain/model/aggregate)
+    ↓
+Repository Port (domain/port/outbound)
+    ↓
+Repository Adapter (infrastructure/adapter/outbound/persistence)
+    ↓
+Entity Mapper (infrastructure/persistence/mapper)
+    ↓
+JPA Entity (infrastructure/persistence/entity)
+    ↓
+PostgreSQL Database
+```
+
+**Cada flecha implica un mapeo. Si agregas un campo, DEBES actualizar TODOS los mapeos.**
+
+---
+
+## 📦 ESTRUCTURA DE PAQUETES
+
+```
+com.bank.signature/
+├── domain/
+│   ├── model/
+│   │   ├── aggregate/      # Agregados (SignatureRequest, RoutingRule)
+│   │   ├── entity/         # Entidades del dominio
+│   │   └── valueobject/    # Value Objects (Money, ChannelType)
+│   ├── port/
+│   │   ├── inbound/        # Puertos de entrada (Use Cases)
+│   │   └── outbound/       # Puertos de salida (Repositories, Services)
+│   ├── service/            # Servicios de dominio
+│   └── exception/          # Excepciones del dominio
+├── application/
+│   ├── usecase/            # Implementaciones de casos de uso
+│   ├── dto/                # DTOs (Request/Response)
+│   ├── mapper/             # Mappers (DTO ↔ Domain)
+│   └── service/            # Servicios de aplicación
+└── infrastructure/
+    ├── adapter/
+    │   ├── inbound/
+    │   │   └── rest/       # Controladores REST
+    │   └── outbound/
+    │       ├── persistence/ # Adaptadores JPA
+    │       └── external/    # Clientes externos (Vault, etc.)
+    ├── config/             # Configuración Spring
+    └── filter/             # Filtros HTTP
+```
+
+---
+
+## 💡 TIPS ADICIONALES
+
+- Usa **Builder pattern** para objetos complejos
+- Usa **Records** para DTOs inmutables
+- Siempre valida en la capa de aplicación (DTOs)
+- La lógica de negocio SOLO en el dominio
+- Los mappers NO deben contener lógica de negocio
+- Usa `@Transactional` solo en casos de uso y adapters de persistencia
+
+---
+
+**IMPORTANTE**: Si el usuario reporta que algo no funciona después de agregar un campo, 
+revisa INMEDIATAMENTE este checklist completo antes de proponer soluciones.
+

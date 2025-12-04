@@ -23,8 +23,10 @@ public class RoutingRuleMapper {
     public RoutingRule toDomain(CreateRoutingRuleDto dto) {
         return RoutingRule.builder()
             .name(dto.name())
+            .description(dto.description())
             .condition(dto.condition())
             .targetChannel(dto.targetChannel())
+            .providerId(dto.providerId())
             .priority(dto.priority())
             .enabled(dto.enabled())
             .deleted(false)
@@ -41,8 +43,10 @@ public class RoutingRuleMapper {
     public void updateDomain(UpdateRoutingRuleDto dto, RoutingRule existingRule, String modifiedBy) {
         existingRule.update(
             dto.name(),
+            dto.description(),
             dto.condition(),
             dto.targetChannel(),
+            dto.providerId(),
             dto.priority(),
             modifiedBy
         );
@@ -65,8 +69,10 @@ public class RoutingRuleMapper {
         return new RoutingRuleResponseDto(
             rule.getId(),
             rule.getName(),
+            rule.getDescription(),
             rule.getCondition(),
             rule.getTargetChannel(),
+            rule.getProviderId(),
             rule.getPriority(),
             rule.getEnabled(),
             rule.getCreatedBy(),

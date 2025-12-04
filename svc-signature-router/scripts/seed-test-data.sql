@@ -142,16 +142,23 @@ INSERT INTO provider_config (
 -- ================================================================================
 -- 2. ROUTING_RULE - Reglas de enrutamiento
 -- ================================================================================
+-- SpEL conditions use RoutingContext JavaBean properties:
+-- - amountValue (BigDecimal): transaction amount value
+-- - amountCurrency (String): transaction currency
+-- - merchantId (String): merchant identifier
+-- - orderId (String): order identifier
+-- - description (String): transaction description
 
 INSERT INTO routing_rule (
-    id, name, condition, target_channel, priority, enabled,
+    id, name, description, condition, target_channel, priority, enabled,
     created_at, created_by, modified_at, modified_by,
     deleted, deleted_at, deleted_by
 ) VALUES
 (
     gen_random_uuid(),
     'SMS Premium - Twilio',
-    'customer.tier == ''PREMIUM'' && channel == ''SMS''',
+    'Enruta transacciones de alto valor (>1000 EUR) a SMS mediante Twilio. Usado para clientes premium o transacciones críticas que requieren confirmación inmediata.',
+    'amountValue > 1000.00',
     'SMS',
     1,
     true,
@@ -165,25 +172,11 @@ INSERT INTO routing_rule (
 ),
 (
     gen_random_uuid(),
-    'SMS Standard - AWS SNS',
-    'customer.tier == ''STANDARD'' && channel == ''SMS''',
-    'SMS',
-    2,
-    true,
-    NOW() - INTERVAL '60 days',
-    'admin@singular.com',
-    NOW() - INTERVAL '30 days',
-    'admin@singular.com',
-    false,
-    NULL,
-    NULL
-),
-(
-    gen_random_uuid(),
     'PUSH - FCM',
-    'channel == ''PUSH''',
+    'Transacciones de valor medio (100-1000 EUR) se envían como notificaciones push. Método menos intrusivo para usuarios con la app instalada.',
+    'amountValue >= 100.00 && amountValue <= 1000.00',
     'PUSH',
-    1,
+    2,
     true,
     NOW() - INTERVAL '60 days',
     'admin@singular.com',
@@ -196,14 +189,31 @@ INSERT INTO routing_rule (
 (
     gen_random_uuid(),
     'VOICE - Twilio',
-    'channel == ''VOICE''',
+    'Transacciones pequeñas (<100 EUR) usan llamada de voz. Útil para usuarios sin smartphone o con conectividad limitada.',
+    'amountValue < 100.00',
     'VOICE',
-    1,
+    3,
     true,
     NOW() - INTERVAL '60 days',
     'admin@singular.com',
     NULL,
     NULL,
+    false,
+    NULL,
+    NULL
+),
+(
+    gen_random_uuid(),
+    'SMS Standard - AWS SNS',
+    'Regla catch-all para transacciones que contienen la palabra "urgente" en la descripción. Usa AWS SNS como proveedor alternativo.',
+    'description matches ''.*urgente.*''',
+    'SMS',
+    4,
+    true,
+    NOW() - INTERVAL '60 days',
+    'admin@singular.com',
+    NOW() - INTERVAL '30 days',
+    'admin@singular.com',
     false,
     NULL,
     NULL

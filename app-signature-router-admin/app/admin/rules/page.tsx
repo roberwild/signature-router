@@ -48,6 +48,31 @@ export default function RoutingRulesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [providerNameToIdMap, setProviderNameToIdMap] = useState<Record<string, string>>({});
+  const [providers, setProviders] = useState<Array<{ id: string; name: string; type: string }>>([]);
+
+  // Cargar proveedores y crear mapa nombre -> UUID
+  const loadProviders = async () => {
+    try {
+      const response = await apiClient.getProviders();
+      const nameToIdMap: Record<string, string> = {};
+      const providersList: Array<{ id: string; name: string; type: string }> = [];
+      
+      response.providers.forEach((p: any) => {
+        nameToIdMap[p.provider_name] = p.id;
+        providersList.push({
+          id: p.id,
+          name: p.provider_name,
+          type: p.provider_type,
+        });
+      });
+      
+      setProviderNameToIdMap(nameToIdMap);
+      setProviders(providersList);
+    } catch (err) {
+      console.error('Error loading providers:', err);
+    }
+  };
 
   // Cargar reglas desde el backend
   const loadRules = async () => {
@@ -74,6 +99,7 @@ export default function RoutingRulesPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
+      loadProviders();
       loadRules();
     }
   }, [isAuthenticated]);
@@ -84,7 +110,22 @@ export default function RoutingRulesPage() {
   };
 
   const handleEditRule = (rule: RuleWithMetrics) => {
-    setEditingRule(rule);
+    // Convertir providerId (UUID) a nombre de proveedor
+    let providerName = 'Twilio'; // Default
+    if (rule.providerId) {
+      // Buscar el nombre del proveedor por su UUID
+      const providerEntry = Object.entries(providerNameToIdMap).find(([name, id]) => id === rule.providerId);
+      if (providerEntry) {
+        providerName = providerEntry[0];
+      }
+    }
+    
+    // Mapear targetChannel a channel para el formulario
+    setEditingRule({
+      ...rule,
+      channel: rule.targetChannel,
+      provider: providerName, // Nombre del proveedor (no UUID)
+    });
     setDialogOpen(true);
   };
 
@@ -106,6 +147,14 @@ export default function RoutingRulesPage() {
   const handleSaveRule = async (ruleData: any) => {
     setActionLoading('save');
     try {
+      // Convertir nombre de proveedor a UUID
+      const providerId = ruleData.provider ? providerNameToIdMap[ruleData.provider] : undefined;
+      
+      console.log('🔍 DEBUG handleSaveRule:');
+      console.log('  - ruleData.provider (nombre):', ruleData.provider);
+      console.log('  - providerNameToIdMap:', providerNameToIdMap);
+      console.log('  - providerId (UUID):', providerId);
+      
       if (editingRule) {
         // Editar regla existente
         const updateDto: UpdateRuleDto = {
@@ -114,12 +163,13 @@ export default function RoutingRulesPage() {
           priority: ruleData.priority,
           condition: ruleData.condition,
           targetChannel: ruleData.channel || ruleData.targetChannel,
+          providerId: providerId, // UUID del proveedor (convertido desde nombre)
           enabled: ruleData.enabled,
         };
         const updated = await apiClient.updateRule(editingRule.id, updateDto);
         setRules(rules.map(rule =>
           rule.id === editingRule.id
-            ? { ...updated, channel: updated.targetChannel, executionCount: rule.executionCount, successRate: rule.successRate }
+            ? { ...updated, channel: updated.targetChannel, provider: updated.providerId, executionCount: rule.executionCount, successRate: rule.successRate }
             : rule
         ));
       } else {
@@ -130,10 +180,11 @@ export default function RoutingRulesPage() {
           priority: ruleData.priority || rules.length + 1,
           condition: ruleData.condition,
           targetChannel: ruleData.channel || ruleData.targetChannel,
+          providerId: providerId, // UUID del proveedor (convertido desde nombre)
           enabled: ruleData.enabled ?? true,
         };
         const created = await apiClient.createRule(createDto);
-        setRules([...rules, { ...created, channel: created.targetChannel, executionCount: 0, successRate: 0 }]);
+        setRules([...rules, { ...created, channel: created.targetChannel, provider: created.providerId, executionCount: 0, successRate: 0 }]);
       }
       setDialogOpen(false);
     } catch (err) {
@@ -182,10 +233,34 @@ export default function RoutingRulesPage() {
     
     setRules(newRules);
 
-    // Actualizar en el backend
+    // Actualizar en el backend - enviar todos los campos requeridos
     try {
-      await apiClient.updateRule(newRules[index].id, { priority: newRules[index].priority });
-      await apiClient.updateRule(newRules[targetIndex].id, { priority: newRules[targetIndex].priority });
+      // Convertir nombre de proveedor a UUID si existe
+      const rule1 = newRules[index];
+      const rule2 = newRules[targetIndex];
+      
+      const providerId1 = rule1.provider ? providerNameToIdMap[rule1.provider] : rule1.providerId;
+      const providerId2 = rule2.provider ? providerNameToIdMap[rule2.provider] : rule2.providerId;
+      
+      await apiClient.updateRule(rule1.id, {
+        name: rule1.name,
+        description: rule1.description || '',
+        condition: rule1.condition,
+        targetChannel: rule1.targetChannel,
+        providerId: providerId1,
+        priority: rule1.priority,
+        enabled: rule1.enabled,
+      });
+      
+      await apiClient.updateRule(rule2.id, {
+        name: rule2.name,
+        description: rule2.description || '',
+        condition: rule2.condition,
+        targetChannel: rule2.targetChannel,
+        providerId: providerId2,
+        priority: rule2.priority,
+        enabled: rule2.enabled,
+      });
     } catch (err) {
       console.error('Error updating priorities:', err);
       // Recargar reglas si falla
@@ -479,6 +554,7 @@ export default function RoutingRulesPage() {
           onOpenChange={setDialogOpen}
           rule={editingRule}
           onSave={handleSaveRule}
+          providers={providers}
         />
       </div>
     </div>

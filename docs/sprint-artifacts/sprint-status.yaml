@@ -230,24 +230,34 @@ development_status:
   # Epic será creada después de reunión con specs reales
   epic-11: backlog # ⏳ Waiting for MuleSoft specs
 
-  # Epic 12: Admin Panel Frontend-Backend Integration (8 stories) 📋 BACKLOG
+  # Epic 12: Admin Panel Frontend-Backend Integration (8 stories) ✅ DONE
   # Ver: docs/epics/epic-12-admin-panel-integration.md
   # Objetivo: Implementar endpoints backend para Admin Panel (Epic 6 & 7) + Sistema Mock/Real toggle
-  epic-12: backlog # 📋 Ready for Sprint Planning
-  12-8-mock-backend-toggle-system: backlog # ⚡ CRÍTICO - Debe hacerse PRIMERO (Fase 0, 1 semana)
-  12-1-dashboard-metrics-endpoint: backlog # Fase 1 - Quick Win (4-6h)
-  12-2-admin-signatures-filters: backlog # Fase 1 - Quick Win (2-3h)
-  12-3-providers-readonly-endpoint: backlog # Fase 1 - Quick Win (1-2h)
-  12-4-metrics-analytics-endpoint: backlog # Fase 2 - Integraciones (1 semana)
-  12-5-keycloak-users-proxy: backlog # Fase 2 - Integraciones (1 semana)
-  12-6-keycloak-security-audit: backlog # Fase 2 - Integraciones (3-4 días)
-  12-7-prometheus-alertmanager-integration: backlog # Fase 2 - Integraciones (2 días)
+  epic-12: done # ✅ COMPLETADA 2025-12-04 - Backend 100% implementado en Epic 13 & 14
+  12-1-dashboard-metrics-endpoint: done # ✅ DashboardMetricsController implementado
+  12-2-admin-signatures-filters: done # ✅ AdminSignatureController con filtros paginados
+  12-3-providers-crud-endpoint: done # ✅ ProviderManagementController (CRUD completo, no solo read-only)
+  12-4-metrics-analytics-endpoint: done # ✅ MetricsAnalyticsController implementado
+  12-5-keycloak-users-proxy: done # ✅ UserManagementController (read-only, synced from AD)
+  12-6-keycloak-security-audit: done # ✅ SecurityAuditController implementado
+  12-7-prometheus-alertmanager-integration: done # ✅ AlertsController implementado (con mock mode)
+  12-8-mock-backend-toggle-system: done # ✅ Sistema implementado en frontend (lib/api/client.ts)
   epic-12-retrospective: optional
 
-  # Epic 12 Summary:
-  # - Status: 📋 Backlog (0/8 stories started)
-  # - Goal: Admin Panel 100% funcional con backend real (actualmente 40% cobertura)
-  # - Effort: Fase 0 (1 semana) + Fase 1 (1-2 días) + Fase 2 (3 semanas) = ~5 semanas total
-  # - MVP: Solo Fase 0 + Fase 1 = ~2 semanas para 3 pantallas funcionando
-  # - Dependencies: Epic 6 & 7 (UI ya completa), Keycloak, Prometheus AlertManager
-  # - Documentation: docs/epics/epic-12-admin-panel-integration.md, docs/frontend/ANALISIS-COBERTURA-BACKEND-FRONTEND.md
+  # Epic 12 Summary (ACTUALIZADO 2025-12-04):
+  # - Status: ✅ 100% complete (8/8 stories DONE)
+  # - Backend: Todos los controladores implementados (Epic 13 & 14)
+  # - Frontend: Mock/Real toggle implementado y funcionando
+  # - Endpoints implementados:
+  #   * GET /api/v1/admin/dashboard/metrics
+  #   * GET /api/v1/admin/signatures (con filtros y paginación)
+  #   * GET/POST/PUT/DELETE /api/v1/admin/providers (CRUD completo)
+  #   * GET /api/v1/admin/metrics?range=7d&channel=SMS
+  #   * GET /api/v1/admin/users (read-only, AD sync)
+  #   * GET /api/v1/admin/security/overview + /access-audit
+  #   * GET /api/v1/admin/alerts + acknowledge/resolve
+  # - Mock adapters: AlertManagerMockAdapter, KeycloakSecurityMockService
+  # - Configuración: alertmanager.mock=true, keycloak.admin.mock=true
+  # - Frontend toggle: NEXT_PUBLIC_USE_MOCK_DATA (true/false)
+  # - Documentation: MOCK-VS-REAL-GUIDE.md, OpenAPI completo
+  # - Nota: Story 12.3 evolucionó de "read-only" a "CRUD completo" durante implementación

@@ -37,8 +37,14 @@ public record RoutingRuleResponseDto(
     String name,
     
     @Schema(
+        description = "Optional detailed description of the rule purpose",
+        example = "Routes high-value transactions (>1000 EUR) to voice channel for enhanced security"
+    )
+    String description,
+    
+    @Schema(
         description = "SpEL expression condition",
-        example = "context.amount.value > 1000.00"
+        example = "amountValue > 1000.00"
     )
     String condition,
     
@@ -47,6 +53,12 @@ public record RoutingRuleResponseDto(
         example = "VOICE"
     )
     ChannelType targetChannel,
+    
+    @Schema(
+        description = "Optional provider ID to use for this rule",
+        example = "550e8400-e29b-41d4-a716-446655440000"
+    )
+    UUID providerId,
     
     @Schema(
         description = "Rule evaluation priority (lower = higher priority)",

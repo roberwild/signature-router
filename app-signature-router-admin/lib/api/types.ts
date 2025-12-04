@@ -424,6 +424,7 @@ export interface RoutingRule {
   priority: number;
   condition: string; // SpEL expression
   targetChannel: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC';
+  providerId?: string; // UUID of the provider to use
   enabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -435,6 +436,7 @@ export interface CreateRuleDto {
   priority: number;
   condition: string;
   targetChannel: 'SMS' | 'PUSH' | 'VOICE' | 'BIOMETRIC';
+  providerId?: string; // UUID of the provider to use
   enabled: boolean;
 }
 

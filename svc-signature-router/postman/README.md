@@ -2,8 +2,8 @@
 
 Esta carpeta contiene la colección de Postman actualizada para probar todos los endpoints de la API Signature Router.
 
-**Última actualización:** 2025-11-30  
-**Versión:** v2 (con Epic 13: Provider Management)
+**Última actualización:** 2025-12-04  
+**Versión:** v2.0 (Epic 13 - Provider Management)
 
 ---
 
@@ -305,7 +305,57 @@ La colección está completamente actualizada con todos los endpoints de Epic 13
 
 ---
 
-**Última actualización:** 2025-11-30  
+---
+
+## 🆕 Cambios en v2.1 (2025-12-04)
+
+### **Contexto Enriquecido para Reglas SpEL**
+
+Los requests de signature ahora incluyen un `transactionContext` completo que funciona con las reglas SpEL existentes:
+
+**Antes (v2.0):**
+```json
+{
+  "transactionContext": {
+    "amount": { "value": 1500.00, "currency": "EUR" },
+    "merchantId": "MERCHANT-919"
+  }
+}
+```
+
+**Ahora (v2.1):**
+```json
+{
+  "transactionContext": {
+    "customer": {
+      "tier": "premium",         // ← Para reglas: context.customer.tier == 'premium'
+      "riskLevel": "low",         // ← Para reglas: context.customer.riskLevel
+      "age": 35,
+      "country": "ES"
+    },
+    "amount": {
+      "value": 1500.00,           // ← Para reglas: context.amount.value > 1000
+      "currency": "EUR"
+    },
+    "channel": "SMS",             // ← Para reglas: context.channel == 'SMS'
+    "merchantId": "MERCHANT-919",
+    "deviceInfo": {
+      "type": "mobile",           // ← Para reglas: context.deviceInfo.type
+      "os": "iOS"
+    }
+  }
+}
+```
+
+**Beneficio:** Las reglas SpEL ahora pueden evaluar correctamente propiedades como:
+- `context.customer.tier == 'premium'` ✅
+- `context.channel == 'SMS'` ✅
+- `context.amount.value > 1000` ✅
+- `context.deviceInfo.os == 'iOS'` ✅
+
+---
+
+**Última actualización:** 2025-12-04  
 **Autor:** Signature Router Team  
-**Versión:** 2.0 (Epic 13 Complete)
+**Versión:** 2.1 (SpEL Context Fix + Epic 13)
 

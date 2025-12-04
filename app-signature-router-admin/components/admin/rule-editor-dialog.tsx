@@ -44,6 +44,7 @@ interface RuleEditorDialogProps {
   onOpenChange: (open: boolean) => void;
   rule?: Partial<RuleFormValues> & { id?: string };
   onSave: (rule: RuleFormValues) => void;
+  providers?: Array<{ id: string; name: string; type: string }>;
 }
 
 export function RuleEditorDialog({
@@ -51,6 +52,7 @@ export function RuleEditorDialog({
   onOpenChange,
   rule,
   onSave,
+  providers = [],
 }: RuleEditorDialogProps) {
   const [spelValidation, setSpelValidation] = useState<{
     isValid: boolean;
@@ -81,6 +83,47 @@ export function RuleEditorDialog({
 
   const condition = watch('condition');
   const channel = watch('channel');
+
+  // Resetear el formulario cuando cambia la regla (para edición)
+  useEffect(() => {
+    if (rule) {
+      reset({
+        name: rule.name || '',
+        description: rule.description || '',
+        channel: rule.channel || 'SMS',
+        provider: rule.provider || getDefaultProvider(rule.channel),
+        priority: rule.priority || 1,
+        condition: rule.condition || '',
+        enabled: rule.enabled !== undefined ? rule.enabled : true,
+      });
+    } else {
+      reset({
+        name: '',
+        description: '',
+        channel: 'SMS',
+        provider: 'Twilio',
+        priority: 1,
+        condition: '',
+        enabled: true,
+      });
+    }
+  }, [rule, reset]);
+
+  // Función auxiliar para obtener proveedor por defecto según el canal
+  const getDefaultProvider = (channel?: string) => {
+    switch (channel) {
+      case 'SMS':
+        return 'Twilio';
+      case 'PUSH':
+        return 'OneSignal';
+      case 'VOICE':
+        return 'Vonage';
+      case 'BIOMETRIC':
+        return 'BioCatch';
+      default:
+        return 'Twilio';
+    }
+  };
 
   // Validar SpEL en tiempo real (simulado)
   useEffect(() => {
@@ -229,14 +272,18 @@ export function RuleEditorDialog({
                   <SelectValue placeholder="Selecciona un proveedor" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Twilio">Twilio</SelectItem>
-                  <SelectItem value="OneSignal">OneSignal</SelectItem>
-                  <SelectItem value="Vonage">Vonage</SelectItem>
-                  <SelectItem value="BioCatch">BioCatch</SelectItem>
-                  <SelectItem value="AWS SNS">AWS SNS</SelectItem>
-                  <SelectItem value="AWS Connect">AWS Connect</SelectItem>
+                  {providers.map((provider) => (
+                    <SelectItem key={provider.id} value={provider.name}>
+                      {provider.name} ({provider.type})
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {providers.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Cargando proveedores...
+                </p>
+              )}
               {errors.provider && (
                 <p className="text-sm text-red-500">{errors.provider.message}</p>
               )}

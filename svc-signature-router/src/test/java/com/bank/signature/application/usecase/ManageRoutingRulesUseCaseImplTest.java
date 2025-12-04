@@ -76,16 +76,20 @@ class ManageRoutingRulesUseCaseImplTest {
         
         createDto = new CreateRoutingRuleDto(
             "High-value transactions to Voice",
+            "Optional description for the rule",
             "context.amount.value > 1000.00",
             ChannelType.VOICE,
+            null, // providerId
             1,
             true
         );
 
         updateDto = new UpdateRoutingRuleDto(
             "Updated rule name",
+            "Updated description",
             "context.amount.value > 2000.00",
             ChannelType.PUSH,
+            null, // providerId
             5,
             false
         );
@@ -153,8 +157,10 @@ class ManageRoutingRulesUseCaseImplTest {
         // Given
         CreateRoutingRuleDto invalidDto = new CreateRoutingRuleDto(
             "Invalid Rule",
+            "Test description",
             "T(java.lang.Runtime).getRuntime().exec('ls')", // Dangerous SpEL
             ChannelType.SMS,
+            null, // providerId
             1,
             true
         );
@@ -237,8 +243,10 @@ class ManageRoutingRulesUseCaseImplTest {
         // Given
         UpdateRoutingRuleDto invalidDto = new UpdateRoutingRuleDto(
             "Invalid Rule",
+            "Test description",
             "T(java.lang.Runtime).getRuntime()", // Dangerous SpEL
             ChannelType.SMS,
+            null, // providerId
             1,
             true
         );
@@ -264,8 +272,10 @@ class ManageRoutingRulesUseCaseImplTest {
         // Given
         UpdateRoutingRuleDto sameConditionDto = new UpdateRoutingRuleDto(
             "Updated name",
+            "Test description",
             routingRule.getCondition(), // Same condition
             ChannelType.PUSH,
+            null, // providerId
             5,
             false
         );
