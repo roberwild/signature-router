@@ -144,6 +144,46 @@ try {
 
 ---
 
+### Story 14.1.1: Rules - Enable/Disable Toggle 🔴 PENDIENTE
+
+**As a** Administrador del sistema  
+**I want** Habilitar/deshabilitar reglas de routing mediante un toggle switch  
+**So that** Puedo controlar qué reglas están activas sin necesidad de eliminarlas
+
+**Status:** 📋 Backlog  
+**Priority:** 🔴 ALTA  
+**Estimated Effort:** 30 minutos  
+**Documento Detallado:** `docs/sprint-artifacts/stories/STORY-14.3-RULE-ENABLE-DISABLE-TOGGLE.md`
+
+#### Quick Summary
+
+**Problema Actual:**  
+El switch de estado (enabled/disabled) en el grid de reglas está deshabilitado o no funciona.
+
+**Solución:**  
+Implementar función `toggleRule()` que:
+1. Envía `PUT /api/v1/admin/rules/{id}` con DTO completo (todos los campos requeridos)
+2. Actualiza estado local del frontend
+3. Persiste cambio en BD (`routing_rule.enabled`)
+4. Audita el cambio (`modified_at`, `modified_by`)
+
+**Referencia:** Similar al fix de botones de orden (↑↓) completado el 5-dic-2025
+
+**Acceptance Criteria (Resumen):**
+- [ ] Switch funcional en grid de reglas
+- [ ] Estado se persiste correctamente en BD
+- [ ] Todos los campos del DTO se envían
+- [ ] Indicador visual del estado (ON/OFF)
+- [ ] Manejo de errores con toast notification
+- [ ] Reglas deshabilitadas NO se evalúan en routing engine
+
+**Technical Notes:**
+- Archivo: `app-signature-router-admin/app/admin/rules/page.tsx`
+- Componente UI: `@/components/ui/switch`
+- Backend: Endpoint ya existe (`PUT /api/v1/admin/rules/{id}`)
+
+---
+
 ### Story 14.2: Providers - CRUD Completo
 
 **As a** Administrador del sistema  

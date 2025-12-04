@@ -261,3 +261,28 @@ development_status:
   # - Frontend toggle: NEXT_PUBLIC_USE_MOCK_DATA (true/false)
   # - Documentation: MOCK-VS-REAL-GUIDE.md, OpenAPI completo
   # - Nota: Story 12.3 evolucionó de "read-only" a "CRUD completo" durante implementación
+
+  # Epic 14: Frontend-Backend Complete Integration (8+ stories) 📋 EN PROGRESO
+  # Ver: docs/epics/epic-14-frontend-backend-complete-integration.md
+  # Objetivo: Completar integración de 8 páginas pendientes del Admin Panel con backend real
+  epic-14: in-progress # 📋 Iniciada 2025-12-02, prioridad CRÍTICA
+  14-1-dashboard-connect-real-metrics: backlog # Dashboard - Conectar métricas reales
+  14-1-1-rules-enable-disable-toggle: backlog # 🔴 ALTA - Fix switch habilitado/deshabilitado reglas
+  14-2-providers-crud-complete: backlog # Providers - CRUD completo (crear, editar, eliminar, probar)
+  14-3-rules-spel-editor-validation: backlog # Rules - Editor SpEL con validación en tiempo real
+  14-4-alerts-real-integration: backlog # Alerts - Integración real con AlertManager
+  14-5-metrics-charts-real-data: backlog # Metrics - Gráficos con datos reales
+  14-6-users-keycloak-integration: backlog # Users - Integración completa con Keycloak
+  14-7-security-audit-real-data: backlog # Security - Auditoría con datos reales
+  14-8-templates-management: backlog # Templates - Gestión de plantillas de mensajes
+  epic-14-retrospective: optional
+
+  # Epic 14 Notes (ACTUALIZADO 2025-12-05):
+  # - Status: 📋 En progreso (0/9 stories completadas)
+  # - Priority: 🔴 CRÍTICA - Admin Panel 100% funcional
+  # - Nueva Story 14.1.1 agregada: Fix switch enable/disable reglas (30 min, alta prioridad)
+  # - Story 14.1.1 documentada en: docs/sprint-artifacts/stories/STORY-14.3-RULE-ENABLE-DISABLE-TOGGLE.md
+  # - Contexto: Basado en HITO-2025-12-02-VAULT-Y-JWT-ACTIVADOS.md
+  # - Backend: Ya implementado (Epic 12, 13)
+  # - Frontend: 1/9 páginas completas (Signatures), 8 pendientes
+  # - Bloqueador: Sin Epic 14 completa, operadores dependen de herramientas externas
