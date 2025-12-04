@@ -35,12 +35,15 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E9** | Observability & SLO Tracking | Métricas, logs, traces para SLO ≥99.9% y P99 <300ms | 6 stories | NFR-O1-O14, NFR-P1-P10 |
 | **E10** | Quality & Testing Excellence (v2) | Testing coverage 75%+, exception handling, MDC logging, documentation | 4 stories | Epic v1 descartada 29-Nov-2025 |
 | **E12** | Admin Panel Frontend-Backend Integration | Implementar endpoints backend para Admin Panel + Mock/Real toggle | 8 stories | Soporta E6, E7 |
-| **E14** | Frontend-Backend Complete Integration (NUEVO) | Completar integración de 8 páginas pendientes del Admin Panel con backend real | 8 stories | FR47-FR72, E6, E7 |
+| **E14** | Frontend-Backend Complete Integration | Completar integración de 8 páginas pendientes del Admin Panel con backend real | 8 stories | FR47-FR72, E6, E7 |
+| **E15** | Observability Platform Migration - Dynatrace | Migrar observabilidad a Dynatrace (estándar corporativo) | 8 stories | Reemplaza E9 con solución enterprise |
 
-**Total**: 12 Epics, ~109 Stories
+**Total**: 13 Epics, ~117 Stories
 
-**Note:** Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)  
-**Note:** Epic 14 creada 2025-12-02 basada en HITO-VAULT-Y-JWT-ACTIVADOS.md (refleja estado REAL del proyecto)
+**Notes:** 
+- Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)  
+- Epic 14 creada 2025-12-02 basada en HITO-VAULT-Y-JWT-ACTIVADOS.md (refleja estado REAL del proyecto)
+- **Epic 15 creada 2025-12-04**: Dynatrace Integration (reemplaza Prometheus stack, alineación con estándar corporativo)
 
 ---
 
@@ -2435,6 +2438,1166 @@ Epic 14 soporta indirectamente los mismos FRs que Epic 6 y 7 (FR47-FR72) al prop
 ---
 
 **Siguiente paso:** Iniciar Sprint 1 con Story 14.1 (Dashboard)
+
+---
+
+## Epic 15: Observability Platform Migration - Dynatrace Integration
+
+**Epic Goal:** Migrar la plataforma de observabilidad desde Prometheus/AlertManager/Grafana al estándar corporativo Dynatrace, habilitando full-stack observability automática con AI-powered troubleshooting y reducción del MTTR en 70%.
+
+**Business Value:** 
+- **MTTR reducido:** De 30-60 min → 5-10 min (AI-powered root cause analysis)
+- **Cobertura completa:** Métricas + Traces + Logs + RUM sin configuración manual
+- **Compliance corporativo:** Alineación con estándar enterprise de observabilidad
+- **Menor carga operativa:** Auto-instrumentación vs configuración manual extensiva
+
+**User Story:**
+As a **DevOps Engineer / SRE**,  
+I want **full-stack observability con Dynatrace**,  
+So that **puedo detectar, diagnosticar y resolver incidentes 70% más rápido con visibilidad completa desde frontend hasta database**.
+
+**Technical Context:**
+- **Stack actual:** Prometheus (métricas) + AlertManager (alertas) + Grafana (dashboards)
+- **Stack objetivo:** Dynatrace OneAgent (todo-en-uno) + Davis AI
+- **Migración:** Coexistencia temporal, luego deprecación de Prometheus stack
+- **Documentación:** `docs/INTEGRACION-DYNATRACE.md`, `docs/DYNATRACE-QUICKSTART.md`, `docs/DYNATRACE-RESUMEN-EJECUTIVO.md`
+
+**Prerequisites:**
+- Credenciales Dynatrace del equipo DevOps (Environment ID, PaaS Token, API Token)
+- Aprobación de Security Team (revisión de tokens/permisos)
+- Acceso al tenant corporativo de Dynatrace
+
+**Story Count:** 8 stories
+
+**Estimated Effort:** 3-4 semanas (con coexistencia Prometheus durante Semana 1-2)
+
+**FRs Covered:** 
+- Reemplaza implementación de Epic 9 (Observability) con solución enterprise
+- Soporta NFR-O1 a NFR-O14 (Observability requirements)
+- Mejora NFR-P1 a NFR-P10 (Performance monitoring)
+
+---
+
+### Story 15.1: Backend - Dynatrace OneAgent Installation & Configuration
+
+**As a** DevOps Engineer  
+**I want** Dynatrace OneAgent instalado y configurado en el backend  
+**So that** El sistema automáticamente captura métricas, traces y logs sin cambios de código
+
+**Acceptance Criteria:**
+
+**Given** Credenciales de Dynatrace disponibles (Environment ID, PaaS Token)  
+**When** OneAgent se instala en el servidor/contenedor del backend  
+**Then** 
+- El proceso `signature-router-api` aparece en Dynatrace UI bajo "Services"
+- El host aparece en Dynatrace UI bajo "Hosts"
+- Métricas JVM son capturadas automáticamente (heap, GC, threads)
+- HTTP requests son trazadas automáticamente (endpoints, latency, status codes)
+- Database queries son instrumentadas automáticamente (PostgreSQL)
+- Logs de aplicación son ingestados automáticamente
+
+**And** OneAgent reporta estado "Connected" en Dynatrace UI  
+**And** No se requieren cambios en el código Java (auto-instrumentación)  
+**And** Variables de entorno configuradas:
+```yaml
+DYNATRACE_ENV_ID: abc12345
+DYNATRACE_URL: https://abc12345.live.dynatrace.com
+DYNATRACE_PAAS_TOKEN: dt0c01.ST2EY72KQIN...
+DT_TAGS: environment=dev,application=signature-router,team=backend
+```
+
+**Technical Notes:**
+
+**Opción A: Windows (Desarrollo Local)**
+```powershell
+# Descargar OneAgent
+Invoke-WebRequest `
+  -Uri "https://$env_id.live.dynatrace.com/api/v1/deployment/installer/agent/windows/default/latest?Api-Token=$paas_token" `
+  -OutFile "Dynatrace-OneAgent-Windows.exe"
+
+# Instalar con permisos elevados
+.\Dynatrace-OneAgent-Windows.exe `
+  APP_LOG_CONTENT_ACCESS=1 `
+  INFRA_ONLY=0 `
+  HOST_GROUP=signature-router-dev `
+  /quiet
+```
+
+**Opción B: Docker (Recomendado)**
+- Crear `Dockerfile.dynatrace` con OneAgent integrado (ver `docs/INTEGRACION-DYNATRACE.md` línea 129)
+- Modificar `docker-compose.yml` para usar imagen con OneAgent
+- Build args: `DT_ENV_ID`, `DT_PAAS_TOKEN`, `DT_TAGS`
+
+**Verificación:**
+1. Dynatrace UI → Hosts → Buscar hostname/container
+2. Dynatrace UI → Services → Verificar `signature-router-api`
+3. Logs backend: Buscar `[OneAgent] successfully connected`
+4. Dynatrace UI → Metrics → Verificar `jvm.memory.used`, `http.server.requests`
+
+**Files Affected:**
+- `svc-signature-router/.env.dynatrace` (nuevo - credenciales)
+- `svc-signature-router/Dockerfile.dynatrace` (nuevo - Docker con OneAgent)
+- `svc-signature-router/docker-compose.dynatrace.yml` (nuevo - compose con Dynatrace)
+- `svc-signature-router/src/main/resources/application.yml` (actualizar con config Dynatrace)
+
+**Dependencies:** 
+- Credenciales Dynatrace obtenidas (Story prerequisite)
+
+**DoD:**
+- [ ] OneAgent instalado y corriendo
+- [ ] Backend visible en Dynatrace UI (Hosts + Services)
+- [ ] Métricas automáticas capturadas (JVM, HTTP, DB)
+- [ ] Logs ingestados correctamente
+- [ ] Tags aplicados (`environment`, `application`, `team`)
+- [ ] Documentación actualizada: `svc-signature-router/README.md`
+
+**Estimation:** 4-6h (incluyendo troubleshooting inicial)
+
+---
+
+### Story 15.2: Backend - Dynatrace API Client Implementation
+
+**As a** Backend Developer  
+**I want** Cliente Java para consultar la API de Dynatrace  
+**So that** El Admin Panel puede mostrar alertas/problemas de Dynatrace en lugar de datos mock
+
+**Acceptance Criteria:**
+
+**Given** API Token de Dynatrace con permisos (`Read problems`, `Read metrics`, `Read entities`)  
+**When** Se implementa `AlertManagerServiceDynatraceImpl.java`  
+**Then**
+- La clase implementa `AlertManagerService` interface
+- Consulta endpoint `GET /api/v2/problems` de Dynatrace
+- Transforma respuesta de Dynatrace a `AlertResponse` DTOs
+- Mapea severidad de Dynatrace (AVAILABILITY, ERROR, PERFORMANCE) a nuestros niveles (CRITICAL, WARNING, INFO)
+- Mapea estado de Dynatrace (OPEN, RESOLVED, CLOSED) a nuestros estados (ACTIVE, RESOLVED, ACKNOWLEDGED)
+- Aplica filtros de `AlertFilters` (severity, status)
+- Ordena por severidad y timestamp (CRITICAL primero, más recientes primero)
+
+**And** Métodos implementados:
+- `getAlerts(AlertFilters filters)`: Lista problemas con filtros opcionales
+- `getAlertById(String alertId)`: Obtiene problema específico
+- `acknowledgeAlert(String alertId)`: Cierra problema en Dynatrace (POST `/api/v2/problems/{id}/close`)
+- `resolveAlert(String alertId)`: Alias de `acknowledgeAlert` (mismo comportamiento en Dynatrace)
+
+**And** Configuración en `application.yml`:
+```yaml
+dynatrace:
+  url: ${DYNATRACE_URL:https://abc12345.live.dynatrace.com}
+  api-token: ${DYNATRACE_API_TOKEN}
+
+admin:
+  portal:
+    alerts:
+      mock: false  # ← Usar Dynatrace, no mock
+```
+
+**And** Bean condicional activo solo cuando mock=false:
+```java
+@ConditionalOnProperty(name = "admin.portal.alerts.mock", havingValue = "false")
+```
+
+**Technical Notes:**
+
+**Clase a crear:** `svc-signature-router/src/main/java/com/bank/signature/application/service/AlertManagerServiceDynatraceImpl.java`
+
+**Dependencias adicionales (pom.xml):**
+```xml
+<!-- Ya existe RestTemplate en Spring Boot -->
+<!-- No requiere nuevas dependencias -->
+```
+
+**Ejemplo de transformación:**
+```java
+private AlertResponse transformToAlertResponse(DynatraceProblem problem) {
+    return AlertResponse.builder()
+        .id(problem.problemId)
+        .name(problem.title)
+        .description(problem.displayId + ": " + problem.impactLevel)
+        .severity(mapSeverityFromDynatrace(problem.severityLevel))
+        .status(mapStatusFromDynatrace(problem.status))
+        .startsAt(Instant.ofEpochMilli(problem.startTime))
+        .endsAt(problem.endTime != null ? Instant.ofEpochMilli(problem.endTime) : null)
+        .labels(Map.of(
+            "problemId", problem.problemId,
+            "impactLevel", problem.impactLevel
+        ))
+        .build();
+}
+```
+
+**DTOs internos:**
+```java
+public static class DynatraceProblemsResponse {
+    public List<DynatraceProblem> problems;
+    public int totalCount;
+}
+
+public static class DynatraceProblem {
+    public String problemId;
+    public String displayId;
+    public String title;
+    public String impactLevel;
+    public String severityLevel;
+    public String status;
+    public Long startTime;
+    public Long endTime;
+    public RootCauseEntity rootCauseEntity;
+}
+```
+
+**Files Affected:**
+- `AlertManagerServiceDynatraceImpl.java` (nuevo - ~260 líneas, ver `docs/INTEGRACION-DYNATRACE.md` línea 237)
+- `application.yml` (actualizar con config Dynatrace)
+- `DynatraceConfig.java` (nuevo - bean de RestTemplate si no existe)
+
+**Testing:**
+- Unit test con MockRestTemplate
+- Integration test con Dynatrace sandbox (si disponible)
+- Manual test: Verificar que alertas reales de Dynatrace aparecen en Admin Panel
+
+**Dependencies:**
+- Story 15.1 completada (OneAgent instalado, problemas generándose en Dynatrace)
+
+**DoD:**
+- [ ] `AlertManagerServiceDynatraceImpl` implementado y compilando
+- [ ] Tests unitarios (mocking RestTemplate)
+- [ ] Configuración en `application.yml` correcta
+- [ ] Bean condicional funcionando (`@ConditionalOnProperty`)
+- [ ] Logs muestran `[DYNATRACE] Fetching problems from Dynatrace API`
+- [ ] NO muestra `[MOCK] Using MOCK AlertManager Service`
+
+**Estimation:** 6-8h (incluyendo tests)
+
+---
+
+### Story 15.3: Backend - Alert Service Integration & Testing
+
+**As a** Backend Developer  
+**I want** Validar que el servicio de Dynatrace funciona end-to-end  
+**So that** El Admin Panel muestra alertas reales y las acciones (reconocer/resolver) funcionan correctamente
+
+**Acceptance Criteria:**
+
+**Given** `AlertManagerServiceDynatraceImpl` implementado  
+**And** Variable `ADMIN_PORTAL_ALERTS_MOCK=false` configurada  
+**And** API Token válido configurado  
+**When** El backend arranca  
+**Then**
+- Spring Boot selecciona `AlertManagerServiceDynatraceImpl` (no el mock)
+- Logs muestran: `[DYNATRACE] API Client initialized`
+- Endpoint `GET /api/v1/admin/alerts` funciona sin errores
+- Response contiene problemas reales de Dynatrace (si existen)
+- Response JSON tiene estructura correcta: `{ problems: [...], totalCount: N }`
+
+**And** **Test Manual - Generar Problema en Dynatrace:**
+1. Crear alerta de prueba en Dynatrace (simular error rate spike)
+2. Verificar que problema aparece en Dynatrace UI
+3. Llamar `GET /api/v1/admin/alerts`
+4. Response contiene el problema generado
+5. Llamar `PUT /api/v1/admin/alerts/{id}/acknowledge`
+6. Problema se marca como "CLOSED" en Dynatrace
+7. Llamar nuevamente `GET /api/v1/admin/alerts`
+8. Problema ahora tiene `status: ACKNOWLEDGED`
+
+**And** **Filtros funcionan correctamente:**
+```bash
+# Filtrar por severidad CRITICAL
+GET /api/v1/admin/alerts?severity=CRITICAL
+→ Solo retorna problemas con severityLevel AVAILABILITY/ERROR
+
+# Filtrar por estado ACTIVE
+GET /api/v1/admin/alerts?status=ACTIVE
+→ Solo retorna problemas con status OPEN
+
+# Combinar filtros
+GET /api/v1/admin/alerts?severity=CRITICAL&status=ACTIVE
+→ Retorna solo problemas críticos abiertos
+```
+
+**And** **Manejo de errores:**
+- Si API Token inválido → Log: `[DYNATRACE] Error 401 Unauthorized`
+- Si Dynatrace no responde → Log: `[DYNATRACE] Connection timeout` → Retorna lista vacía (no crash)
+- Si problema no existe → `404 Not Found` en endpoint individual
+
+**Technical Notes:**
+
+**Tests E2E a ejecutar:**
+
+1. **Test: Startup sin errores**
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+
+# Buscar en logs:
+# ✅ [DYNATRACE] API Client initialized with URL: https://...
+# ✅ NOT: [MOCK] Using MOCK AlertManager Service
+```
+
+2. **Test: Endpoint lista alertas**
+```bash
+curl -H "Authorization: Bearer $JWT" \
+  http://localhost:8080/api/v1/admin/alerts | jq .
+
+# Expected:
+# {
+#   "problems": [...],
+#   "totalCount": N
+# }
+```
+
+3. **Test: Reconocer alerta**
+```bash
+# Obtener ID de problema
+PROBLEM_ID=$(curl -H "Authorization: Bearer $JWT" \
+  http://localhost:8080/api/v1/admin/alerts | jq -r '.problems[0].id')
+
+# Reconocer
+curl -X PUT \
+  -H "Authorization: Bearer $JWT" \
+  http://localhost:8080/api/v1/admin/alerts/$PROBLEM_ID/acknowledge
+
+# Verificar en Dynatrace UI que problema está "Closed"
+```
+
+4. **Test: Filtros**
+```bash
+# Solo críticas
+curl -H "Authorization: Bearer $JWT" \
+  "http://localhost:8080/api/v1/admin/alerts?severity=CRITICAL" | jq .
+
+# Solo activas
+curl -H "Authorization: Bearer $JWT" \
+  "http://localhost:8080/api/v1/admin/alerts?status=ACTIVE" | jq .
+```
+
+**Troubleshooting Común:**
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| `401 Unauthorized` | API Token inválido/expirado | Regenerar token en Dynatrace UI |
+| `[MOCK] Using MOCK...` | Mock no desactivado | Verificar `admin.portal.alerts.mock: false` |
+| `Connection refused` | URL incorrecta | Verificar `DYNATRACE_URL` |
+| `No problems found` | No hay alertas activas | Generar problema de prueba |
+
+**Files Affected:**
+- `application-local.yml` (verificar config)
+- `.env.dynatrace` (verificar tokens)
+
+**Dependencies:**
+- Story 15.2 completada
+
+**DoD:**
+- [ ] Backend arranca sin errores con Dynatrace habilitado
+- [ ] Endpoint `GET /api/v1/admin/alerts` retorna datos reales
+- [ ] Filtros funcionan correctamente (severity, status)
+- [ ] Acciones funcionan (acknowledge/resolve)
+- [ ] Manejo de errores implementado (401, timeout, 404)
+- [ ] Tests E2E documentados y pasando
+- [ ] Troubleshooting guide actualizada
+
+**Estimation:** 4-6h (incluyendo tests manuales)
+
+---
+
+### Story 15.4: Frontend - RUM JavaScript Integration
+
+**As a** Frontend Developer  
+**I want** Dynatrace Real User Monitoring integrado en el Admin Panel  
+**So that** Puedo ver sesiones de usuario, performance frontend y errores JavaScript en Dynatrace
+
+**Acceptance Criteria:**
+
+**Given** Application ID de Dynatrace para frontend (obtenido de Dynatrace UI)  
+**When** Se integra script RUM en Next.js  
+**Then**
+- Script de Dynatrace se carga **antes** de cualquier otro JavaScript (`strategy="beforeInteractive"`)
+- Variable global `window.dtrum` está disponible en browser
+- Sesiones de usuario aparecen en Dynatrace UI → Frontend → Signature Router Admin Panel
+- Métricas de performance capturadas automáticamente:
+  - LCP (Largest Contentful Paint)
+  - FID (First Input Delay)
+  - CLS (Cumulative Layout Shift)
+  - AJAX calls con duración y status
+- Errores JavaScript capturados automáticamente
+- User actions trazadas automáticamente (clicks, navigations)
+
+**And** Configuración de variables de entorno:
+```bash
+# .env.local
+NEXT_PUBLIC_DYNATRACE_ENV_ID=abc12345
+NEXT_PUBLIC_DYNATRACE_APP_ID=APPLICATION-1234567890ABCDEF
+NEXT_PUBLIC_DYNATRACE_APP_NAME=signature-router-admin
+NEXT_PUBLIC_DYNATRACE_ENVIRONMENT=dev
+```
+
+**And** Script integrado en `app/layout.tsx`:
+```typescript
+import Script from 'next/script';
+
+export default function RootLayout({ children }) {
+  const dynatraceEnvId = process.env.NEXT_PUBLIC_DYNATRACE_ENV_ID;
+  const dynatraceAppId = process.env.NEXT_PUBLIC_DYNATRACE_APP_ID;
+  
+  return (
+    <html lang="es">
+      <head>
+        {dynatraceEnvId && dynatraceAppId && (
+          <Script
+            id="dynatrace-rum"
+            strategy="beforeInteractive"
+            src={`https://js-cdn.dynatrace.com/jstag/${dynatraceEnvId}/${dynatraceAppId}/ruxitagent.js`}
+            crossOrigin="anonymous"
+          />
+        )}
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+**And** **Verificación en Browser:**
+```javascript
+// Abrir DevTools → Console
+window.dtrum
+// Expected: { initialized: true, ... }
+
+// Verificar script cargado
+// DevTools → Network → Filter: ruxitagent.js
+// Status: 200 OK
+```
+
+**And** **Session Replay habilitado** (opcional pero recomendado):
+- Configurar en Dynatrace UI: Session Replay ON
+- Permite ver video de la sesión del usuario cuando hay errores
+
+**Technical Notes:**
+
+**Paso 1: Registrar aplicación web en Dynatrace**
+1. Dynatrace UI → Frontend → Add new web application
+2. Nombre: `Signature Router Admin Panel`
+3. Application type: `Single Page Application`
+4. Click `Create`
+5. Copiar `Application ID` (ej: `APPLICATION-1234567890ABCDEF`)
+
+**Paso 2: Configurar variables de entorno**
+```bash
+cd app-signature-router-admin
+
+# Editar .env.local
+cat >> .env.local << EOF
+NEXT_PUBLIC_DYNATRACE_ENV_ID=abc12345
+NEXT_PUBLIC_DYNATRACE_APP_ID=APPLICATION-1234567890ABCDEF
+NEXT_PUBLIC_DYNATRACE_APP_NAME=signature-router-admin
+NEXT_PUBLIC_DYNATRACE_ENVIRONMENT=dev
+EOF
+```
+
+**Paso 3: Modificar layout.tsx** (ver código arriba)
+
+**Paso 4: Reiniciar Next.js**
+```bash
+npm run dev
+```
+
+**Paso 5: Verificar**
+1. Abrir `http://localhost:3001`
+2. Abrir DevTools → Console → `window.dtrum`
+3. Ir a Dynatrace UI → Frontend → Tu aplicación
+4. Verificar que aparecen sesiones activas
+
+**Advanced Tracking (Opcional):**
+
+Crear helper para custom events:
+```typescript
+// lib/dynatrace.ts
+export function trackUserAction(actionName: string, metadata?: Record<string, any>) {
+  if (typeof window !== 'undefined' && (window as any).dtrum) {
+    (window as any).dtrum.enterAction(actionName, undefined, undefined, metadata);
+  }
+}
+
+// Uso:
+trackUserAction('signature-created', { signatureId: '123', amount: 100 });
+```
+
+**Files Affected:**
+- `app-signature-router-admin/app/layout.tsx` (modificar - agregar Script)
+- `app-signature-router-admin/.env.local` (actualizar con Dynatrace vars)
+- `app-signature-router-admin/lib/dynatrace.ts` (nuevo - helpers opcionales)
+
+**Dependencies:**
+- Application ID obtenido de Dynatrace UI
+
+**DoD:**
+- [ ] Script RUM integrado en layout.tsx
+- [ ] Variables de entorno configuradas
+- [ ] `window.dtrum` disponible en browser
+- [ ] Sesiones visibles en Dynatrace UI
+- [ ] Web Vitals capturados (LCP, FID, CLS)
+- [ ] AJAX calls trazadas
+- [ ] Errores JavaScript capturados
+- [ ] Session Replay habilitado
+
+**Estimation:** 2-3h
+
+---
+
+### Story 15.5: Frontend - Admin Panel Alerts Integration
+
+**As a** Frontend Developer  
+**I want** El Admin Panel muestre alertas de Dynatrace en lugar de datos mock  
+**So that** Los operadores ven problemas reales del sistema
+
+**Acceptance Criteria:**
+
+**Given** Backend con `AlertManagerServiceDynatraceImpl` funcionando  
+**And** Frontend con `NEXT_PUBLIC_USE_MOCK_DATA=false`  
+**When** Usuario accede a `/admin/alerts`  
+**Then**
+- Página muestra alertas reales de Dynatrace
+- Cards de resumen muestran contadores correctos:
+  - Alertas Críticas: count de problemas con severity CRITICAL
+  - Advertencias: count de problemas con severity WARNING  
+  - Informativas: count de problemas con severity INFO
+  - Resueltas: count de problemas con status RESOLVED
+- Lista de alertas muestra datos reales:
+  - Título del problema
+  - Descripción con impactLevel
+  - Severidad con badge correcto (rojo=CRITICAL, amarillo=WARNING, azul=INFO)
+  - Timestamp relativo ("Hace 15 minutos")
+- Filtros funcionan:
+  - Click en card "Críticas" → Filtra solo CRITICAL
+  - Click en card "Advertencias" → Filtra solo WARNING
+  - Click nuevamente → Quita filtro
+- Acciones funcionan:
+  - Botón "Reconocer" → Llama `PUT /api/v1/admin/alerts/{id}/acknowledge`
+  - Botón "Resolver" → Llama `PUT /api/v1/admin/alerts/{id}/resolve`
+  - Problema se actualiza en UI inmediatamente (estado ACKNOWLEDGED/RESOLVED)
+  - Loading state durante acción
+- Auto-refresh cada 60 segundos
+
+**And** **NO se muestran datos mock hardcodeados:**
+- NO aparece "HighErrorRate" (alerta mock)
+- NO aparece "ProviderDown" (alerta mock)
+- Solo problemas reales de Dynatrace
+
+**And** **Manejo de errores:**
+- Si backend no responde → Muestra mensaje de error
+- Si token expirado (401) → Redirige a login
+- Si no hay problemas → Muestra "No hay alertas activas" con icono verde ✅
+
+**Technical Notes:**
+
+**Verificar configuración:**
+```bash
+# .env.local del frontend
+NEXT_PUBLIC_USE_MOCK_DATA=false  # ← DEBE ser false
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+```
+
+**Código actual a verificar:**
+
+`app/admin/alerts/page.tsx`:
+```typescript
+const { apiClient, isAuthenticated, redirectToLogin } = 
+  useApiClientWithStatus({ autoRedirect: true });
+
+useEffect(() => {
+  if (!isAuthenticated) return;
+  loadAlerts();
+  // Auto-refresh cada 60s
+  const interval = setInterval(loadAlerts, 60000);
+  return () => clearInterval(interval);
+}, [filter, isAuthenticated]);
+
+const loadAlerts = async () => {
+  const data = await apiClient.getAlerts(filter);
+  setAlerts(data);
+};
+```
+
+**Verificación de integración:**
+
+1. **Backend debe estar corriendo con Dynatrace:**
+```bash
+cd svc-signature-router
+# Verificar en application.yml:
+# admin.portal.alerts.mock: false
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+2. **Frontend debe usar backend real:**
+```bash
+cd app-signature-router-admin
+# Verificar .env.local
+npm run dev
+```
+
+3. **Test manual:**
+```bash
+# 1. Ir a http://localhost:3001/admin/alerts
+# 2. Verificar que NO aparecen las 5 alertas mock
+# 3. Si hay problemas en Dynatrace, deben aparecer
+# 4. Click "Filtrar" en card Críticas → Solo muestra críticas
+# 5. Click "Reconocer" en una alerta → Estado cambia
+# 6. Esperar 60s → Auto-refresh trae datos actualizados
+```
+
+**Troubleshooting:**
+
+| Problema | Causa Probable | Solución |
+|----------|---------------|----------|
+| Muestra 5 alertas mock | Mock no desactivado | Verificar `NEXT_PUBLIC_USE_MOCK_DATA=false` |
+| "Error loading alerts" | Backend no arrancado | `mvn spring-boot:run` |
+| 401 Unauthorized | JWT expirado | Re-login en `/api/auth/signout` |
+| Lista vacía | No hay problemas | Crear problema de prueba en Dynatrace |
+
+**Files Affected:**
+- `app-signature-router-admin/.env.local` (verificar)
+- `app-signature-router-admin/app/admin/alerts/page.tsx` (verificar, no debería cambiar)
+
+**Dependencies:**
+- Story 15.3 completada (backend funcionando con Dynatrace)
+
+**DoD:**
+- [ ] Alertas reales de Dynatrace aparecen en Admin Panel
+- [ ] NO aparecen datos mock (HighErrorRate, ProviderDown, etc.)
+- [ ] Contadores de cards correctos
+- [ ] Filtros funcionan
+- [ ] Acciones "Reconocer" y "Resolver" funcionan
+- [ ] Auto-refresh cada 60s funciona
+- [ ] Manejo de errores implementado
+- [ ] Test manual completo y pasando
+
+**Estimation:** 2-3h (mayormente testing y troubleshooting)
+
+---
+
+### Story 15.6: Dashboards - Create Custom Dynatrace Dashboards
+
+**As a** SRE / Operations Engineer  
+**I want** Dashboards personalizados en Dynatrace para Signature Router  
+**So that** Puedo monitorear health del sistema, SLOs y business metrics en un solo lugar
+
+**Acceptance Criteria:**
+
+**Given** OneAgent capturando métricas del sistema  
+**When** Se crean dashboards en Dynatrace UI  
+**Then** Existen 5 dashboards personalizados:
+
+**Dashboard 1: Executive Overview**
+- SLO Availability Gauge (target ≥99.9%)
+- SLO Performance P99 Gauge (target <300ms)
+- Request Rate (req/s, last 24h)
+- Error Rate (%, last 24h)
+- Top 5 Error Types (pie chart)
+- Business Metrics: Signatures Created (last 24h)
+
+**Dashboard 2: Performance Metrics**
+- HTTP Response Time (P50, P95, P99)
+- Throughput (requests/second)
+- Database Query Latency (P95)
+- Kafka Consumer Lag
+- JVM Heap Usage (%)
+- GC Pause Time
+
+**Dashboard 3: Provider Health**
+- Circuit Breaker Status por Provider (SMS, PUSH, VOICE, BIOMETRIC)
+- Provider Error Rate (%)
+- Provider Latency (P95)
+- Fallback Rate (%)
+- Provider Availability (uptime %)
+
+**Dashboard 4: Infrastructure**
+- JVM Memory (Heap/Non-Heap)
+- Thread Count
+- Database Connection Pool (active/idle/pending)
+- Kafka Producer/Consumer Lag
+- CPU Usage
+- Disk I/O
+
+**Dashboard 5: Business Analytics**
+- Signatures by Status (SIGNED, PENDING, FAILED, EXPIRED)
+- Signatures by Channel (SMS, PUSH, VOICE)
+- Revenue Impact (si disponible)
+- Conversion Funnel (Created → Sent → Signed)
+
+**And** Dashboards son compartibles vía URL  
+**And** Dashboards tienen auto-refresh configurado (30s)  
+**And** Dashboards tienen filtros por Environment (dev, staging, prod)
+
+**Technical Notes:**
+
+**Crear dashboards en Dynatrace UI:**
+
+1. **Acceder a Dynatrace** → Dashboards → Create dashboard
+2. **Naming convention:** `[Environment] Signature Router - {Dashboard Name}`
+   - Ejemplo: `[DEV] Signature Router - Executive Overview`
+3. **Agregar tiles** (widgets) usando:
+   - **Metrics:** Data explorer → Select metric → Visualize
+   - **SLIs:** SLO tile → Configure target
+   - **Charts:** Time series, Single value, Pie chart, Table
+
+**Métricas clave a usar:**
+
+| Métrica Dynatrace | Descripción | Tile Type |
+|-------------------|-------------|-----------|
+| `builtin:service.response.time` | Response time percentiles | Time series |
+| `builtin:service.requestCount.total` | Request rate | Single value |
+| `builtin:service.errors.total.rate` | Error rate | Single value |
+| `jvm.memory.used` | JVM memory usage | Time series |
+| `jvm.gc.pause` | GC pause time | Time series |
+| `builtin:tech.generic.db.query.duration` | DB query latency | Time series |
+
+**Métricas custom (desde Spring Boot Actuator):**
+
+Si se exportan métricas custom a Dynatrace:
+- `signature_requests_created_total`
+- `signature_requests_completed_total`
+- `provider_error_rate`
+- `routing_fallback_triggered_total`
+
+**Dashboards as Code (Opcional):**
+
+Para versionado de dashboards:
+1. Exportar dashboard como JSON desde Dynatrace UI
+2. Guardar en `docs/observability/dashboards/dynatrace/`
+3. Importar vía Dynatrace API o Monaco (Dynatrace Monitoring as Code)
+
+**Ejemplo export:**
+```bash
+# Export dashboard JSON
+curl -X GET \
+  "https://$DT_ENV_ID.live.dynatrace.com/api/config/v1/dashboards/$DASHBOARD_ID" \
+  -H "Authorization: Api-Token $API_TOKEN" \
+  > docs/observability/dashboards/dynatrace/executive-overview.json
+```
+
+**Files Affected:**
+- `docs/observability/dashboards/dynatrace/executive-overview.json` (nuevo - opcional)
+- `docs/observability/dashboards/dynatrace/performance-metrics.json` (nuevo - opcional)
+- `docs/observability/dashboards/dynatrace/provider-health.json` (nuevo - opcional)
+- `docs/observability/dashboards/dynatrace/infrastructure.json` (nuevo - opcional)
+- `docs/observability/dashboards/dynatrace/business-analytics.json` (nuevo - opcional)
+- `docs/observability/README.md` (actualizar con enlaces a dashboards)
+
+**Dependencies:**
+- Story 15.1 completada (métricas capturándose)
+
+**DoD:**
+- [ ] 5 dashboards creados en Dynatrace UI
+- [ ] Dashboards muestran datos reales (no "No data")
+- [ ] Auto-refresh configurado (30s)
+- [ ] Filtros por environment funcionan
+- [ ] Dashboards compartidos vía URL con el equipo
+- [ ] (Opcional) Dashboards exportados como JSON
+
+**Estimation:** 4-6h (crear + configurar todos los tiles)
+
+---
+
+### Story 15.7: Alerting - Configure Alerting Profiles & Management Zones
+
+**As a** SRE / Operations Engineer  
+**I want** Alerting profiles configurados en Dynatrace  
+**So that** Recibo notificaciones automáticas de problemas críticos con AI-powered root cause analysis
+
+**Acceptance Criteria:**
+
+**Given** Dynatrace OneAgent capturando métricas y detectando anomalías  
+**When** Se configuran alerting profiles y management zones  
+**Then**
+
+**Management Zones creadas:**
+1. **Signature Router - DEV**
+   - Filter: `dt.entity.service` where `service.name` contains `signature-router` AND `environment` == `dev`
+2. **Signature Router - STAGING**
+   - Filter: `service.name` contains `signature-router` AND `environment` == `staging`
+3. **Signature Router - PROD**
+   - Filter: `service.name` contains `signature-router` AND `environment` == `prod`
+
+**Alerting Profiles configurados:**
+
+**Profile 1: Critical - Production Only**
+- Scope: Management Zone = `Signature Router - PROD`
+- Alert on:
+  - Availability issues (service down)
+  - Error rate spike (>5% for 5 min)
+  - Response time degradation (P95 >300ms for 5 min)
+  - Database connection pool exhausted
+- Severity: CRITICAL
+- Notification: Slack + PagerDuty
+- Frequency: Immediate
+
+**Profile 2: Warning - All Environments**
+- Scope: Management Zone = `Signature Router - *` (all)
+- Alert on:
+  - Performance degradation (P95 >200ms for 10 min)
+  - High memory usage (>85% for 5 min)
+  - Circuit breaker opened
+  - Kafka consumer lag (>1000 messages)
+- Severity: WARNING
+- Notification: Slack only
+- Frequency: Every 15 min (aggregated)
+
+**Profile 3: Info - Development**
+- Scope: Management Zone = `Signature Router - DEV`
+- Alert on:
+  - Deployment events
+  - Configuration changes
+  - SLO degradation (99.9% → 99.5%)
+- Severity: INFO
+- Notification: Slack only
+- Frequency: Daily digest
+
+**And** **Davis AI configurado:**
+- Problem detection enabled (AI detects anomalies)
+- Root cause analysis enabled
+- Impact analysis enabled (correlates technical issues with business impact)
+- Automatic baselining enabled (learns normal behavior)
+
+**And** **Notification channels configurados:**
+```yaml
+Slack Integration:
+  Channel: #alerts-signature-router
+  Webhook: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXX
+  Format: Rich (include root cause, impact, runbook links)
+
+PagerDuty Integration (PROD only):
+  Integration Key: XXXXXXXXXXXXXX
+  Severity mapping:
+    - CRITICAL → High urgency
+    - WARNING → Low urgency
+```
+
+**And** **Custom Events para alertas específicas:**
+
+Crear eventos custom para métricas de negocio:
+
+**Event 1: Circuit Breaker Open**
+```
+Metric: resilience4j.circuitbreaker.state
+Condition: state == "open"
+Duration: 5 minutes
+Severity: ERROR
+Title: "Provider Circuit Breaker Open: {provider}"
+```
+
+**Event 2: High Fallback Rate**
+```
+Metric: routing.fallback.rate
+Condition: > 10%
+Duration: 10 minutes
+Severity: WARNING
+Title: "High Routing Fallback Rate: {rate}%"
+```
+
+**Technical Notes:**
+
+**Configurar Management Zones:**
+1. Dynatrace UI → Settings → Preferences → Management zones
+2. Create new → `Signature Router - PROD`
+3. Add rule:
+   - Type: Service
+   - Condition: Service name → contains → `signature-router`
+   - AND Environment → equals → `prod`
+
+**Configurar Alerting Profiles:**
+1. Dynatrace UI → Settings → Alerting → Alerting profiles
+2. Create profile → `Critical - Production Only`
+3. Set severity filters
+4. Configure notification channels
+
+**Configurar Notification Channels:**
+1. Settings → Integration → Problem notifications
+2. Add notification → Slack
+3. Configure webhook URL
+4. Test notification
+
+**Configurar Custom Events:**
+1. Settings → Anomaly detection → Custom events for alerting
+2. Create event
+3. Select metric
+4. Define threshold
+5. Configure severity and title template
+
+**Testing Alerts:**
+
+```bash
+# Generar problema de prueba
+# Opción 1: Simular error rate spike
+for i in {1..100}; do
+  curl -X POST http://localhost:8080/api/v1/signatures \
+    -H "Content-Type: application/json" \
+    -d '{"invalid": "data"}'
+done
+
+# Opción 2: Abrir circuit breaker manualmente (via admin panel)
+curl -X PUT http://localhost:8080/api/v1/admin/providers/SMS/circuit-breaker/open
+
+# Verificar:
+# 1. Problema aparece en Dynatrace UI (Problems)
+# 2. Notificación llega a Slack
+# 3. (PROD) PagerDuty incident creado
+```
+
+**Files Affected:**
+- `docs/observability/alerting/dynatrace-alerting-profiles.md` (nuevo - documentar profiles)
+- `docs/observability/alerting/dynatrace-custom-events.md` (nuevo - documentar custom events)
+
+**Dependencies:**
+- Story 15.1 completada (métricas capturándose)
+- Slack webhook disponible
+- PagerDuty integration key disponible (PROD)
+
+**DoD:**
+- [ ] Management zones creadas (DEV, STAGING, PROD)
+- [ ] Alerting profiles configurados (CRITICAL, WARNING, INFO)
+- [ ] Notification channels configurados (Slack, PagerDuty)
+- [ ] Custom events creados (Circuit Breaker, Fallback Rate)
+- [ ] Davis AI habilitado
+- [ ] Test alert enviado y recibido en Slack
+- [ ] Documentación de alerting profiles creada
+
+**Estimation:** 4-6h (configuración + testing)
+
+---
+
+### Story 15.8: Migration - Deprecate Prometheus Stack & Final Validation
+
+**As a** DevOps Engineer  
+**I want** Migrar completamente a Dynatrace y deprecar Prometheus/AlertManager/Grafana  
+**So that** Simplificamos la stack de observabilidad y reducimos overhead operativo
+
+**Acceptance Criteria:**
+
+**Given** Dynatrace funcionando correctamente (Stories 15.1-15.7 completadas)  
+**And** Sistema monitoreado en producción por al menos 1 semana con Dynatrace  
+**When** Se ejecuta la migración final  
+**Then**
+
+**Fase 1: Validación Pre-Migración**
+- [ ] Dynatrace captura métricas correctamente (100% de hosts y services visibles)
+- [ ] Dashboards de Dynatrace muestran datos equivalentes a Grafana
+- [ ] Alertas de Dynatrace funcionan (test alerts enviadas y recibidas)
+- [ ] RUM frontend funciona (sesiones visibles, Web Vitals capturados)
+- [ ] Admin Panel muestra alertas de Dynatrace (no mock)
+- [ ] Equipo entrenado en Dynatrace UI (walkthrough completado)
+
+**Fase 2: Coexistencia (Semana 1-2)**
+- [ ] Prometheus sigue corriendo (backup)
+- [ ] Dynatrace es PRIMARY (todos consultan Dynatrace primero)
+- [ ] Comparación de métricas Prometheus vs Dynatrace (validar equivalencia)
+- [ ] Incidentes manejados con Dynatrace (no Prometheus)
+
+**Fase 3: Deprecación (Semana 3)**
+- [ ] Apagar Prometheus (detener container)
+- [ ] Apagar AlertManager (detener container)
+- [ ] Apagar Grafana (detener container)
+- [ ] Mover archivos de configuración a `legacy/`:
+  - `observability/prometheus.yml` → `observability/legacy/prometheus.yml`
+  - `observability/prometheus/alerts/*.yml` → `observability/legacy/alerts/`
+  - `observability/alertmanager/alertmanager.yml` → `observability/legacy/`
+  - `observability/grafana/` → `observability/legacy/grafana/`
+
+**Fase 4: Cleanup (Semana 4)**
+- [ ] Eliminar servicios de `docker-compose.yml`:
+  - `prometheus` service
+  - `alertmanager` service
+  - `grafana` service
+- [ ] Actualizar documentación:
+  - `README.md`: Reemplazar sección "Observability - Prometheus Metrics" con "Observability - Dynatrace"
+  - `svc-signature-router/README.md`: Actualizar instrucciones de observability
+  - `docs/observability/README.md`: Agregar guía de Dynatrace, archivar guías de Prometheus
+- [ ] Eliminar endpoints de actuator NO usados (opcional):
+  - `/actuator/prometheus` puede mantenerse para compatibilidad
+- [ ] Actualizar scripts de deployment (si dependen de Prometheus)
+
+**And** **Documentación actualizada:**
+
+**Crear:** `docs/observability/DYNATRACE-MIGRATION-COMPLETED.md`
+```markdown
+# Dynatrace Migration - Completion Report
+
+**Date:** 2025-12-XX
+**Status:** ✅ COMPLETED
+
+## Pre-Migration State
+- Stack: Prometheus + AlertManager + Grafana
+- Manual configuration: ~50 metric definitions
+- Dashboards: 5 Grafana dashboards
+- Alerts: 15 Prometheus alert rules
+
+## Post-Migration State
+- Stack: Dynatrace OneAgent + Davis AI
+- Auto-instrumentation: ~10,000+ metrics
+- Dashboards: 5 Dynatrace dashboards
+- Alerts: AI-powered anomaly detection + custom events
+
+## Benefits Realized
+- ✅ MTTR reduced: 45 min → 10 min (78% reduction)
+- ✅ Full-stack visibility: Metrics + Traces + Logs + RUM
+- ✅ Zero configuration overhead
+- ✅ AI-powered root cause analysis
+
+## Deprecated Components
+- [ARCHIVED] Prometheus
+- [ARCHIVED] AlertManager
+- [ARCHIVED] Grafana
+- [MOVED] Config files → observability/legacy/
+```
+
+**And** **Actualizar README.md principal:**
+
+Reemplazar sección "Observability - Prometheus Metrics" con:
+
+```markdown
+## 📊 Observability - Dynatrace
+
+La aplicación usa **Dynatrace** para full-stack observability con AI-powered troubleshooting.
+
+### Quick Access
+
+| Component | URL | Description |
+|-----------|-----|-------------|
+| **Dynatrace** | https://abc12345.live.dynatrace.com | Full observability platform |
+| **Admin Panel Alerts** | http://localhost:3001/admin/alerts | Dynatrace problems in UI |
+
+### Features
+
+- ✅ **Auto-Instrumentation**: OneAgent captura métricas sin configuración
+- ✅ **Full-Stack**: Métricas + Traces + Logs + RUM
+- ✅ **AI-Powered**: Davis AI detecta anomalías automáticamente
+- ✅ **Root Cause Analysis**: Identifica causa raíz de problemas
+- ✅ **Session Replay**: Ver sesiones de usuario en video
+
+### Documentation
+
+- **Setup Guide**: [docs/DYNATRACE-QUICKSTART.md](docs/DYNATRACE-QUICKSTART.md)
+- **Technical Integration**: [docs/INTEGRACION-DYNATRACE.md](docs/INTEGRACION-DYNATRACE.md)
+- **Executive Summary**: [docs/DYNATRACE-RESUMEN-EJECUTIVO.md](docs/DYNATRACE-RESUMEN-EJECUTIVO.md)
+
+**Legacy Prometheus Stack:** Deprecated 2025-12-XX, moved to `observability/legacy/`
+```
+
+**Technical Notes:**
+
+**Comandos de migración:**
+
+```bash
+# 1. Validar Dynatrace funcionando
+# (Manual check en Dynatrace UI)
+
+# 2. Detener servicios Prometheus
+cd svc-signature-router
+docker-compose stop prometheus alertmanager grafana
+
+# 3. Mover configs a legacy/
+mkdir -p observability/legacy
+mv observability/prometheus.yml observability/legacy/
+mv observability/prometheus/ observability/legacy/
+mv observability/alertmanager/ observability/legacy/
+mv observability/grafana/ observability/legacy/
+
+# 4. Actualizar docker-compose.yml
+# (Eliminar services: prometheus, alertmanager, grafana)
+
+# 5. Rebuild sin servicios deprecados
+docker-compose up -d
+
+# 6. Verificar que todo funciona sin Prometheus
+curl http://localhost:8080/actuator/health
+# Verificar Dynatrace UI
+# Verificar Admin Panel alerts
+```
+
+**Rollback Plan (si algo sale mal):**
+
+```bash
+# Restaurar Prometheus
+mv observability/legacy/prometheus.yml observability/
+mv observability/legacy/prometheus/ observability/
+mv observability/legacy/alertmanager/ observability/
+mv observability/legacy/grafana/ observability/
+
+# Revertir docker-compose.yml (git checkout)
+git checkout docker-compose.yml
+
+# Reiniciar servicios
+docker-compose up -d prometheus alertmanager grafana
+```
+
+**Files Affected:**
+- `docker-compose.yml` (eliminar prometheus, alertmanager, grafana services)
+- `README.md` (actualizar sección Observability)
+- `svc-signature-router/README.md` (actualizar)
+- `docs/observability/README.md` (actualizar)
+- `docs/observability/DYNATRACE-MIGRATION-COMPLETED.md` (nuevo)
+- `observability/` → `observability/legacy/` (mover archivos)
+
+**Dependencies:**
+- Stories 15.1-15.7 completadas
+- Al menos 1 semana de operación con Dynatrace
+- Aprobación del equipo para deprecar Prometheus
+
+**DoD:**
+- [ ] Validación pre-migración completa (checklist pasando)
+- [ ] Coexistencia validada (Dynatrace PRIMARY, Prometheus backup)
+- [ ] Servicios Prometheus/AlertManager/Grafana detenidos
+- [ ] Archivos movidos a `observability/legacy/`
+- [ ] `docker-compose.yml` actualizado (services eliminados)
+- [ ] Documentación actualizada (README, guides)
+- [ ] Migration completion report creado
+- [ ] Equipo entrenado en Dynatrace
+- [ ] Rollback plan documentado y probado (dry-run)
+
+**Estimation:** 6-8h (validación + migración + documentación)
+
+---
+
+## Epic 15 Summary
+
+**Total Stories:** 8  
+**Estimated Effort:** 32-46h (~4-6 días de trabajo)
+
+**Timeline:**
+- **Semana 1:** Stories 15.1-15.3 (Backend integration)
+- **Semana 2:** Stories 15.4-15.5 (Frontend integration) + Story 15.6 (Dashboards)
+- **Semana 3:** Story 15.7 (Alerting) + Coexistencia Prometheus/Dynatrace
+- **Semana 4:** Story 15.8 (Migration & Cleanup)
+
+**Definition of Done (Epic 15):**
+- [ ] OneAgent instalado y capturando métricas (backend + DB + Kafka)
+- [ ] RUM integrado en frontend (sesiones visibles)
+- [ ] Admin Panel muestra alertas de Dynatrace (no mock)
+- [ ] 5 dashboards creados en Dynatrace
+- [ ] Alerting profiles configurados (CRITICAL, WARNING, INFO)
+- [ ] Notification channels funcionando (Slack, PagerDuty)
+- [ ] Prometheus/AlertManager/Grafana deprecados
+- [ ] Documentación actualizada
+- [ ] Equipo entrenado en Dynatrace UI
+
+**Success Metrics:**
+- ✅ MTTR reducido de 30-60 min → 5-10 min (target: 70-80% reduction)
+- ✅ 100% de hosts/services visibles en Dynatrace
+- ✅ 0 incidentes manejados con Prometheus (post-migración)
+- ✅ Team satisfaction: ≥4/5 en encuesta post-migration
+
+---
+
+**FR Coverage:**
+Epic 15 reemplaza Epic 9 (Observability & SLO Tracking) con implementación enterprise:
+- Cubre NFR-O1 a NFR-O14 (Observability requirements)
+- Mejora NFR-P1 a NFR-P10 (Performance monitoring)
+- Habilita mejor cumplimiento de SLO ≥99.9% availability, P99 <300ms
+
+---
+
+**Next Steps:**
+1. Solicitar credenciales Dynatrace al equipo DevOps
+2. Iniciar Story 15.1 (Backend OneAgent Installation)
+3. Seguir workflow secuencial (no paralelizar stories debido a dependencias)
 
 ---
 
