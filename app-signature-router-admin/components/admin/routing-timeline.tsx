@@ -21,7 +21,8 @@ interface RoutingTimelineProps {
 }
 
 export function RoutingTimeline({ events, className }: RoutingTimelineProps) {
-  const getEventIcon = (eventType: string) => {
+  const getEventIcon = (eventType?: string) => {
+    if (!eventType) return <AlertTriangle className="h-5 w-5 text-gray-600" />;
     const upperType = eventType.toUpperCase();
     if (upperType.includes('COMPLETED') || upperType.includes('SUCCESS')) {
       return <CheckCircle2 className="h-5 w-5 text-green-600" />;
@@ -41,7 +42,8 @@ export function RoutingTimeline({ events, className }: RoutingTimelineProps) {
     return <AlertTriangle className="h-5 w-5 text-gray-600" />;
   };
 
-  const getEventColor = (eventType: string) => {
+  const getEventColor = (eventType?: string) => {
+    if (!eventType) return 'bg-gray-500/10 text-gray-700 border-gray-200';
     const upperType = eventType.toUpperCase();
     if (upperType.includes('COMPLETED') || upperType.includes('SUCCESS')) {
       return 'bg-green-500/10 text-green-700 border-green-200';
@@ -78,7 +80,8 @@ export function RoutingTimeline({ events, className }: RoutingTimelineProps) {
     );
   };
 
-  const formatEventType = (type: string) => {
+  const formatEventType = (type?: string) => {
+    if (!type) return 'Unknown';
     return type
       .split('_')
       .map(word => word.charAt(0) + word.slice(1).toLowerCase())
@@ -94,7 +97,7 @@ export function RoutingTimeline({ events, className }: RoutingTimelineProps) {
       <div className="space-y-3">
         {sortedEvents.map((event, index) => {
           const isLast = index === sortedEvents.length - 1;
-          const timestamp = parseISO(event.timestamp);
+          const timestamp = event.timestamp ? parseISO(event.timestamp) : new Date();
 
           return (
             <div key={index} className="relative">

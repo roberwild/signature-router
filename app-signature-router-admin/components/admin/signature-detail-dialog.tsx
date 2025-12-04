@@ -179,22 +179,32 @@ export function SignatureDetailDialog({ signature, open, onOpenChange }: Signatu
                   <p className="text-xs text-muted-foreground mb-1">ID Cliente</p>
                   <p className="text-sm font-mono font-medium">{signature.customerId}</p>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Tipo de Transacción</p>
-                  <p className="text-sm font-medium">{signature.transactionContext.transactionType}</p>
-                </div>
+                {signature.transactionContext?.orderId && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Order ID</p>
+                    <p className="text-sm font-mono">{signature.transactionContext.orderId}</p>
+                  </div>
+                )}
+                {signature.transactionContext?.merchantId && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Merchant ID</p>
+                    <p className="text-sm font-mono">{signature.transactionContext.merchantId}</p>
+                  </div>
+                )}
               </div>
               <div className="space-y-3">
-                <div>
-                  <p className="text-xs text-muted-foreground mb-1">Monto</p>
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                    <p className="text-sm font-medium">
-                      {signature.transactionContext.currency} {signature.transactionContext.amount.toLocaleString()}
-                    </p>
+                {signature.transactionContext?.amount && (
+                  <div>
+                    <p className="text-xs text-muted-foreground mb-1">Monto</p>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <p className="text-sm font-medium">
+                        {signature.transactionContext.amount.currency} {parseFloat(signature.transactionContext.amount.amount).toLocaleString()}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                {signature.transactionContext.description && (
+                )}
+                {signature.transactionContext?.description && (
                   <div>
                     <p className="text-xs text-muted-foreground mb-1">Descripción</p>
                     <p className="text-sm">{signature.transactionContext.description}</p>
@@ -264,10 +274,10 @@ export function SignatureDetailDialog({ signature, open, onOpenChange }: Signatu
           <div>
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-primary" />
-              Desafíos de Autenticación ({signature.challenges.length})
+              Desafíos de Autenticación ({signature.challenges?.length || 0})
             </h3>
             <div className="space-y-3">
-              {signature.challenges.map((challenge, index) => {
+              {(signature.challenges || []).map((challenge, index) => {
                 const challengeDuration = challenge.completedAt
                   ? calculateDuration(challenge.sentAt || challenge.createdAt, challenge.completedAt)
                   : 'N/A';
@@ -354,9 +364,9 @@ export function SignatureDetailDialog({ signature, open, onOpenChange }: Signatu
           <div>
             <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              Timeline de Routing ({signature.routingTimeline.length} eventos)
+              Timeline de Routing ({signature.routingTimeline?.length || 0} eventos)
             </h3>
-            <RoutingTimeline events={signature.routingTimeline} />
+            <RoutingTimeline events={signature.routingTimeline || []} />
           </div>
         </div>
       </DialogContent>
