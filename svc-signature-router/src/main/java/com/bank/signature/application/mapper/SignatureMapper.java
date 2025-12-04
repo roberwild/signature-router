@@ -112,6 +112,7 @@ public class SignatureMapper {
         return new SignatureRequestDetailDto(
             signatureRequest.getId(),
             tokenizeCustomerId(signatureRequest.getCustomerId()),
+            signatureRequest.getTransactionContext(),
             signatureRequest.getStatus(),
             findActiveChallenge(signatureRequest),
             mapRoutingTimeline(signatureRequest.getRoutingTimeline()),

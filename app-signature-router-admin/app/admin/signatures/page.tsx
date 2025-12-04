@@ -46,6 +46,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export default function SignaturesPage() {
   const apiClient = useApiClient();
@@ -462,16 +468,19 @@ export default function SignaturesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
+                <TooltipProvider>
                 {filteredSignatures.map((signature) => {
                   const primaryChannel = signature.activeChallenge?.channelType || 'N/A';
                   const hasFallback = (signature.routingTimeline || []).length > 1;
                   const duration = calculateDuration(signature.createdAt, signature.updatedAt);
 
                   return (
-                    <TableRow key={signature.id} className="hover:bg-muted/30 cursor-pointer" onClick={() => handleViewDetails(signature)}>
-                      <TableCell>
-                        <code className="text-xs font-mono font-medium">{signature.id}</code>
-                      </TableCell>
+                    <Tooltip key={signature.id} delayDuration={300}>
+                      <TooltipTrigger asChild>
+                        <TableRow className="hover:bg-muted/30 cursor-pointer" onClick={() => handleViewDetails(signature)}>
+                          <TableCell>
+                            <code className="text-xs font-mono font-medium">{signature.id}</code>
+                          </TableCell>
                       <TableCell>
                         <div>
                           <div className="text-sm font-medium">{signature.customerId}</div>
@@ -481,8 +490,17 @@ export default function SignaturesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm font-medium text-muted-foreground">
-                          N/A
+                        <div className="text-sm font-medium">
+                          {signature.transactionContext?.amount ? (
+                            <>
+                              {signature.transactionContext.amount.amount}{' '}
+                              <span className="text-xs text-muted-foreground">
+                                {signature.transactionContext.amount.currency}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -511,22 +529,87 @@ export default function SignaturesPage() {
                           {(signature.routingTimeline || []).length} eventos
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleViewDetails(signature);
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDetails(signature);
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-sm p-4">
+                        {signature.transactionContext ? (
+                          <div className="space-y-2">
+                            <div className="font-semibold text-sm border-b pb-1 mb-2">
+                              Detalles de Transacción
+                            </div>
+                            
+                            {/* Amount */}
+                            <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
+                              <span className="text-muted-foreground font-medium">Monto:</span>
+                              <span className="font-semibold">
+                                {signature.transactionContext.amount?.amount}{' '}
+                                {signature.transactionContext.amount?.currency}
+                              </span>
+                            </div>
+                            
+                            {/* Order ID */}
+                            {signature.transactionContext.orderId && (
+                              <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
+                                <span className="text-muted-foreground font-medium">Order ID:</span>
+                                <code className="text-xs font-mono bg-muted px-1 rounded">
+                                  {signature.transactionContext.orderId}
+                                </code>
+                              </div>
+                            )}
+                            
+                            {/* Merchant ID */}
+                            {signature.transactionContext.merchantId && (
+                              <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
+                                <span className="text-muted-foreground font-medium">Merchant ID:</span>
+                                <code className="text-xs font-mono bg-muted px-1 rounded">
+                                  {signature.transactionContext.merchantId}
+                                </code>
+                              </div>
+                            )}
+                            
+                            {/* Description */}
+                            {signature.transactionContext.description && (
+                              <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
+                                <span className="text-muted-foreground font-medium">Descripción:</span>
+                                <span className="text-xs italic">
+                                  {signature.transactionContext.description}
+                                </span>
+                              </div>
+                            )}
+                            
+                            {/* Hash */}
+                            {signature.transactionContext.hash && (
+                              <div className="grid grid-cols-[100px_1fr] gap-2 text-xs mt-3 pt-2 border-t">
+                                <span className="text-muted-foreground font-medium">Hash:</span>
+                                <code className="text-[10px] font-mono bg-muted px-1 rounded break-all">
+                                  {signature.transactionContext.hash.substring(0, 32)}...
+                                </code>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-muted-foreground">
+                            No hay datos de transacción disponibles
+                          </div>
+                        )}
+                      </TooltipContent>
+                    </Tooltip>
                   );
                 })}
+                </TooltipProvider>
               </TableBody>
             </Table>
 

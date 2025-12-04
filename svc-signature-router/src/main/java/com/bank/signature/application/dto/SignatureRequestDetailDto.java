@@ -1,6 +1,7 @@
 package com.bank.signature.application.dto;
 
 import com.bank.signature.domain.model.valueobject.SignatureStatus;
+import com.bank.signature.domain.model.valueobject.TransactionContext;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
@@ -31,6 +32,12 @@ public record SignatureRequestDetailDto(
         example = "12345678..."
     )
     String customerId,
+    
+    @Schema(
+        description = "Transaction context (amount, merchant, order)",
+        nullable = true
+    )
+    TransactionContext transactionContext,
     
     @Schema(
         description = "Current status of the signature request",

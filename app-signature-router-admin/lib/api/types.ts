@@ -144,11 +144,14 @@ export interface RoutingEvent {
 }
 
 export interface TransactionContext {
-  amount: number;
-  currency: string;
-  transactionType: string;
+  amount: {
+    amount: string;
+    currency: string;
+  };
+  hash?: string;
+  merchantId?: string;
+  orderId?: string;
   description?: string;
-  metadata?: { [key: string]: any };
 }
 
 export interface ProviderResult {
