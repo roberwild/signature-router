@@ -101,17 +101,24 @@ docker-compose exec vault sh /vault/scripts/vault-init.sh
 
 ### 2. Actualizar Secrets en Vault para AD
 
-Actualiza los secrets de Keycloak en Vault con los valores reales:
+Actualiza los secrets de Keycloak en Vault con los valores reales (solicita estos valores al equipo de infraestructura):
 
+**PowerShell (Windows):**
 ```powershell
-# Solicita estos valores al equipo de infraestructura
-# Opción 1: Todo en una línea
-docker-compose exec vault vault kv patch secret/signature-router keycloak.client-id="<CLIENT_ID_REAL>" keycloak.client-secret="<CLIENT_SECRET_REAL>" keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
-
-# Opción 2: Ejecutar comandos por separado
 docker-compose exec vault vault kv patch secret/signature-router keycloak.client-id="<CLIENT_ID_REAL>"
 docker-compose exec vault vault kv patch secret/signature-router keycloak.client-secret="<CLIENT_SECRET_REAL>"
 docker-compose exec vault vault kv patch secret/signature-router keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
+
+# Verificar que se guardaron
+docker-compose exec vault vault kv get secret/signature-router
+```
+
+**Bash (Linux/Mac):**
+```bash
+docker-compose exec vault vault kv patch secret/signature-router \
+  keycloak.client-id="<CLIENT_ID_REAL>" \
+  keycloak.client-secret="<CLIENT_SECRET_REAL>" \
+  keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
 
 # Verificar que se guardaron
 docker-compose exec vault vault kv get secret/signature-router

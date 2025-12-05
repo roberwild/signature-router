@@ -95,17 +95,27 @@ docker-compose exec vault vault kv get secret/signature-router
 
 ### 2. Actualizar Secrets para Keycloak Remoto (AD)
 
-Si vas a usar el Keycloak de desarrollo (AD), actualiza los secrets en Vault:
+Si vas a usar el Keycloak de desarrollo (AD), actualiza los secrets en Vault (solicitar valores a infraestructura):
 
+**PowerShell (Windows):**
 ```powershell
-# Actualizar secrets de Keycloak con valores reales (solicitar a infraestructura)
-# Opción 1: Todo en una línea
-docker-compose exec vault vault kv patch secret/signature-router keycloak.client-id="<client-id-real>" keycloak.client-secret="<client-secret-real>" keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
-
-# Opción 2: Ejecutar comandos por separado
 docker-compose exec vault vault kv patch secret/signature-router keycloak.client-id="<client-id-real>"
 docker-compose exec vault vault kv patch secret/signature-router keycloak.client-secret="<client-secret-real>"
 docker-compose exec vault vault kv patch secret/signature-router keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
+
+# Verificar
+docker-compose exec vault vault kv get secret/signature-router
+```
+
+**Bash (Linux/Mac):**
+```bash
+docker-compose exec vault vault kv patch secret/signature-router \
+  keycloak.client-id="<client-id-real>" \
+  keycloak.client-secret="<client-secret-real>" \
+  keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
+
+# Verificar
+docker-compose exec vault vault kv get secret/signature-router
 ```
 
 ### 3. Acceder a Vault UI (opcional)
