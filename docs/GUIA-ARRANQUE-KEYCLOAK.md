@@ -30,6 +30,9 @@ Usa el Keycloak local en Docker para desarrollo sin conexión a la red del banco
 ```powershell
 cd c:\Proyectos\signature-router\svc-signature-router
 docker-compose up -d
+
+# Inicializar secrets en Vault (solo primera vez)
+docker-compose exec vault sh /vault/scripts/vault-init.sh
 ```
 
 ### 2. Configurar Frontend (.env.local)
@@ -84,20 +87,41 @@ npm run dev
 
 Usa el Keycloak de infraestructura conectado al Active Directory del banco.
 
-### 1. Levantar infraestructura Docker (solo PostgreSQL)
+### 1. Levantar infraestructura Docker (PostgreSQL + Vault)
 
 ```powershell
 cd c:\Proyectos\signature-router\svc-signature-router
-docker-compose up -d postgres
+
+# Levantar PostgreSQL y Vault
+docker-compose up -d postgres vault
+
+# Inicializar secrets en Vault (solo primera vez)
+docker-compose exec vault sh /vault/scripts/vault-init.sh
 ```
 
-### 2. Configurar Frontend (.env.local)
+### 2. Actualizar Secrets en Vault para AD
 
-Copia el archivo de ejemplo y edita con las credenciales proporcionadas por infraestructura:
+Actualiza los secrets de Keycloak en Vault con los valores reales:
+
+```powershell
+# Solicita estos valores al equipo de infraestructura
+docker-compose exec vault vault kv patch secret/signature-router ^
+  keycloak.client-id="<CLIENT_ID_REAL>" ^
+  keycloak.client-secret="<CLIENT_SECRET_REAL>" ^
+  keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
+
+# Verificar que se guardaron
+docker-compose exec vault vault kv get secret/signature-router
+```
+
+### 3. Configurar Frontend (.env.local)
+
+Copia el archivo de ejemplo y edita con los **mismos valores** que pusiste en Vault:
 
 ```powershell
 cd c:\Proyectos\signature-router\app-signature-router-admin
 copy env.local.example .env.local
+notepad .env.local
 ```
 
 > 📧 **Las credenciales de Keycloak de desarrollo las proporciona el equipo de infraestructura.**

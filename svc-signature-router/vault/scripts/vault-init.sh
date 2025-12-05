@@ -21,13 +21,20 @@ if [ $? -eq 0 ]; then
 fi
 
 # Initialize secrets
+# NOTA: Los valores de Keycloak son placeholders. 
+# Para desarrollo remoto (AD), actualiza con los valores reales:
+#   vault kv patch secret/signature-router keycloak.client-id=<real-id> keycloak.client-secret=<real-secret>
 vault kv put secret/signature-router \
   database.password=sigpass \
   kafka.sasl-jaas-config="" \
   twilio.api-key=test-twilio-key-123 \
   twilio.api-secret=test-twilio-secret-456 \
   push-service.api-key=test-push-key-789 \
-  biometric-sdk.license=test-biometric-license
+  biometric-sdk.license=test-biometric-license \
+  keycloak.client-id=signature-router-admin \
+  keycloak.client-secret=signature-router-admin-secret-12345 \
+  keycloak.issuer-uri=http://localhost:8180/realms/signature-router \
+  auth.secret=local-dev-auth-secret-change-in-production
 
 if [ $? -eq 0 ]; then
   echo "✓ Secrets initialized successfully"

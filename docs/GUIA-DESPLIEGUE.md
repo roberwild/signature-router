@@ -51,32 +51,77 @@ Esta guía documenta cómo desplegar el proyecto en los diferentes entornos, con
 
 Ver guía detallada: [GUIA-ARRANQUE-KEYCLOAK.md](./GUIA-ARRANQUE-KEYCLOAK.md)
 
-### Secrets del Frontend
+### Arquitectura Local = Misma que Producción
 
-El archivo `.env.local` NO se commitea (está en `.gitignore`):
+En local usamos **exactamente la misma arquitectura** que en otros entornos:
+- Backend obtiene secrets de Vault (Docker)
+- Frontend obtiene secrets de variables de entorno
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     ARQUITECTURA LOCAL                       │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│   ┌──────────────┐         ┌──────────────────────┐         │
+│   │   Frontend   │         │      Backend         │         │
+│   │   Next.js    │────────▶│    Spring Boot       │         │
+│   └──────┬───────┘         └──────────┬───────────┘         │
+│          │                            │                      │
+│          │ .env.local                 │ Spring Cloud Vault   │
+│          │ (gitignore)                │                      │
+│          ▼                            ▼                      │
+│   ┌──────────────┐         ┌──────────────────────┐         │
+│   │  Variables   │         │   Vault (Docker)     │         │
+│   │  de Entorno  │         │   localhost:8200     │         │
+│   └──────────────┘         └──────────────────────┘         │
+│                                                              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 1. Levantar Vault y Cargar Secrets
 
 ```powershell
-# Crear desde template
+cd svc-signature-router
+
+# Levantar Vault
+docker-compose up -d vault
+
+# Inicializar secrets (solo primera vez)
+docker-compose exec vault sh /vault/scripts/vault-init.sh
+
+# Verificar secrets cargados
+docker-compose exec vault vault kv get secret/signature-router
+```
+
+### 2. Actualizar Secrets para Keycloak Remoto (AD)
+
+Si vas a usar el Keycloak de desarrollo (AD), actualiza los secrets en Vault:
+
+```powershell
+# Actualizar secrets de Keycloak con valores reales (solicitar a infraestructura)
+docker-compose exec vault vault kv patch secret/signature-router \
+  keycloak.client-id="<client-id-real>" \
+  keycloak.client-secret="<client-secret-real>" \
+  keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
+```
+
+### 3. Acceder a Vault UI (opcional)
+
+- **URL:** http://localhost:8200/ui
+- **Token:** `dev-token-123`
+- **Path:** `secret/signature-router`
+
+### 4. Secrets del Frontend (.env.local)
+
+El frontend aún necesita `.env.local` porque Next.js no tiene integración nativa con Vault:
+
+```powershell
 cd app-signature-router-admin
 copy env.local.example .env.local
-
-# Editar con los valores reales
 notepad .env.local
 ```
 
-### Secrets del Backend
-
-En local, los secrets se cargan desde:
-1. `application-local.yml` (valores de desarrollo)
-2. Vault en Docker (para secrets sensibles)
-
-```powershell
-# Levantar Vault local
-docker-compose up -d vault
-
-# Inicializar secrets
-docker-compose exec vault sh /vault/scripts/vault-init.sh
-```
+> 💡 **Tip:** Los valores de `.env.local` deben coincidir con los de Vault para consistencia.
 
 ---
 
