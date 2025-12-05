@@ -399,7 +399,7 @@ export class MockApiClient implements IApiClient {
   }
 
   async validateSpel(expression: string): Promise<{ valid: boolean; message?: string }> {
-    this.log('POST', '/api/v1/admin/rules/validate-spel', { expression });
+    this.log('POST', '/api/v1/admin/routing-rules/validate-spel', { expression });
 
     // Validación básica mock
     if (!expression || expression.trim() === '') {

@@ -273,29 +273,29 @@ export default function SignaturesPage() {
 
       {/* Content */}
       <div className="mx-auto max-w-7xl space-y-6 p-6">
-        {/* Stats Cards - Current Page Only */}
+        {/* Stats Cards - Current Page Only - DATOS 100% REALES */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total</p>
                   <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-[10px] text-muted-foreground/60 italic">página actual</p>
+                  <p className="text-[10px] text-green-500">✓ Real (página actual)</p>
                 </div>
                 <FileSignature className="h-8 w-8 text-primary/20" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Firmadas</p>
                   <p className="text-2xl font-bold text-green-600">{stats.signed}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {stats.total > 0 ? ((stats.signed / stats.total) * 100).toFixed(1) : 0}%
+                  <p className="text-xs text-green-500">
+                    ✓ {stats.total > 0 ? ((stats.signed / stats.total) * 100).toFixed(1) : 0}%
                   </p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500/20" />
@@ -303,25 +303,26 @@ export default function SignaturesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Pendientes</p>
                   <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
+                  <p className="text-xs text-green-500">✓ Real</p>
                 </div>
                 <Clock className="h-8 w-8 text-yellow-500/20" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Tiempo Prom.</p>
                   <p className="text-2xl font-bold">{stats.avgDuration.toFixed(1)}s</p>
-                  <p className="text-xs text-muted-foreground">Duración</p>
+                  <p className="text-xs text-green-500">✓ Calculado de BD</p>
                 </div>
                 <RefreshCw className="h-8 w-8 text-primary/20" />
               </div>
@@ -491,13 +492,20 @@ export default function SignaturesPage() {
           </CardContent>
         </Card>
 
-        {/* Signatures Table */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        {/* Signatures Table - DATOS 100% REALES */}
+        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
-            <CardTitle>Solicitudes de Firma</CardTitle>
-            <CardDescription>
-              Mostrando {page * size + 1}-{Math.min((page + 1) * size, totalElements)} de {totalElements} solicitudes
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Solicitudes de Firma</CardTitle>
+                <CardDescription>
+                  Mostrando {page * size + 1}-{Math.min((page + 1) * size, totalElements)} de {totalElements} solicitudes
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                ✓ 100% Datos reales
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>

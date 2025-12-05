@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -24,7 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, XCircle, AlertCircle, Code, Lightbulb } from 'lucide-react';
+import { CheckCircle2, XCircle, AlertCircle, Code, Lightbulb, Loader2 } from 'lucide-react';
+import { useApiClientWithStatus } from '@/lib/api/use-api-client';
 
 // Schema de validación
 const ruleSchema = z.object({
@@ -54,10 +55,12 @@ export function RuleEditorDialog({
   onSave,
   providers = [],
 }: RuleEditorDialogProps) {
+  const { apiClient, isAuthenticated } = useApiClientWithStatus();
   const [spelValidation, setSpelValidation] = useState<{
     isValid: boolean;
     message: string;
   } | null>(null);
+  const [isValidating, setIsValidating] = useState(false);
 
   const isEditing = !!rule?.id;
 
@@ -83,31 +86,39 @@ export function RuleEditorDialog({
 
   const condition = watch('condition');
   const channel = watch('channel');
+  const currentProvider = watch('provider');
 
-  // Resetear el formulario cuando cambia la regla (para edición)
+  // Resetear el formulario y la validación SpEL cuando cambia la regla o se abre el diálogo
   useEffect(() => {
-    if (rule) {
-      reset({
-        name: rule.name || '',
-        description: rule.description || '',
-        channel: rule.channel || 'SMS',
-        provider: rule.provider || getDefaultProvider(rule.channel),
-        priority: rule.priority || 1,
-        condition: rule.condition || '',
-        enabled: rule.enabled !== undefined ? rule.enabled : true,
-      });
-    } else {
-      reset({
-        name: '',
-        description: '',
-        channel: 'SMS',
-        provider: 'Twilio',
-        priority: 1,
-        condition: '',
-        enabled: true,
-      });
+    if (open) {
+      // Limpiar el estado de validación SpEL al abrir
+      setSpelValidation(null);
+      setIsValidating(false);
+      
+      if (rule) {
+        const formValues = {
+          name: rule.name || '',
+          description: rule.description || '',
+          channel: rule.channel || 'SMS',
+          provider: rule.provider || getDefaultProvider(rule.channel),
+          priority: rule.priority || 1,
+          condition: rule.condition || '',
+          enabled: rule.enabled !== undefined ? rule.enabled : true,
+        };
+        reset(formValues);
+      } else {
+        reset({
+          name: '',
+          description: '',
+          channel: 'SMS',
+          provider: '',
+          priority: 1,
+          condition: '',
+          enabled: true,
+        });
+      }
     }
-  }, [rule, reset]);
+  }, [open, rule, reset]);
 
   // Función auxiliar para obtener proveedor por defecto según el canal
   const getDefaultProvider = (channel?: string) => {
@@ -125,10 +136,55 @@ export function RuleEditorDialog({
     }
   };
 
-  // Validar SpEL en tiempo real (simulado)
+  // Validar SpEL en tiempo real usando el backend (RULES-003)
+  const validateSpEL = useCallback(async (expression: string) => {
+    if (expression.length < 5) {
+      setSpelValidation(null);
+      return;
+    }
+    
+    // No intentar validar si no hay sesión autenticada
+    if (!isAuthenticated) {
+      setSpelValidation({
+        isValid: true,
+        message: 'Validación pendiente (sesión no disponible)',
+      });
+      return;
+    }
+    
+    setIsValidating(true);
+    try {
+      const result = await apiClient.validateSpel(expression);
+      
+      setSpelValidation({
+        isValid: result.valid,
+        message: result.valid 
+          ? 'Sintaxis SpEL válida ✓' 
+          : result.message || 'Expresión SpEL inválida',
+      });
+    } catch (error) {
+      // Fallback a validación básica si el backend falla
+      console.warn('SpEL validation failed, using local fallback:', error);
+      
+      // Verificar balanceo básico como fallback
+      const openParens = (expression.match(/\(/g) || []).length;
+      const closeParens = (expression.match(/\)/g) || []).length;
+      const hasBalancedParens = openParens === closeParens;
+      
+      setSpelValidation({
+        isValid: hasBalancedParens,
+        message: hasBalancedParens 
+          ? 'Validación local (backend no disponible)' 
+          : 'Paréntesis no balanceados',
+      });
+    } finally {
+      setIsValidating(false);
+    }
+  }, [isAuthenticated, apiClient]);
+
   useEffect(() => {
     if (condition.length > 0) {
-      // Simular validación SpEL
+      // Debounce para evitar demasiadas llamadas
       const timer = setTimeout(() => {
         validateSpEL(condition);
       }, 500);
@@ -136,37 +192,7 @@ export function RuleEditorDialog({
     } else {
       setSpelValidation(null);
     }
-  }, [condition]);
-
-  const validateSpEL = (expression: string) => {
-    // Simulación de validación SpEL
-    // En producción, esto haría una llamada al backend
-    
-    // Verificar caracteres permitidos (letras, números, espacios, operadores, comillas, paréntesis)
-    const hasValidCharacters = /^[a-zA-Z0-9\s.'"()!=<>&|]+$/.test(expression);
-    
-    // Verificar balanceo de comillas
-    const singleQuotes = (expression.match(/'/g) || []).length;
-    const doubleQuotes = (expression.match(/"/g) || []).length;
-    const hasBalancedQuotes = singleQuotes % 2 === 0 && doubleQuotes % 2 === 0;
-    
-    // Verificar balanceo de paréntesis
-    const openParens = (expression.match(/\(/g) || []).length;
-    const closeParens = (expression.match(/\)/g) || []).length;
-    const hasBalancedParens = openParens === closeParens;
-    
-    if (!hasValidCharacters || !hasBalancedQuotes || !hasBalancedParens) {
-      setSpelValidation({
-        isValid: false,
-        message: 'Sintaxis SpEL inválida. Verifica los operadores y variables.',
-      });
-    } else {
-      setSpelValidation({
-        isValid: true,
-        message: 'Sintaxis SpEL válida ✓',
-      });
-    }
-  };
+  }, [condition, validateSpEL]);
 
   const onSubmit = (data: RuleFormValues) => {
     onSave(data);
@@ -177,7 +203,7 @@ export function RuleEditorDialog({
   const spelExamples = [
     {
       name: 'Transacciones Grandes',
-      code: "amount.value > 1000",
+      code: "amountValue > 1000",
     },
     {
       name: 'Merchant Específico',
@@ -185,11 +211,11 @@ export function RuleEditorDialog({
     },
     {
       name: 'Monto y Currency',
-      code: "amount.value >= 500 && amount.currency == 'EUR'",
+      code: "amountValue >= 500 && amountCurrency == 'EUR'",
     },
     {
-      name: 'Descripción Contiene',
-      code: "description.contains('urgent')",
+      name: 'Rango de Montos',
+      code: "amountValue >= 100 && amountValue <= 1000",
     },
   ];
 
@@ -265,18 +291,45 @@ export function RuleEditorDialog({
                 Proveedor <span className="text-red-500">*</span>
               </Label>
               <Select
-                value={watch('provider')}
+                value={currentProvider || ''}
                 onValueChange={(value) => setValue('provider', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecciona un proveedor" />
+                  <SelectValue placeholder="Selecciona un proveedor">
+                    {currentProvider ? (
+                      <>
+                        {currentProvider}
+                        {providers.find(p => p.name === currentProvider)?.type && 
+                          ` (${providers.find(p => p.name === currentProvider)?.type})`}
+                      </>
+                    ) : (
+                      'Selecciona un proveedor'
+                    )}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {providers.map((provider) => (
-                    <SelectItem key={provider.id} value={provider.name}>
-                      {provider.name} ({provider.type})
-                    </SelectItem>
-                  ))}
+                  {/* Filtrar providers por canal seleccionado, pero siempre incluir el provider actual */}
+                  {providers
+                    .filter((provider) => {
+                      // Siempre mostrar el provider actualmente seleccionado
+                      if (provider.name === currentProvider) return true;
+                      // Mostrar todos si el canal es ALL
+                      if (channel === 'ALL') return true;
+                      // Filtrar por tipo de canal
+                      return provider.type === channel;
+                    })
+                    .map((provider) => {
+                      // Mostrar ⚠️ solo si: es el provider actual, el canal no es ALL, y el tipo no coincide
+                      const showMismatchWarning = provider.name === currentProvider && 
+                                                  channel !== 'ALL' && 
+                                                  provider.type !== channel;
+                      return (
+                        <SelectItem key={provider.id} value={provider.name}>
+                          {provider.name} ({provider.type})
+                          {showMismatchWarning && ' ⚠️'}
+                        </SelectItem>
+                      );
+                    })}
                 </SelectContent>
               </Select>
               {providers.length === 0 && (
@@ -284,6 +337,23 @@ export function RuleEditorDialog({
                   Cargando proveedores...
                 </p>
               )}
+              {channel !== 'ALL' && providers.filter(p => p.type === channel).length === 0 && providers.length > 0 && (
+                <p className="text-xs text-amber-600">
+                  No hay proveedores disponibles para el canal {channel}
+                </p>
+              )}
+              {/* Advertencia si el provider actual no coincide con el canal */}
+              {(() => {
+                if (!currentProvider || channel === 'ALL' || providers.length === 0) return null;
+                const selectedProvider = providers.find(p => p.name === currentProvider);
+                if (!selectedProvider) return null; // Provider no encontrado en la lista
+                if (selectedProvider.type === channel) return null; // Coincide correctamente
+                return (
+                  <p className="text-xs text-amber-600">
+                    ⚠️ El proveedor seleccionado ({selectedProvider.type}) no coincide con el canal {channel}
+                  </p>
+                );
+              })()}
               {errors.provider && (
                 <p className="text-sm text-red-500">{errors.provider.message}</p>
               )}
@@ -318,20 +388,22 @@ export function RuleEditorDialog({
             <div className="relative">
               <Textarea
                 id="condition"
-                placeholder="context.amount.value > 1000 && context.amount.currency == 'EUR'"
+                placeholder="amountValue > 1000 && amountCurrency == 'EUR'"
                 rows={4}
                 className="font-mono text-sm"
                 {...register('condition')}
               />
-              {spelValidation && (
-                <div className="absolute top-2 right-2">
-                  {spelValidation.isValid ? (
+              <div className="absolute top-2 right-2">
+                {isValidating ? (
+                  <Loader2 className="h-5 w-5 text-muted-foreground animate-spin" />
+                ) : spelValidation ? (
+                  spelValidation.isValid ? (
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                   ) : (
                     <XCircle className="h-5 w-5 text-red-500" />
-                  )}
-                </div>
-              )}
+                  )
+                ) : null}
+              </div>
             </div>
             {errors.condition && (
               <p className="text-sm text-red-500">{errors.condition.message}</p>
@@ -364,10 +436,10 @@ export function RuleEditorDialog({
             </div>
             <div className="flex flex-wrap gap-2">
               <Badge variant="outline">
-                amount.value
+                amountValue
               </Badge>
               <Badge variant="outline">
-                amount.currency
+                amountCurrency
               </Badge>
               <Badge variant="outline">
                 merchantId

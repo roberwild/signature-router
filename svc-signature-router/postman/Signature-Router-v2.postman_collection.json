@@ -2,7 +2,7 @@
 	"info": {
 		"_postman_id": "signature-router-002",
 		"name": "Signature Router API (With Keycloak)",
-		"description": "Colección completa con autenticación OAuth2/Keycloak para el Signature Router\n\n**v2.0.0** ✅\n**Epic 13: Provider Management CRUD** ✅\n**Última actualización:** 2025-12-04",
+		"description": "Colección completa con autenticación OAuth2/Keycloak para el Signature Router\n\n**v2.1.0** ✅\n**Epic 13: Provider Management CRUD** ✅\n**Soporte Active Directory** ✅\n**Última actualización:** 2025-12-05",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -10,7 +10,7 @@
 			"name": "0. Authentication (Keycloak)",
 			"item": [
 				{
-					"name": "Get Admin Token",
+					"name": "Get Admin Token (Password Grant)",
 					"event": [
 						{
 							"listen": "test",
@@ -19,8 +19,13 @@
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
 									"    pm.environment.set('admin_token', response.access_token);",
+									"    pm.environment.set('refresh_token', response.refresh_token);",
 									"    console.log('✅ Admin token guardado');",
 									"    console.log('Token expira en:', response.expires_in, 'segundos');",
+									"} else {",
+									"    console.log('❌ Error obteniendo token.');",
+									"    console.log('   Si usas Active Directory, el grant_type=password puede no estar habilitado.');",
+									"    console.log('   Usa \"Get Token via Browser (AD)\" en su lugar.');",
 									"}"
 								],
 								"type": "text/javascript"
@@ -70,11 +75,11 @@
 							"host": ["{{keycloak_url}}"],
 							"path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
 						},
-						"description": "Obtiene un token JWT para el usuario admin (role: ADMIN)"
+						"description": "Obtiene un token JWT usando password grant.\n\n**Funciona con:** Keycloak local\n**NO funciona con:** Active Directory (SBTech) - usar flujo de navegador"
 					}
 				},
 				{
-					"name": "Get User Token",
+					"name": "Refresh Token",
 					"event": [
 						{
 							"listen": "test",
@@ -82,9 +87,12 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
-									"    pm.environment.set('user_token', response.access_token);",
-									"    console.log('✅ User token guardado');",
+									"    pm.environment.set('admin_token', response.access_token);",
+									"    pm.environment.set('refresh_token', response.refresh_token);",
+									"    console.log('✅ Token renovado exitosamente');",
 									"    console.log('Token expira en:', response.expires_in, 'segundos');",
+									"} else {",
+									"    console.log('❌ Error renovando token. Obtén uno nuevo.');",
 									"}"
 								],
 								"type": "text/javascript"
@@ -114,17 +122,12 @@
 								},
 								{
 									"key": "grant_type",
-									"value": "password",
+									"value": "refresh_token",
 									"type": "text"
 								},
 								{
-									"key": "username",
-									"value": "{{user_username}}",
-									"type": "text"
-								},
-								{
-									"key": "password",
-									"value": "{{user_password}}",
+									"key": "refresh_token",
+									"value": "{{refresh_token}}",
 									"type": "text"
 								}
 							]
@@ -134,7 +137,7 @@
 							"host": ["{{keycloak_url}}"],
 							"path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token"]
 						},
-						"description": "Obtiene un token JWT para el usuario standard (role: USER)"
+						"description": "Renueva el token usando el refresh_token. Útil cuando el access_token expira pero el refresh_token sigue válido."
 					}
 				},
 				{
@@ -172,7 +175,7 @@
 							"host": ["{{keycloak_url}}"],
 							"path": ["realms", "{{keycloak_realm}}", "protocol", "openid-connect", "token", "introspect"]
 						},
-						"description": "Verifica si el token es válido y muestra sus claims"
+						"description": "Verifica si el token es válido y muestra sus claims (roles, usuario, etc.)"
 					}
 				}
 			],
@@ -213,7 +216,7 @@
 			"name": "2. Signature Requests",
 			"item": [
 				{
-					"name": "Create Signature Request - SMS (Admin)",
+					"name": "Create Signature Request - SMS",
 					"event": [
 						{
 							"listen": "test",
@@ -256,53 +259,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "signatures"]
 						},
-						"description": "Crea una solicitud de firma con token de admin"
-					}
-				},
-				{
-					"name": "Create Signature Request - SMS (User)",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"if (pm.response.code === 201) {",
-									"    const response = pm.response.json();",
-									"    pm.environment.set('signature_request_id', response.id);",
-									"    console.log('✅ Request ID guardado:', response.id);",
-									"    console.log('   Status:', response.status);",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							},
-							{
-								"key": "Authorization",
-								"value": "Bearer {{user_token}}"
-							},
-							{
-								"key": "Idempotency-Key",
-								"value": "{{$guid}}"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n  \"customerId\": \"CUST-{{$timestamp}}\",\n  \"phoneNumber\": \"+34612345678\",\n  \"transactionContext\": {\n    \"amount\": {\n      \"value\": 500.00,\n      \"currency\": \"EUR\"\n    },\n    \"merchantId\": \"MERCHANT-{{$randomInt}}\",\n    \"orderId\": \"ORDER-{{$randomInt}}\",\n    \"description\": \"Pago de factura\"\n  }\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/signatures",
-							"host": ["{{base_url}}"],
-							"path": ["api", "v1", "signatures"]
-						},
-						"description": "Crea una solicitud de firma con token de usuario estándar"
+						"description": "Crea una solicitud de firma SMS"
 					}
 				},
 				{
@@ -433,7 +390,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "admin", "providers"]
 						},
-						"description": "Lista todos los providers configurados. **Requiere rol ADMIN o SUPPORT**"
+						"description": "Lista todos los providers configurados. **Requiere rol PRF_ADMIN o PRF_CONSULTIVO**"
 					}
 				},
 				{
@@ -543,7 +500,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "admin", "providers"]
 						},
-						"description": "Crea un nuevo provider de tipo SMS (Twilio). **Requiere rol ADMIN**"
+						"description": "Crea un nuevo provider de tipo SMS (Twilio). **Requiere rol PRF_ADMIN**"
 					}
 				},
 				{
@@ -595,7 +552,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "admin", "providers", "{{provider_id}}"]
 						},
-						"description": "Actualiza la configuración de un provider existente. **Requiere rol ADMIN**"
+						"description": "Actualiza la configuración de un provider existente. **Requiere rol PRF_ADMIN**"
 					}
 				},
 				{
@@ -613,7 +570,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "admin", "providers", "{{provider_id}}"]
 						},
-						"description": "Elimina (deshabilita) un provider. **Requiere rol ADMIN**"
+						"description": "Elimina (deshabilita) un provider. **Requiere rol PRF_ADMIN**"
 					}
 				},
 				{
@@ -639,7 +596,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "admin", "providers", "{{provider_id}}", "test"]
 						},
-						"description": "Prueba la conectividad de un provider. **Requiere rol ADMIN**"
+						"description": "Prueba la conectividad de un provider. **Requiere rol PRF_ADMIN**"
 					}
 				}
 			],
@@ -681,7 +638,7 @@
 							"host": ["{{base_url}}"],
 							"path": ["api", "v1", "admin", "registry", "reload"]
 						},
-						"description": "Fuerza la recarga del registro de providers desde la base de datos. **Requiere rol ADMIN**"
+						"description": "Fuerza la recarga del registro de providers desde la base de datos. **Requiere rol PRF_ADMIN**"
 					}
 				}
 			],
@@ -752,7 +709,12 @@
 					"});",
 					"",
 					"if (pm.response.code === 401) {",
-					"    console.warn('⚠️ Unauthorized. Ejecuta primero: 0. Authentication > Get Admin Token (o Get User Token)');",
+					"    console.warn('⚠️ Token expirado o no válido.');",
+					"    console.warn('   → Ejecuta \"Get Admin Token\" o \"Refresh Token\" primero');",
+					"}",
+					"",
+					"if (pm.response.code === 403) {",
+					"    console.warn('⚠️ Acceso denegado. Tu usuario no tiene el rol requerido (PRF_ADMIN o PRF_CONSULTIVO).');",
 					"}"
 				]
 			}

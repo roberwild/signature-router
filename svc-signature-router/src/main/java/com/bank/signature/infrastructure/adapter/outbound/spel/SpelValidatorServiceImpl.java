@@ -1,8 +1,7 @@
 package com.bank.signature.infrastructure.adapter.outbound.spel;
 
-import com.bank.signature.domain.exception.InvalidSpelExpressionException;
-import com.bank.signature.domain.service.SpelValidatorService;
-import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
+
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.ParseException;
@@ -10,9 +9,10 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.SimpleEvaluationContext;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
+import com.bank.signature.domain.exception.InvalidSpelExpressionException;
+import com.bank.signature.domain.service.SpelValidatorService;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implementation of SpelValidatorService using Spring Expression Language.
@@ -58,21 +58,21 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
 
             // Check for dangerous class references
             String[] dangerousClasses = {
-                "runtime", "processbuilder", "process",
-                "file", "filereader", "filewriter",
-                "classloader", "class.forname",
-                "system.exit", "system.gc",
-                "reflection", "method.invoke",
-                "exec(", "eval(", "compile("
+                    "runtime", "processbuilder", "process",
+                    "file", "filereader", "filewriter",
+                    "classloader", "class.forname",
+                    "system.exit", "system.gc",
+                    "reflection", "method.invoke",
+                    "exec(", "eval(", "compile("
             };
 
             for (String dangerous : dangerousClasses) {
                 if (lowerExpr.contains(dangerous)) {
                     int pos = lowerExpr.indexOf(dangerous);
                     return ValidationResult.failure(
-                        String.format("Dangerous pattern detected: '%s' is not allowed for security reasons", dangerous),
-                        pos
-                    );
+                            String.format("Dangerous pattern detected: '%s' is not allowed for security reasons",
+                                    dangerous),
+                            pos);
                 }
             }
 
@@ -80,30 +80,32 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
             if (lowerExpr.contains("t(")) {
                 if (!isWhitelistedTypeReference(spelExpression)) {
                     return ValidationResult.failure(
-                        "Type references T() are only allowed for whitelisted classes (Math, java.time.*, TransactionContext, Money)",
-                        spelExpression.toLowerCase().indexOf("t(")
-                    );
+                            "Type references T() are only allowed for whitelisted classes (Math, java.time.*, TransactionContext, Money)",
+                            spelExpression.toLowerCase().indexOf("t("));
                 }
             }
             if (lowerExpr.contains("@")) {
                 return ValidationResult.failure(
-                    "Bean references @ are not allowed for security reasons",
-                    spelExpression.indexOf("@")
-                );
+                        "Bean references @ are not allowed for security reasons",
+                        spelExpression.indexOf("@"));
             }
             if (lowerExpr.contains("#")) {
                 return ValidationResult.failure(
-                    "Variable references # are not allowed (use 'context' directly)",
-                    spelExpression.indexOf("#")
-                );
+                        "Variable references # are not allowed (use 'context' directly)",
+                        spelExpression.indexOf("#"));
             }
 
             // 3. Evaluate with sample context to ensure it works
-            // NOTE: There's a known limitation with SimpleEvaluationContext and nested Map property access
-            // when using withRootObject. The evaluation may fail with "Property or field 'context' cannot be found"
-            // even though the same pattern works in RoutingServiceImpl. This is a Spring SpEL limitation.
-            // The validation still works correctly in production because RoutingServiceImpl uses the same context
-            // structure and it works there. The tests that validate expression evaluation are marked as
+            // NOTE: There's a known limitation with SimpleEvaluationContext and nested Map
+            // property access
+            // when using withRootObject. The evaluation may fail with "Property or field
+            // 'context' cannot be found"
+            // even though the same pattern works in RoutingServiceImpl. This is a Spring
+            // SpEL limitation.
+            // The validation still works correctly in production because RoutingServiceImpl
+            // uses the same context
+            // structure and it works there. The tests that validate expression evaluation
+            // are marked as
             // potentially flaky due to this Spring framework limitation.
             SimpleEvaluationContext evalContext = createSafeEvaluationContext();
 
@@ -114,9 +116,9 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
                 // 4. Ensure result is Boolean (routing rules must return boolean)
                 if (result != null && !(result instanceof Boolean)) {
                     return ValidationResult.failure(
-                        "SpEL expression must evaluate to a Boolean (true/false), but got: " + result.getClass().getSimpleName(),
-                        -1
-                    );
+                            "SpEL expression must evaluate to a Boolean (true/false), but got: "
+                                    + result.getClass().getSimpleName(),
+                            -1);
                 }
 
                 log.info("SpEL expression validated successfully: {} -> {}", spelExpression, result);
@@ -130,9 +132,8 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
         } catch (ParseException e) {
             log.warn("SpEL parse error at position {}: {}", e.getPosition(), e.getMessage());
             return ValidationResult.failure(
-                "Parse error: " + e.getExpressionString() + " at position " + e.getPosition(),
-                e.getPosition()
-            );
+                    "Parse error: " + e.getExpressionString() + " at position " + e.getPosition(),
+                    e.getPosition());
         } catch (Exception e) {
             log.warn("SpEL evaluation error: {}", e.getMessage(), e);
             String errorMsg = e.getMessage();
@@ -140,20 +141,20 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
             // Check if it's a property access error - might be context setup issue
             if (errorMsg != null && errorMsg.contains("Property or field") && errorMsg.contains("cannot be found")) {
                 // Log the full error for debugging
-                log.debug("Property access error - context structure: {}", createSafeEvaluationContext().getRootObject());
+                log.debug("Property access error - context structure: {}",
+                        createSafeEvaluationContext().getRootObject());
                 // This might be a context setup issue, but we'll still fail validation
                 // as the expression can't be evaluated with our test context
                 return ValidationResult.failure(
-                    "Evaluation error: Expression cannot be evaluated with test context. " +
-                    "Available properties: 'amountValue' (BigDecimal), 'amountCurrency' (String), 'merchantId', 'orderId', 'description'. " +
-                    "Error: " + errorMsg,
-                    -1
-                );
+                        "Evaluation error: Expression cannot be evaluated with test context. " +
+                                "Available properties: 'amountValue' (BigDecimal), 'amountCurrency' (String), 'merchantId', 'orderId', 'description'. "
+                                +
+                                "Error: " + errorMsg,
+                        -1);
             }
             return ValidationResult.failure(
-                "Evaluation error: " + errorMsg,
-                -1
-            );
+                    "Evaluation error: " + errorMsg,
+                    -1);
         }
     }
 
@@ -173,10 +174,10 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
 
         // Whitelisted type patterns (Story 10.6)
         String[] whitelistedPatterns = {
-            "t(java.lang.math)",
-            "t(java.time.",
-            "t(com.bank.signature.domain.model.valueobject.transactioncontext)",
-            "t(com.bank.signature.domain.model.valueobject.money)"
+                "t(java.lang.math)",
+                "t(java.time.",
+                "t(com.bank.signature.domain.model.valueobject.transactioncontext)",
+                "t(com.bank.signature.domain.model.valueobject.money)"
         };
 
         // Check if any T() reference matches whitelist
@@ -197,41 +198,44 @@ public class SpelValidatorServiceImpl implements SpelValidatorService {
      * @return SimpleEvaluationContext with sample context variables
      */
     private SimpleEvaluationContext createSafeEvaluationContext() {
-        // Create a test RoutingContext JavaBean matching the structure used in RoutingServiceImpl
-        // This ensures validation uses the same properties that will be available at runtime:
+        // Create a test RoutingContext JavaBean matching the structure used in
+        // RoutingServiceImpl
+        // This ensures validation uses the same properties that will be available at
+        // runtime:
         // - amountValue (BigDecimal)
         // - amountCurrency (String)
         // - merchantId (String)
         // - orderId (String)
         // - description (String)
-        
+
         RoutingTestContext testContext = new RoutingTestContext(
-            new BigDecimal("100.00"),  // amountValue
-            "EUR",                      // amountCurrency
-            "merchant-123",             // merchantId
-            "order-456",                // orderId
-            "Test transaction"          // description
+                new BigDecimal("100.00"), // amountValue
+                "EUR", // amountCurrency
+                "merchant-123", // merchantId
+                "order-456", // orderId
+                "Test transaction" // description
         );
 
-        // Build SimpleEvaluationContext with JavaBean as root object
-        // Properties are accessible via getters: amountValue, amountCurrency, merchantId, orderId, description
-        return SimpleEvaluationContext.forReadOnlyDataBinding()
-            .withRootObject(testContext)
-            .build();
+        // Build SimpleEvaluationContext with DataBindingPropertyAccessor for proper
+        // property resolution
+        // forPropertyAccessors allows comparison operators while still restricting
+        // dangerous operations
+        return SimpleEvaluationContext.forPropertyAccessors(
+                org.springframework.expression.spel.support.DataBindingPropertyAccessor.forReadOnlyAccess())
+                .withRootObject(testContext)
+                .build();
     }
-    
+
     /**
      * Test context JavaBean matching RoutingServiceImpl.RoutingContext structure.
      * Used for SpEL validation to ensure expressions work at runtime.
      */
     private record RoutingTestContext(
-        BigDecimal amountValue,
-        String amountCurrency,
-        String merchantId,
-        String orderId,
-        String description
-    ) {
+            BigDecimal amountValue,
+            String amountCurrency,
+            String merchantId,
+            String orderId,
+            String description) {
         // Getters are implicitly generated by record
     }
 }
-

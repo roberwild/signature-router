@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { performKeycloakLogout } from '@/lib/auth-utils';
+import { useApiClientWithStatus } from '@/lib/api/use-api-client';
 import {
   LayoutDashboard,
   Settings,
@@ -31,7 +32,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-const navigation = [
+// Badges dinámicos - se actualizan desde el backend
+interface DynamicBadges {
+  pendingSignatures: number;
+  activeAlerts: number;
+}
+
+const getNavigation = (badges: DynamicBadges) => [
   {
     name: 'Dashboard',
     href: '/admin',
@@ -48,7 +55,9 @@ const navigation = [
     name: 'Monitoreo de Firmas',
     href: '/admin/signatures',
     icon: FileSignature,
-    badge: { value: 47, variant: 'warning' as const },
+    badge: badges.pendingSignatures > 0 
+      ? { value: badges.pendingSignatures, variant: 'warning' as const }
+      : null,
   },
   {
     name: 'Proveedores',
@@ -72,7 +81,9 @@ const navigation = [
     name: 'Alertas',
     href: '/admin/alerts',
     icon: Bell,
-    badge: { value: 3, variant: 'error' as const },
+    badge: badges.activeAlerts > 0 
+      ? { value: badges.activeAlerts, variant: 'error' as const }
+      : null,
   },
   {
     name: 'Usuarios',
@@ -85,8 +96,39 @@ const navigation = [
 export function AdminSidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { apiClient, isLoading: sessionLoading, isAuthenticated } = useApiClientWithStatus();
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [badges, setBadges] = useState<DynamicBadges>({ pendingSignatures: 0, activeAlerts: 0 });
+
+  // Cargar badges dinámicos - solo si hay sesión autenticada
+  const loadBadges = useCallback(async () => {
+    // No intentar cargar si no hay sesión autenticada
+    if (!isAuthenticated) {
+      return;
+    }
+    
+    try {
+      // Cargar conteos en paralelo
+      const [signaturesResult, alertsResult] = await Promise.allSettled([
+        apiClient.getSignatureRequests({ status: 'PENDING', size: 1 }),
+        apiClient.getAlerts({ status: 'ACTIVE' }),
+      ]);
+
+      const pendingSignatures = signaturesResult.status === 'fulfilled' 
+        ? signaturesResult.value.totalElements 
+        : 0;
+      
+      const activeAlerts = alertsResult.status === 'fulfilled'
+        ? alertsResult.value.filter((a: any) => a.status === 'ACTIVE').length
+        : 0;
+
+      setBadges({ pendingSignatures, activeAlerts });
+    } catch (error) {
+      // Silently fail - badges will show 0
+      console.warn('Failed to load sidebar badges:', error);
+    }
+  }, [isAuthenticated, apiClient]);
 
   useEffect(() => {
     setMounted(true);
@@ -96,6 +138,21 @@ export function AdminSidebar() {
       setCollapsed(savedState === 'true');
     }
   }, []);
+
+  // Cargar badges cuando la sesión esté lista
+  useEffect(() => {
+    if (isAuthenticated && !sessionLoading) {
+      // Cargar badges iniciales
+      loadBadges();
+      
+      // Refrescar badges cada 60 segundos
+      const interval = setInterval(loadBadges, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, sessionLoading, loadBadges]);
+  
+  // Generar navegación con badges actuales
+  const navigation = getNavigation(badges);
 
   // Guardar estado cuando cambie
   const toggleCollapsed = () => {

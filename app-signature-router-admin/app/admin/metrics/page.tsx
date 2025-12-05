@@ -155,11 +155,14 @@ export default function MetricsPage() {
 
       {/* Content */}
       <div className="mx-auto max-w-7xl space-y-6 p-6">
-        {/* Signature Duration Metrics (using signedAt) */}
+        {/* Signature Duration Metrics (using signedAt) - DATOS REALES */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Timer className="h-5 w-5 text-primary" />
             Duración de Firmas (signedAt Analytics)
+            <Badge variant="outline" className="ml-2 text-green-600 border-green-300 bg-green-50">
+              ✓ Datos reales
+            </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-3 mb-4">
             <Card className="bg-white dark:bg-card shadow-sm">
@@ -247,11 +250,14 @@ export default function MetricsPage() {
           </Card>
         </div>
 
-        {/* Challenge Completion Metrics (using completedAt) */}
+        {/* Challenge Completion Metrics (using completedAt) - DATOS REALES */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <CheckCircle2 className="h-5 w-5 text-primary" />
             Completado de Desafíos (completedAt Analytics)
+            <Badge variant="outline" className="ml-2 text-green-600 border-green-300 bg-green-50">
+              ✓ Datos reales
+            </Badge>
           </h2>
           <Card className="bg-white dark:bg-card shadow-sm">
             <CardHeader>
@@ -314,11 +320,14 @@ export default function MetricsPage() {
           </Card>
         </div>
 
-        {/* Fallback Analytics (from routing timeline) */}
+        {/* Fallback Analytics (from routing timeline) - DATOS REALES */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <GitBranch className="h-5 w-5 text-primary" />
             Análisis de Fallbacks (Routing Timeline)
+            <Badge variant="outline" className="ml-2 text-green-600 border-green-300 bg-green-50">
+              ✓ Datos reales
+            </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-3 mb-4">
             <Card className="bg-white dark:bg-card shadow-sm">
@@ -403,45 +412,51 @@ export default function MetricsPage() {
           </Card>
         </div>
 
-        {/* Traditional Performance Metrics */}
+        {/* Traditional Performance Metrics - LATENCIA TODO DYNATRACE */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
             Métricas de Rendimiento
+            <Badge variant="outline" className="ml-2 text-amber-600 border-amber-300 bg-amber-50">
+              ⚠️ TODO: Dynatrace
+            </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-4">
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">P50</p>
-                    <p className="text-2xl font-bold">{m.latency.current.p50}ms</p>
+                    <p className="text-sm font-medium text-amber-600">P50 (TODO)</p>
+                    <p className="text-2xl font-bold text-amber-600">{m.latency.current.p50}ms</p>
+                    <p className="text-xs text-amber-500">Placeholder</p>
                   </div>
-                  <Zap className="h-8 w-8 text-primary/20" />
+                  <Zap className="h-8 w-8 text-amber-500/30" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">P95</p>
-                    <p className="text-2xl font-bold">{m.latency.current.p95}ms</p>
+                    <p className="text-sm font-medium text-amber-600">P95 (TODO)</p>
+                    <p className="text-2xl font-bold text-amber-600">{m.latency.current.p95}ms</p>
+                    <p className="text-xs text-amber-500">Placeholder</p>
                   </div>
-                  <TrendingUp className="h-8 w-8 text-green-500/20" />
+                  <TrendingUp className="h-8 w-8 text-amber-500/30" />
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">P99</p>
-                    <p className="text-2xl font-bold">{m.latency.current.p99}ms</p>
+                    <p className="text-sm font-medium text-amber-600">P99 (TODO)</p>
+                    <p className="text-2xl font-bold text-amber-600">{m.latency.current.p99}ms</p>
+                    <p className="text-xs text-amber-500">Placeholder</p>
                   </div>
-                  <Activity className="h-8 w-8 text-yellow-500/20" />
+                  <Activity className="h-8 w-8 text-amber-500/30" />
                 </div>
               </CardContent>
             </Card>
@@ -452,6 +467,7 @@ export default function MetricsPage() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Error Rate</p>
                     <p className="text-2xl font-bold text-red-600">{m.errorRate.overall.toFixed(1)}%</p>
+                    <p className="text-xs text-green-500">✓ Datos reales</p>
                   </div>
                   <XCircle className="h-8 w-8 text-red-500/20" />
                 </div>
@@ -460,11 +476,18 @@ export default function MetricsPage() {
           </div>
         </div>
 
-        {/* Latency Timeline Chart */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        {/* Latency Timeline Chart - TODO DYNATRACE */}
+        <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
           <CardHeader>
-            <CardTitle>Evolución de Latencia</CardTitle>
-            <CardDescription>P50, P95 y P99 a lo largo del tiempo</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-amber-600">Evolución de Latencia (TODO)</CardTitle>
+                <CardDescription>P50, P95 y P99 a lo largo del tiempo - Placeholder con valores random</CardDescription>
+              </div>
+              <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                ⚠️ Dynatrace
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -526,10 +549,15 @@ export default function MetricsPage() {
           </CardContent>
         </Card>
 
-        {/* Signature Duration Timeline */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        {/* Signature Duration Timeline - DATOS REALES */}
+        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
-            <CardTitle>Duración de Firmas en el Tiempo</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Duración de Firmas en el Tiempo</CardTitle>
+              <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                ✓ Real
+              </Badge>
+            </div>
             <CardDescription>Tiempo promedio y mediana desde creación hasta firma</CardDescription>
           </CardHeader>
           <CardContent>
@@ -573,10 +601,15 @@ export default function MetricsPage() {
           </CardContent>
         </Card>
 
-        {/* Error Rate Timeline */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        {/* Error Rate Timeline - DATOS REALES */}
+        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
-            <CardTitle>Evolución de Tasa de Error</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Evolución de Tasa de Error</CardTitle>
+              <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                ✓ Real
+              </Badge>
+            </div>
             <CardDescription>Porcentaje de errores a lo largo del tiempo</CardDescription>
           </CardHeader>
           <CardContent>
@@ -612,10 +645,15 @@ export default function MetricsPage() {
           </CardContent>
         </Card>
 
-        {/* Challenge Completion Timeline */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        {/* Challenge Completion Timeline - DATOS REALES */}
+        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
-            <CardTitle>Tasa de Completado de Desafíos</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Tasa de Completado de Desafíos</CardTitle>
+              <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                ✓ Real
+              </Badge>
+            </div>
             <CardDescription>Evolución del tiempo de respuesta y porcentaje de completado</CardDescription>
           </CardHeader>
           <CardContent>
@@ -655,31 +693,31 @@ export default function MetricsPage() {
           </CardContent>
         </Card>
 
-        {/* Integration with Grafana */}
-        <Card className="bg-gradient-to-r from-primary/5 to-primary/10 border-primary/20">
+        {/* Integration with Dynatrace */}
+        <Card className="bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold mb-1">Dashboards Avanzados en Grafana</h3>
+                <h3 className="text-lg font-bold mb-1">Observabilidad con Dynatrace</h3>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Visualiza métricas detalladas con Prometheus + Grafana
+                  Monitorización inteligente con AI-powered insights y distributed tracing
                 </p>
                 <div className="flex gap-2">
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
                     <Activity className="mr-1 h-3 w-3" />
-                    Prometheus
+                    APM
                   </Badge>
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
                     <BarChart3 className="mr-1 h-3 w-3" />
-                    Grafana
+                    Real User Monitoring
                   </Badge>
-                  <Badge variant="outline">
+                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
                     <Zap className="mr-1 h-3 w-3" />
-                    Jaeger Tracing
+                    Distributed Tracing
                   </Badge>
                 </div>
               </div>
-              <Activity className="h-16 w-16 text-primary/20" />
+              <Activity className="h-16 w-16 text-emerald-500/20" />
             </div>
           </CardContent>
         </Card>

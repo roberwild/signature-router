@@ -279,11 +279,11 @@ export default function AdminDashboardPage() {
           </motion.div>
           <motion.div variants={itemVariants}>
             <MetricCard
-              title="Latencia Promedio"
+              title="Latencia Promedio (TODO)"
               value={`${metrics?.overview.avgLatency || 0}ms`}
-              description="Tiempo de respuesta"
+              description="⚠️ Placeholder - Dynatrace"
               icon={Zap}
-              color="primary"
+              color="warning"
             />
           </motion.div>
         </motion.div>
@@ -333,12 +333,19 @@ export default function AdminDashboardPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Column - 2/3 */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Channel Distribution - Pie Chart */}
+            {/* Channel Distribution - Pie Chart - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm">
+              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
-                  <CardTitle>Distribución por Canal</CardTitle>
-                  <CardDescription>Volumen de firmas por tipo de canal</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Distribución por Canal</CardTitle>
+                      <CardDescription>Volumen de firmas por tipo de canal</CardDescription>
+                    </div>
+                    <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                      ✓ Real
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {channelPieData.length > 0 ? (
@@ -393,12 +400,19 @@ export default function AdminDashboardPage() {
               </Card>
             </motion.div>
 
-            {/* Hourly Traffic */}
+            {/* Hourly Traffic - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm">
+              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
-                  <CardTitle>Tráfico por Hora</CardTitle>
-                  <CardDescription>Firmas procesadas vs exitosas en las últimas 24h</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Tráfico por Hora</CardTitle>
+                      <CardDescription>Firmas procesadas vs exitosas en las últimas 24h</CardDescription>
+                    </div>
+                    <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                      ✓ Real
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {hourlyChartData.length > 0 ? (
@@ -453,12 +467,19 @@ export default function AdminDashboardPage() {
               </Card>
             </motion.div>
 
-            {/* Performance Metrics */}
+            {/* Performance Metrics - TODO DYNATRACE */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm">
+              <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
                 <CardHeader>
-                  <CardTitle>Latencia del Sistema</CardTitle>
-                  <CardDescription>P50, P95 y P99 en segundos (últimos 7 días)</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-amber-600">Latencia del Sistema (TODO)</CardTitle>
+                      <CardDescription>P50, P95 y P99 - Placeholder con valores random</CardDescription>
+                    </div>
+                    <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                      ⚠️ Dynatrace
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {latencyChartData.length > 0 ? (
@@ -510,12 +531,19 @@ export default function AdminDashboardPage() {
               </Card>
             </motion.div>
 
-            {/* Success Rate by Channel - Bar Chart */}
+            {/* Success Rate by Channel - Bar Chart - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm">
+              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
-                  <CardTitle>Tasa de Éxito por Canal</CardTitle>
-                  <CardDescription>Porcentaje de firmas completadas exitosamente</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Tasa de Éxito por Canal</CardTitle>
+                      <CardDescription>Porcentaje de firmas completadas exitosamente</CardDescription>
+                    </div>
+                    <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                      ✓ Real
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {channelSuccessData.length > 0 ? (
@@ -547,12 +575,19 @@ export default function AdminDashboardPage() {
               </Card>
             </motion.div>
 
-            {/* Provider Health */}
+            {/* Provider Health - UPTIME TODO */}
             <motion.div variants={cardVariants}>
               <Card className="bg-white dark:bg-card shadow-sm">
                 <CardHeader>
-                  <CardTitle>Estado de Proveedores</CardTitle>
-                  <CardDescription>Salud y disponibilidad de servicios</CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Estado de Proveedores</CardTitle>
+                      <CardDescription>Salud y disponibilidad de servicios</CardDescription>
+                    </div>
+                    <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 text-xs">
+                      Uptime: TODO
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -590,12 +625,13 @@ export default function AdminDashboardPage() {
                         </div>
                         <div className="flex items-center gap-3">
                           <motion.span
-                            className="text-xs text-muted-foreground"
+                            className="text-xs text-amber-500"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: idx * 0.1 + 0.2 }}
+                            title="TODO: Uptime real desde Dynatrace"
                           >
-                            {provider.uptime}% uptime
+                            {provider.uptime}% uptime ⚠️
                           </motion.span>
                           <motion.div
                             initial={{ scale: 0 }}
@@ -675,11 +711,16 @@ export default function AdminDashboardPage() {
               </Card>
             </motion.div>
 
-            {/* Recent Activity */}
+            {/* Recent Activity - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm">
+              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
-                  <CardTitle className="text-base">Actividad Reciente</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base">Actividad Reciente</CardTitle>
+                    <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50 text-xs">
+                      ✓ Real
+                    </Badge>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">

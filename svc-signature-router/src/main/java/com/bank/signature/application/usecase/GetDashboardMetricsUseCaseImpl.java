@@ -337,8 +337,8 @@ public class GetDashboardMetricsUseCaseImpl implements GetDashboardMetricsUseCas
                         // Get provider type as string
                         String providerType = provider.type().name();
 
-                        // Display name mapping
-                        String displayName = getProviderDisplayName(providerType);
+                        // Display name from provider details (DASH-005)
+                        String displayName = getProviderDisplayName(provider);
 
                         result.add(ProviderHealthStatus.builder()
                                         .name(displayName)
@@ -353,16 +353,21 @@ public class GetDashboardMetricsUseCaseImpl implements GetDashboardMetricsUseCas
         }
 
         /**
-         * Get human-readable provider display name
+         * Get human-readable provider display name from health details
+         * DASH-005: Use real provider name instead of static mapping
          */
-        private String getProviderDisplayName(String type) {
-                return switch (type.toUpperCase()) {
-                        case "SMS" -> "Twilio SMS";
-                        case "PUSH" -> "OneSignal Push";
-                        case "VOICE" -> "Vonage Voice";
-                        case "BIOMETRIC" -> "BioCatch";
-                        default -> type;
-                };
+        private String getProviderDisplayName(ProviderHealthResponse provider) {
+                // Extract provider name from details (e.g., "Twilio SMS operational" -> "Twilio
+                // SMS")
+                String details = provider.details();
+                if (details != null && details.contains(" operational")) {
+                        return details.replace(" operational", "");
+                }
+                if (details != null && details.contains(" unavailable")) {
+                        return details.replace(" unavailable", "");
+                }
+                // Fallback to type name if details not available
+                return provider.type().name();
         }
 
         /**
@@ -388,32 +393,35 @@ public class GetDashboardMetricsUseCaseImpl implements GetDashboardMetricsUseCas
                 int activityId = 1;
 
                 if (recentValidated > 0) {
+                        Instant eventTime = now.minusSeconds(120);
                         activity.add(RecentActivityItem.builder()
                                         .id(String.valueOf(activityId++))
                                         .type("success")
                                         .message(String.format("%d firmas completadas exitosamente", recentValidated))
-                                        .timestamp(now.minusSeconds(120))
-                                        .relativeTime("Hace 2 min")
+                                        .timestamp(eventTime)
+                                        .relativeTime(computeRelativeTime(eventTime, now))
                                         .build());
                 }
 
                 if (recentFailed > 0) {
+                        Instant eventTime = now.minusSeconds(300);
                         activity.add(RecentActivityItem.builder()
                                         .id(String.valueOf(activityId++))
                                         .type("error")
                                         .message(String.format("%d firmas fallidas en la última hora", recentFailed))
-                                        .timestamp(now.minusSeconds(300))
-                                        .relativeTime("Hace 5 min")
+                                        .timestamp(eventTime)
+                                        .relativeTime(computeRelativeTime(eventTime, now))
                                         .build());
                 }
 
                 if (recentPending > 0) {
+                        Instant eventTime = now.minusSeconds(480);
                         activity.add(RecentActivityItem.builder()
                                         .id(String.valueOf(activityId++))
                                         .type("info")
                                         .message(String.format("%d firmas pendientes de validación", recentPending))
-                                        .timestamp(now.minusSeconds(480))
-                                        .relativeTime("Hace 8 min")
+                                        .timestamp(eventTime)
+                                        .relativeTime(computeRelativeTime(eventTime, now))
                                         .build());
                 }
 
@@ -423,23 +431,25 @@ public class GetDashboardMetricsUseCaseImpl implements GetDashboardMetricsUseCas
                                 .count();
 
                 if (openCircuitBreakers > 0) {
+                        Instant eventTime = now.minusSeconds(600);
                         activity.add(RecentActivityItem.builder()
                                         .id(String.valueOf(activityId++))
                                         .type("warning")
                                         .message(String.format("%d proveedores en modo degradado", openCircuitBreakers))
-                                        .timestamp(now.minusSeconds(600))
-                                        .relativeTime("Hace 10 min")
+                                        .timestamp(eventTime)
+                                        .relativeTime(computeRelativeTime(eventTime, now))
                                         .build());
                 }
 
                 // Add routing rules info
                 int activeRules = routingRuleRepository.findAllActiveOrderedByPriority().size();
+                Instant rulesEventTime = now.minusSeconds(900);
                 activity.add(RecentActivityItem.builder()
                                 .id(String.valueOf(activityId++))
                                 .type("info")
                                 .message(String.format("%d reglas de routing activas", activeRules))
-                                .timestamp(now.minusSeconds(900))
-                                .relativeTime("Hace 15 min")
+                                .timestamp(rulesEventTime)
+                                .relativeTime(computeRelativeTime(rulesEventTime, now))
                                 .build());
 
                 // Sort by timestamp (most recent first) and limit to 10
@@ -479,5 +489,30 @@ public class GetDashboardMetricsUseCaseImpl implements GetDashboardMetricsUseCas
                 }
 
                 return hourlyData;
+        }
+
+        /**
+         * Compute human-readable relative time string.
+         * DASH-006: Dynamic relative time calculation
+         * 
+         * @param eventTime The event timestamp
+         * @param now       Current time
+         * @return Human-readable relative time (e.g., "Hace 2 min", "Hace 1 hora")
+         */
+        private String computeRelativeTime(Instant eventTime, Instant now) {
+                long seconds = ChronoUnit.SECONDS.between(eventTime, now);
+
+                if (seconds < 60) {
+                        return "Hace un momento";
+                } else if (seconds < 3600) {
+                        long minutes = seconds / 60;
+                        return String.format("Hace %d min", minutes);
+                } else if (seconds < 86400) {
+                        long hours = seconds / 3600;
+                        return hours == 1 ? "Hace 1 hora" : String.format("Hace %d horas", hours);
+                } else {
+                        long days = seconds / 86400;
+                        return days == 1 ? "Hace 1 día" : String.format("Hace %d días", days);
+                }
         }
 }

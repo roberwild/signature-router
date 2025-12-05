@@ -4,6 +4,132 @@
 
 ---
 
+## 🔴 Dashboard - Datos Placeholder (Auditoría 5 Dic 2025)
+
+> **Contexto:** Auditoría de pantallas identificó que varios campos del Dashboard usan valores hardcoded en lugar de datos reales.
+
+### DASH-001: Latencia Promedio Hardcoded
+
+**Problema:** `overview.avgLatency` siempre devuelve `245L` (placeholder)  
+**Ubicación:** `GetDashboardMetricsUseCaseImpl.java` línea 153  
+**Solución:** Calcular latencia real desde métricas Prometheus/Micrometer  
+**Prioridad:** Media | **Esfuerzo:** 2h
+
+---
+
+### DASH-002: Latencia Timeline con Valores Random
+
+**Problema:** `latencyTimeline[].p50/p95/p99` usa `145 + random()`, `410 + random()`, etc.  
+**Ubicación:** `GetDashboardMetricsUseCaseImpl.java` líneas 248-253  
+**Solución:** Obtener percentiles reales desde histogramas de Prometheus  
+**Prioridad:** Media | **Esfuerzo:** 3h
+
+---
+
+### DASH-003: Latencia por Canal Placeholder
+
+**Problema:** `byChannel[].avgLatency` usa valores fijos por tipo de canal  
+**Ubicación:** `GetDashboardMetricsUseCaseImpl.java` líneas 301-307 (`getPlaceholderLatency()`)  
+**Solución:** Calcular latencia real desde métricas tagueadas por canal  
+**Prioridad:** Media | **Esfuerzo:** 1h
+
+---
+
+### DASH-004: Uptime de Proveedores Hardcoded
+
+**Problema:** `providerHealth[].uptime` siempre es `99.9`, `95.0` o `0.0`  
+**Ubicación:** `GetDashboardMetricsUseCaseImpl.java` línea 335  
+**Solución:** Calcular uptime real desde logs de health check o métricas  
+**Prioridad:** Baja | **Esfuerzo:** 30min
+
+---
+
+### ~~DASH-005: Display Names de Proveedores Estáticos~~ ✅ COMPLETADO
+
+~~**Problema:** Mapeo fijo `SMS → "Twilio SMS"` en lugar de usar nombre real del provider~~  
+**Implementado:** `getProviderDisplayName()` ahora extrae el nombre desde `provider.details()` (5 Dic 2025)
+
+---
+
+### ~~DASH-006: RelativeTime Estático en Actividad~~ ✅ COMPLETADO
+
+~~**Problema:** `recentActivity[].relativeTime` usa strings fijos como "Hace 2 min"~~  
+**Implementado:** Nuevo método `computeRelativeTime()` calcula dinámicamente (5 Dic 2025)
+
+---
+
+## 🟠 Rules - Datos Faltantes (Auditoría 5 Dic 2025)
+
+> **Contexto:** Auditoría de pantalla `/admin/rules` identificó campos sin datos reales y validación simulada.
+
+### RULES-001: Métricas de Ejecución por Regla
+
+**Problema:** `executionCount` siempre es `0` (hardcoded en frontend)  
+**Ubicación:** `app/admin/rules/page.tsx` línea 88  
+**Solución:** Crear endpoint que devuelva count de `SignatureRequest` agrupado por `routing_rule_id`  
+**Prioridad:** Media | **Esfuerzo:** 3h
+
+---
+
+### RULES-002: Tasa de Éxito por Regla
+
+**Problema:** `successRate` siempre es `0` (hardcoded en frontend)  
+**Ubicación:** `app/admin/rules/page.tsx` línea 89  
+**Solución:** Calcular `(COMPLETED / total) * 100` desde `SignatureRequest` por regla  
+**Prioridad:** Media | **Esfuerzo:** 2h
+
+---
+
+### ~~RULES-003: Validación SpEL Simulada~~ ✅ COMPLETADO
+
+~~**Problema:** La validación SpEL es local en frontend (regex básico)~~  
+**Implementado:** Conectado con endpoint `/admin/rules/validate-spel` con fallback local (5 Dic 2025)
+
+---
+
+## 🟡 Providers - Métricas Estimadas (Auditoría 5 Dic 2025)
+
+> **Contexto:** Auditoría de `/admin/providers` identificó métricas estimadas por falta de `provider_id` en requests.
+
+### PROV-001: Requests por Provider Estimado
+
+**Problema:** `requests_today` divide total requests entre número de providers  
+**Ubicación:** `ProviderMetricsServiceImpl.java` líneas 76-102  
+**Solución:** Agregar columna `provider_id` a `signature_requests` para métricas reales por provider  
+**Prioridad:** Media | **Esfuerzo:** 4h
+
+> **Nota:** Las métricas de latencia/uptime/costos dependen de integración MuleSoft (Epic 11) - no documentadas aquí.
+
+---
+
+## ~~🟢 Sidebar - Badge Hardcoded (Auditoría 5 Dic 2025)~~ ✅ COMPLETADO
+
+### ~~SIDEBAR-001: Badge "47" en Monitoreo de Firmas~~ ✅
+
+~~**Problema:** El badge "47" en el menú de Firmas es hardcoded~~  
+**Implementado:** Badges dinámicos con `loadBadges()` que obtiene counts reales (5 Dic 2025)
+
+---
+
+### ~~SIDEBAR-002: Badge "3" en Alertas~~ ✅
+
+~~**Problema:** El badge "3" en el menú de Alertas es hardcoded~~  
+**Implementado:** Badges dinámicos con refresh cada 60 segundos (5 Dic 2025)
+
+---
+
+## 🔵 Alertas - Mock Implementation (Auditoría 5 Dic 2025)
+
+### ALERTS-001: AlertManager Mock Activo
+
+**Problema:** `AlertManagerServiceMockImpl` está activo en lugar de integración real  
+**Ubicación:** `application/service/AlertManagerServiceMockImpl.java`  
+**Solución:** Implementar `AlertManagerServiceImpl` con conexión real a Prometheus AlertManager  
+**Prioridad:** Media | **Esfuerzo:** 4h  
+**Dependencia:** Requiere Prometheus AlertManager desplegado
+
+---
+
 ## ⚪ Media Prioridad
 
 ### 2. Actualizar Script de Seed con Provider IDs
@@ -33,63 +159,24 @@ INSERT INTO routing_rule (..., provider_id, ...) VALUES (
 
 ## ⚫ Baja Prioridad / Mejoras Futuras
 
-### 3. Remover Console.logs de Debug
+### ~~3. Remover Console.logs de Debug~~ ✅ COMPLETADO
 
-**Descripción:**  
-Eliminar los `console.log` de debug que se agregaron durante el troubleshooting del provider_id.
-
-**Ubicación:**
-- `app-signature-router-admin/app/admin/rules/page.tsx` (líneas 143-146)
-
-```typescript
-// Remover esto:
-console.log('🔍 DEBUG handleSaveRule:');
-console.log('  - ruleData.provider (nombre):', ruleData.provider);
-console.log('  - providerNameToIdMap:', providerNameToIdMap);
-console.log('  - providerId (UUID):', providerId);
-```
-
-**Estimación:** 5 minutos
+~~**Descripción:** Eliminar los `console.log` de debug~~  
+**Implementado:** Removidos los 4 console.log de `handleSaveRule` (5 Dic 2025)
 
 ---
 
-### 4. Validación de Provider según Canal
+### ~~4. Validación de Provider según Canal~~ ✅ COMPLETADO
 
-**Descripción:**  
-Cuando se selecciona un canal (SMS, PUSH, VOICE, BIOMETRIC), el selector de proveedores debería filtrar automáticamente para mostrar solo los proveedores compatibles con ese canal.
-
-**Ejemplo:**
-- Si selecciono canal **BIOMETRIC**, solo mostrar:
-  - FaceTech (BIOMETRIC)
-  - Veridas (BIOMETRIC)
-- NO mostrar:
-  - Twilio SMS (SMS)
-  - Firebase Cloud Messaging (PUSH)
-
-**Ubicación:**
-- `app-signature-router-admin/components/admin/rule-editor-dialog.tsx`
-
-**Estimación:** 20 minutos
+~~**Descripción:** Filtrar proveedores por tipo de canal seleccionado~~  
+**Implementado:** Selector de providers ahora filtra por `channel` (5 Dic 2025)
 
 ---
 
-### 5. Indicador Visual de Provider en Grid
+### ~~5. Indicador Visual de Provider en Grid~~ ✅ COMPLETADO
 
-**Descripción:**  
-Agregar una columna o badge en el grid de reglas que muestre el proveedor asignado a cada regla.
-
-**Mockup:**
-```
-| Orden | Nombre                | Canal      | Proveedor           | Condición SpEL |
-|-------|-----------------------|------------|---------------------|----------------|
-| 1     | SMS Premium - Twilio  | SMS        | 🔵 Twilio SMS       | amount > 1000  |
-| 2     | High Value Biometric  | BIOMETRIC  | 🟢 FaceTech         | amount > 5000  |
-```
-
-**Ubicación:**
-- `app-signature-router-admin/app/admin/rules/page.tsx`
-
-**Estimación:** 30 minutos
+~~**Descripción:** Mostrar columna de proveedor en el grid de reglas~~  
+**Implementado:** Nueva columna "Proveedor" en tabla de reglas (5 Dic 2025)
 
 ---
 
@@ -104,6 +191,30 @@ Agregar una columna o badge en el grid de reglas que muestre el proveedor asigna
 - [x] Documentación completa de Routing Rules + SpEL
 - [x] **Botón Switch Estado (Habilitado/Deshabilitado)** - Endpoint PATCH `/toggle` agregado (5 Dic 2025)
 - [x] **Fix Dashboard 500 Error** - Comparación enum vs string en `GetDashboardMetricsUseCaseImpl` (5 Dic 2025)
+- [x] **Auditoría Completa Admin Panel** - 8 pantallas auditadas (5 Dic 2025)
+- [x] **DASH-005** - Display names dinámicos desde `provider.details()` (5 Dic 2025)
+- [x] **DASH-006** - RelativeTime dinámico con `computeRelativeTime()` (5 Dic 2025)
+- [x] **RULES-003** - Validación SpEL conectada a backend `/validate-spel` (5 Dic 2025)
+- [x] **SIDEBAR-001/002** - Badges dinámicos con refresh automático (5 Dic 2025)
+- [x] **Filtro Provider por Canal** - Selector filtra por tipo de canal (5 Dic 2025)
+- [x] **Columna Provider en Grid** - Nueva columna en tabla de reglas (5 Dic 2025)
+- [x] **Console.logs Removidos** - Limpieza de logs de debug (5 Dic 2025)
+
+---
+
+## 📊 Resumen Auditoría de Pantallas (5 Dic 2025)
+
+| Pantalla | Ruta | Estado | Tareas |
+|----------|------|--------|--------|
+| Dashboard | `/admin` | ⚠️ Parcial | DASH-001 a DASH-004 pendientes (Dynatrace) |
+| Reglas | `/admin/rules` | ⚠️ Parcial | RULES-001/002 pendientes, RULES-003 ✅ |
+| Firmas | `/admin/signatures` | ✅ 100% Real | - |
+| Proveedores | `/admin/providers` | ⚠️ Estimaciones | PROV-001 pendiente |
+| Métricas | `/admin/metrics` | ✅ 100% Real | - |
+| Seguridad | `/admin/security` | ✅ 100% Real | - |
+| Alertas | `/admin/alerts` | ⚠️ Mock activo | ALERTS-001 pendiente |
+| Usuarios | `/admin/users` | ✅ 100% Real (JWT audit) | - |
+| Sidebar | N/A | ✅ Badges dinámicos | SIDEBAR-001/002 ✅ |
 
 ---
 

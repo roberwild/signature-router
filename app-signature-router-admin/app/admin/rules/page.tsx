@@ -150,11 +150,6 @@ export default function RoutingRulesPage() {
       // Convertir nombre de proveedor a UUID
       const providerId = ruleData.provider ? providerNameToIdMap[ruleData.provider] : undefined;
       
-      console.log('🔍 DEBUG handleSaveRule:');
-      console.log('  - ruleData.provider (nombre):', ruleData.provider);
-      console.log('  - providerNameToIdMap:', providerNameToIdMap);
-      console.log('  - providerId (UUID):', providerId);
-      
       if (editingRule) {
         // Editar regla existente
         const updateDto: UpdateRuleDto = {
@@ -352,45 +347,48 @@ export default function RoutingRulesPage() {
           </Card>
         )}
 
-        {/* Stats Cards */}
+        {/* Stats Cards - DATOS REALES */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Total Reglas</p>
                   <p className="text-2xl font-bold">{rules.length}</p>
+                  <p className="text-xs text-green-500">✓ Real</p>
                 </div>
                 <Settings className="h-8 w-8 text-primary/20" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Activas</p>
                   <p className="text-2xl font-bold text-green-600">{activeRules}</p>
+                  <p className="text-xs text-green-500">✓ Real</p>
                 </div>
                 <CheckCircle2 className="h-8 w-8 text-green-500/20" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Inactivas</p>
                   <p className="text-2xl font-bold text-gray-400">{inactiveRules}</p>
+                  <p className="text-xs text-green-500">✓ Real</p>
                 </div>
                 <Pause className="h-8 w-8 text-gray-400/20" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -398,6 +396,7 @@ export default function RoutingRulesPage() {
                   <p className="text-2xl font-bold text-primary">
                     {new Set(rules.map(r => r.targetChannel)).size}
                   </p>
+                  <p className="text-xs text-green-500">✓ Real</p>
                 </div>
                 <Code className="h-8 w-8 text-primary/20" />
               </div>
@@ -405,13 +404,20 @@ export default function RoutingRulesPage() {
           </Card>
         </div>
 
-        {/* Rules Table */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        {/* Rules Table - DATOS REALES */}
+        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
-            <CardTitle>Reglas Configuradas</CardTitle>
-            <CardDescription>
-              Las reglas se evalúan en orden de prioridad. Usa las flechas para reordenar.
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Reglas Configuradas</CardTitle>
+                <CardDescription>
+                  Las reglas se evalúan en orden de prioridad. Usa las flechas para reordenar.
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="text-green-600 border-green-300 bg-green-50">
+                ✓ Datos reales
+              </Badge>
+            </div>
           </CardHeader>
           <CardContent>
             {loading && rules.length === 0 ? (
@@ -435,6 +441,7 @@ export default function RoutingRulesPage() {
                     <TableHead className="w-16">Orden</TableHead>
                     <TableHead>Regla</TableHead>
                     <TableHead>Canal</TableHead>
+                    <TableHead>Proveedor</TableHead>
                     <TableHead>Condición SpEL</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -476,9 +483,19 @@ export default function RoutingRulesPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
+                        {rule.providerId ? (
+                          <Badge variant="outline" className="bg-slate-500/10 text-slate-700 border-slate-200 dark:text-slate-300">
+                            {/* Buscar nombre del provider por UUID */}
+                            {providers.find(p => p.id === rule.providerId)?.name || 'Desconocido'}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Sin asignar</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <code className="relative rounded bg-muted px-2 py-1 font-mono text-xs">
-                          {rule.condition.length > 40
-                            ? `${rule.condition.substring(0, 40)}...`
+                          {rule.condition.length > 30
+                            ? `${rule.condition.substring(0, 30)}...`
                             : rule.condition}
                         </code>
                       </TableCell>
@@ -516,6 +533,24 @@ export default function RoutingRulesPage() {
                 </TableBody>
               </Table>
             )}
+          </CardContent>
+        </Card>
+
+        {/* TODO Note */}
+        <Card className="bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+          <CardContent className="pt-6">
+            <div className="flex gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-amber-900 dark:text-amber-100">
+                  TODO: Métricas por Regla
+                </p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">
+                  Campos pendientes de implementar: <code className="mx-1 rounded bg-muted px-1.5 py-0.5 font-mono text-xs">executionCount</code> (ejecuciones por regla) y <code className="mx-1 rounded bg-muted px-1.5 py-0.5 font-mono text-xs">successRate</code> (tasa de éxito por regla).
+                  Requiere endpoint que agrupe SignatureRequests por routing_rule_id.
+                </p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

@@ -317,10 +317,15 @@ export class RealApiClient implements IApiClient {
   }
 
   async validateSpel(expression: string): Promise<{ valid: boolean; message?: string }> {
-    return this.fetch('/admin/rules/validate-spel', {
+    const response = await this.fetch<{ isValid: boolean; errorMessage?: string }>('/admin/routing-rules/validate-spel', {
       method: 'POST',
       body: JSON.stringify({ expression }),
     });
+    // Mapear los campos del backend (isValid, errorMessage) al formato esperado por el frontend (valid, message)
+    return {
+      valid: response.isValid,
+      message: response.errorMessage,
+    };
   }
 
   // ============================================

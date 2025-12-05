@@ -12,7 +12,8 @@ Esta carpeta contiene la colección de Postman actualizada para probar todos los
 | Archivo | Descripción |
 |---------|-------------|
 | `Signature-Router-v2.postman_collection.json` | Colección principal con todos los endpoints |
-| `Signature-Router-Local.postman_environment.json` | Entorno preconfigurado para desarrollo local |
+| `Signature-Router-Local.postman_environment.json` | Entorno para desarrollo local (Keycloak local) |
+| `Signature-Router-DevRemote.postman_environment.json` | Entorno con Active Directory (Keycloak SBTech) |
 | `README.md` | Este archivo |
 
 ---
@@ -30,18 +31,27 @@ Esta carpeta contiene la colección de Postman actualizada para probar todos los
 
 ### 2. Iniciar el Backend
 
-Asegúrate de que el backend esté corriendo:
+#### Opción A: Desarrollo Local (Keycloak Docker)
+
+Usar environment: **"Signature Router - Local Development"**
 
 ```powershell
 cd svc-signature-router
-.\check-and-start.ps1
-```
-
-O manualmente:
-```powershell
 docker-compose up -d
 mvn spring-boot:run "-Dspring-boot.run.profiles=local" "-Dmaven.test.skip=true"
 ```
+
+#### Opción B: Desarrollo con Active Directory (Keycloak SBTech)
+
+Usar environment: **"Signature Router - Dev Remote (Active Directory)"**
+
+```powershell
+cd svc-signature-router
+docker-compose up -d
+mvn spring-boot:run "-Dspring-boot.run.profiles=local,dev-remote" "-Dmaven.test.skip=true"
+```
+
+> ⚠️ **Nota:** En este modo, debes usar tus credenciales de Active Directory para autenticarte.
 
 ### 3. Obtener Token de Autenticación
 
@@ -116,6 +126,8 @@ Monitoreo de salud de providers:
 
 ## 🔑 Variables de Entorno
 
+### Environment: Local Development (Keycloak Docker)
+
 El archivo `Signature-Router-Local.postman_environment.json` incluye:
 
 | Variable | Valor por Defecto | Descripción |
@@ -135,6 +147,24 @@ El archivo `Signature-Router-Local.postman_environment.json` incluye:
 | `challenge_id` | (auto) | ID del challenge |
 | `challenge_code` | `123456` | Código del challenge (actualizar manualmente) |
 | `provider_id` | (auto) | ID del provider |
+
+### Environment: Dev Remote (Active Directory)
+
+El archivo `Signature-Router-DevRemote.postman_environment.json` incluye:
+
+| Variable | Valor | Descripción |
+|----------|-------|-------------|
+| `base_url` | `http://localhost:8080` | URL del backend API (local) |
+| `keycloak_url` | `https://identitydev.sbtech.es` | URL de Keycloak SBTech |
+| `keycloak_realm` | `customer` | Realm de Active Directory |
+| `keycloak_client_id` | `2ed840ae-2b4c-41cd-a11d-1202f3790f6f` | Client ID registrado |
+| `keycloak_client_secret` | `oh6QbAvhj5wAZxvvW2NdjF6QU1cESJxT` | Client Secret |
+| `admin_username` | *(tu usuario AD)* | Tu usuario de Active Directory |
+| `admin_password` | *(tu password)* | Tu contraseña de AD |
+
+**Roles disponibles en Active Directory:**
+- `PRF_ADMIN` - Acceso completo (CRUD + operaciones administrativas)
+- `PRF_CONSULTIVO` - Acceso de solo lectura (consultas)
 
 ---
 
@@ -254,6 +284,19 @@ if (pm.response.code === 401) {
 ### **Error: `Connection refused (localhost:8180)`**
 **Causa:** Keycloak no está corriendo.  
 **Solución:** Ejecuta `docker-compose up -d` para iniciar Keycloak
+
+### **Error: `401 Unauthorized` con Active Directory**
+**Causa:** El grant type `password` puede no estar habilitado en SBTech.  
+**Solución alternativa:** Obtener el token manualmente:
+1. Abre `https://identitydev.sbtech.es/realms/customer/account` en el navegador
+2. Inicia sesión con tus credenciales de AD
+3. Abre DevTools (F12) > Network > busca peticiones al `/token` endpoint
+4. Copia el `access_token` del response
+5. Pega el token en la variable `admin_token` del environment de Postman
+
+### **Error: `403 Forbidden` - Access Denied**
+**Causa:** Tu usuario no tiene el rol requerido (PRF_ADMIN o PRF_CONSULTIVO).  
+**Solución:** Verifica tus roles en el token JWT usando https://jwt.io o el endpoint `Verify Token (Introspect)`
 
 ### **Error: `404 Not Found` en endpoints de providers**
 **Causa:** El endpoint podría no estar implementado aún.  

@@ -325,86 +325,110 @@ export default function ProvidersPage() {
           </Card>
         )}
 
-        {/* MuleSoft Integration Banner */}
-        {providers.some(p => p.metrics && !p.metrics.mulesoft_integrated) && (
-          <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-                <div>
-                  <h3 className="font-semibold text-blue-900 dark:text-blue-100">
+        {/* MuleSoft Integration Banner - TODO Indicator */}
+        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-900 dark:bg-amber-950/20">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 mt-0.5" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-amber-900 dark:text-amber-100">
                     Métricas MuleSoft Pendientes
                   </h3>
-                  <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
-                    Las métricas de latencia, uptime y costos son estimaciones. 
-                    Una vez completada la integración con MuleSoft, se mostrarán datos reales del gateway.
-                  </p>
+                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-300">
+                    ⚠️ TODO: MuleSoft
+                  </Badge>
                 </div>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                  Las métricas de <strong>latencia</strong>, <strong>uptime</strong>, <strong>requests</strong> y <strong>costos</strong> son estimaciones placeholder. 
+                  Una vez completada la integración con MuleSoft, se mostrarán datos reales del gateway.
+                </p>
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Global Stats */}
+        {/* Global Stats - Placeholder Metrics */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Requests Hoy</p>
+                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    Requests Hoy
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 bg-amber-50 text-amber-600 border-amber-200">TODO</Badge>
+                  </p>
                   <p className="text-2xl font-bold">{totalStats.totalRequests.toLocaleString()}</p>
                 </div>
-                <Activity className="h-8 w-8 text-primary/20" />
+                <Activity className="h-8 w-8 text-amber-500/30" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Éxito Promedio</p>
-                  <p className="text-2xl font-bold text-green-600">
+                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    Éxito Promedio
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 bg-amber-50 text-amber-600 border-amber-200">TODO</Badge>
+                  </p>
+                  <p className="text-2xl font-bold text-amber-600">
                     {totalStats.avgSuccessRate.toFixed(1)}%
                   </p>
                 </div>
-                <CheckCircle2 className="h-8 w-8 text-green-500/20" />
+                <CheckCircle2 className="h-8 w-8 text-amber-500/30" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Tiempo Resp.</p>
+                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    Tiempo Resp.
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 bg-amber-50 text-amber-600 border-amber-200">TODO</Badge>
+                  </p>
                   <p className="text-2xl font-bold">{totalStats.avgResponseTime.toFixed(2)}s</p>
                 </div>
-                <Clock className="h-8 w-8 text-primary/20" />
+                <Clock className="h-8 w-8 text-amber-500/30" />
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Costo Hoy</p>
+                  <p className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                    Costo Hoy
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 bg-amber-50 text-amber-600 border-amber-200">TODO</Badge>
+                  </p>
                   <p className="text-2xl font-bold">€{totalStats.totalCostToday.toFixed(2)}</p>
                 </div>
-                <Euro className="h-8 w-8 text-primary/20" />
+                <Euro className="h-8 w-8 text-amber-500/30" />
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Analytics Charts */}
+        {/* Analytics Charts - Placeholder Data */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Response Time Comparison */}
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardHeader>
-              <CardTitle>Tiempo de Respuesta</CardTitle>
-              <CardDescription>Comparativa de latencia promedio</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    Tiempo de Respuesta (TODO)
+                  </CardTitle>
+                  <CardDescription>Placeholder - Latencia estimada por proveedor</CardDescription>
+                </div>
+                <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
+                  ⚠️ MuleSoft
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -445,10 +469,19 @@ export default function ProvidersPage() {
           </Card>
 
           {/* Uptime Radial Chart */}
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardHeader>
-              <CardTitle>Disponibilidad (Uptime)</CardTitle>
-              <CardDescription>Porcentaje de disponibilidad por proveedor</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    Disponibilidad (TODO)
+                  </CardTitle>
+                  <CardDescription>Placeholder - Uptime estimado por proveedor</CardDescription>
+                </div>
+                <Badge variant="outline" className="bg-amber-50 text-amber-600 border-amber-200">
+                  ⚠️ MuleSoft
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -521,14 +554,14 @@ export default function ProvidersPage() {
           */}
         </div>
 
-        {/* Providers Grid */}
+        {/* Providers Grid - Real provider data, Placeholder metrics */}
         <div className="grid gap-6 lg:grid-cols-2">
           {providers.map((provider) => {
             const StatusIcon = getStatusIcon(provider.status);
             const metrics = provider.metrics;
             
             return (
-              <Card key={provider.id} className="bg-white dark:bg-card shadow-sm hover:shadow-md transition-shadow">
+              <Card key={provider.id} className="bg-white dark:bg-card shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-green-500">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -536,6 +569,9 @@ export default function ProvidersPage() {
                         {provider.name}
                         <Badge variant="outline" className={getTypeColor(provider.type)}>
                           {provider.type}
+                        </Badge>
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 bg-green-50 text-green-600 border-green-200">
+                          ✓ Real
                         </Badge>
                       </CardTitle>
                       <CardDescription className="font-mono text-xs">
@@ -549,38 +585,44 @@ export default function ProvidersPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Metrics Grid */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Uptime</p>
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-2xl font-bold">{(metrics?.uptime || 0).toFixed(1)}%</p>
-                        {(metrics?.uptime || 0) >= 99 ? (
-                          <TrendingUp className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <TrendingDown className="h-4 w-4 text-red-500" />
-                        )}
+                  {/* Metrics Grid - Placeholder data pending MuleSoft */}
+                  <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/30 dark:bg-amber-950/10 p-3">
+                    <div className="flex items-center gap-1 mb-2 text-xs text-amber-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span>Métricas estimadas (TODO: MuleSoft)</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Uptime</p>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-2xl font-bold text-amber-700">{(metrics?.uptime || 0).toFixed(1)}%</p>
+                          {(metrics?.uptime || 0) >= 99 ? (
+                            <TrendingUp className="h-4 w-4 text-amber-500" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4 text-amber-500" />
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Tiempo Resp.</p>
-                      <p className="text-2xl font-bold">{(metrics?.avg_response_time || 0).toFixed(2)}s</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Requests Hoy</p>
-                      <p className="text-2xl font-bold">{(metrics?.requests_today || 0).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Costo Hoy</p>
-                      <p className="text-2xl font-bold">€{(metrics?.total_cost_today_eur || 0).toFixed(2)}</p>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Tiempo Resp.</p>
+                        <p className="text-2xl font-bold text-amber-700">{(metrics?.avg_response_time || 0).toFixed(2)}s</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Requests Hoy</p>
+                        <p className="text-2xl font-bold text-amber-700">{(metrics?.requests_today || 0).toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Costo Hoy</p>
+                        <p className="text-2xl font-bold text-amber-700">€{(metrics?.total_cost_today_eur || 0).toFixed(2)}</p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Success Rate Progress */}
-                  <div>
+                  {/* Success Rate Progress - Placeholder */}
+                  <div className="opacity-70">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Tasa de Éxito</span>
-                      <span className="text-sm font-bold">{(metrics?.success_rate || 0).toFixed(1)}%</span>
+                      <span className="text-sm font-medium text-amber-700">Tasa de Éxito (TODO)</span>
+                      <span className="text-sm font-bold text-amber-700">{(metrics?.success_rate || 0).toFixed(1)}%</span>
                     </div>
                     <Progress
                       value={metrics?.success_rate || 0}
@@ -588,28 +630,31 @@ export default function ProvidersPage() {
                     />
                   </div>
 
-                  {/* Latency Percentiles */}
+                  {/* Latency Percentiles - Placeholder */}
                   <div className="grid grid-cols-3 gap-2 text-center text-xs">
-                    <div className="bg-muted/50 rounded p-2">
-                      <p className="text-muted-foreground">P50</p>
-                      <p className="font-mono font-bold">{metrics?.latency_p50_ms || 0}ms</p>
+                    <div className="bg-amber-50 dark:bg-amber-950/30 rounded p-2 border border-amber-200 dark:border-amber-800">
+                      <p className="text-amber-600">P50 (TODO)</p>
+                      <p className="font-mono font-bold text-amber-700">{metrics?.latency_p50_ms || 0}ms</p>
                     </div>
-                    <div className="bg-muted/50 rounded p-2">
-                      <p className="text-muted-foreground">P95</p>
-                      <p className="font-mono font-bold">{metrics?.latency_p95_ms || 0}ms</p>
+                    <div className="bg-amber-50 dark:bg-amber-950/30 rounded p-2 border border-amber-200 dark:border-amber-800">
+                      <p className="text-amber-600">P95 (TODO)</p>
+                      <p className="font-mono font-bold text-amber-700">{metrics?.latency_p95_ms || 0}ms</p>
                     </div>
-                    <div className="bg-muted/50 rounded p-2">
-                      <p className="text-muted-foreground">P99</p>
-                      <p className="font-mono font-bold">{metrics?.latency_p99_ms || 0}ms</p>
+                    <div className="bg-amber-50 dark:bg-amber-950/30 rounded p-2 border border-amber-200 dark:border-amber-800">
+                      <p className="text-amber-600">P99 (TODO)</p>
+                      <p className="font-mono font-bold text-amber-700">{metrics?.latency_p99_ms || 0}ms</p>
                     </div>
                   </div>
 
-                  {/* Additional Info */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t">
+                  {/* Additional Info - Real Data */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-green-200 dark:border-green-800">
                     <div className="flex items-center gap-2">
-                      <Shield className="h-4 w-4 text-muted-foreground" />
+                      <Shield className="h-4 w-4 text-green-600" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Circuit Breaker</p>
+                        <p className="text-xs text-green-600 flex items-center gap-1">
+                          Circuit Breaker
+                          <span className="text-[9px] bg-green-100 text-green-700 px-1 rounded">✓</span>
+                        </p>
                         <Badge
                           variant="outline"
                           className={`text-xs ${getCircuitBreakerColor(provider.circuitBreakerStatus)}`}
@@ -619,9 +664,12 @@ export default function ProvidersPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-muted-foreground" />
+                      <Activity className="h-4 w-4 text-green-600" />
                       <div>
-                        <p className="text-xs text-muted-foreground">Última verificación</p>
+                        <p className="text-xs text-green-600 flex items-center gap-1">
+                          Última verificación
+                          <span className="text-[9px] bg-green-100 text-green-700 px-1 rounded">✓</span>
+                        </p>
                         <p className="text-xs font-medium">
                           {new Date(provider.lastHealthCheck).toLocaleTimeString()}
                         </p>
