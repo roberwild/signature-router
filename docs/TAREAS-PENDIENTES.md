@@ -4,36 +4,6 @@
 
 ---
 
-## 🔴 Alta Prioridad
-
-### 1. Botón de Estado en Grid de Reglas (Switch Habilitado/Deshabilitado)
-
-**Descripción:**  
-En el grid de reglas de routing (`/admin/rules`), existe un botón/switch gris para habilitar/deshabilitar reglas que actualmente **NO está funcionando**.
-
-**Ubicación:**
-- **Frontend:** `app-signature-router-admin/app/admin/rules/page.tsx`
-- **Componente:** Tabla de reglas, columna "Estado"
-- **Elemento:** Switch/Toggle para campo `enabled`
-
-**Comportamiento esperado:**
-1. Al hacer clic en el switch, debe cambiar el estado `enabled` de la regla (true ↔ false)
-2. El cambio debe persistirse en la base de datos
-3. El switch debe reflejar visualmente el estado actual
-4. Debe enviar una petición PUT al backend con todos los campos requeridos
-
-**Problema actual:**
-- El switch está deshabilitado o no actualiza el estado en el backend
-- Posiblemente falta la función `toggleRule()` o está incompleta
-
-**Referencias:**
-- Similar al fix de los botones de orden (↑↓) que se arregló el 5 de diciembre
-- Debe enviar todos los campos del `UpdateRoutingRuleDto`, no solo `enabled`
-
-**Estimación:** 30 minutos
-
----
-
 ## ⚪ Media Prioridad
 
 ### 2. Actualizar Script de Seed con Provider IDs
@@ -132,6 +102,8 @@ Agregar una columna o badge en el grid de reglas que muestre el proveedor asigna
 - [x] Campo proveedor obligatorio (no opcional)
 - [x] Fix botones de orden (↑↓) para cambiar prioridad
 - [x] Documentación completa de Routing Rules + SpEL
+- [x] **Botón Switch Estado (Habilitado/Deshabilitado)** - Endpoint PATCH `/toggle` agregado (5 Dic 2025)
+- [x] **Fix Dashboard 500 Error** - Comparación enum vs string en `GetDashboardMetricsUseCaseImpl` (5 Dic 2025)
 
 ---
 

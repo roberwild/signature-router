@@ -1,6 +1,6 @@
 # Sprint Status - Signature Router & Management System
 # Generated: 2025-11-28
-# Updated: 2025-12-05 (Epic 14 marked as DONE after code verification)
+# Updated: 2025-12-05 (Story 14.3 toggle endpoint PATCH + Fix dashboard enum comparison)
 # Project: svc-signature-router-java
 # Tracking System: file-system
 # Story Location: docs/sprint-artifacts
@@ -268,7 +268,7 @@ development_status:
   epic-14: done # ✅ COMPLETADA 2025-12-05 - Todas las páginas integradas con backend real
   14-1-dashboard-connect-real-metrics: done # ✅ Dashboard - getDashboardMetrics(), auto-refresh 60s, gráficos reales
   14-2-providers-crud-complete: done # ✅ Providers - CRUD completo (create, update, delete, test, metrics)
-  14-3-rules-spel-editor-validation: done # ✅ Rules - CRUD completo, toggleRule(), validación SpEL, mapeo providerId↔nombre
+  14-3-rules-spel-editor-validation: done # ✅ Rules - CRUD + PATCH /toggle endpoint (2025-12-05), validación SpEL, mapeo providerId↔nombre
   14-4-alerts-real-integration: done # ✅ Alerts - getAlerts(), acknowledge, resolve, auto-refresh 60s
   14-5-metrics-charts-real-data: done # ✅ Metrics - getMetrics(range), selector período (1d/7d/30d), Recharts
   14-6-users-keycloak-integration: done # ✅ Users - getUsers() con mapeo backend→frontend, búsqueda, estadísticas
@@ -284,7 +284,7 @@ development_status:
   # - Páginas integradas:
   #   1. /admin (Dashboard) - Métricas reales, gráficos, auto-refresh
   #   2. /admin/providers - CRUD completo + test + métricas por proveedor
-  #   3. /admin/rules - CRUD + toggle + validación SpEL + mapeo providers
+  #   3. /admin/rules - CRUD + PATCH /toggle endpoint + validación SpEL + mapeo providers
   #   4. /admin/alerts - Listar, reconocer, resolver alertas
   #   5. /admin/metrics - Gráficos avanzados, selector de período
   #   6. /admin/users - Listado read-only desde AD, búsqueda

@@ -16,8 +16,8 @@
 #   - skipped: Optional/conditional workflow that was skipped
 
 generated: "2025-11-26"
-updated: "2025-12-01T18:00:00Z"
-update_reason: "Audit Trail Enhancement COMPLETED - Backend persistence layer restored (routingTimeline, signedAt, completedAt) + Frontend complete with visualization, metrics, export, and advanced filters. 9 commits merged to main. Full executive report generated."
+updated: "2025-12-05T14:00:00Z"
+update_reason: "Dashboard fix - Corregida comparación enum vs string en GetDashboardMetricsUseCaseImpl. provider.status() es HealthStatus.Status (enum), no String. Afectaba conteo de proveedores activos y mapeo de status."
 project: "svc-signature-router-java"
 project_type: "software"
 selected_track: "bmad-method"
