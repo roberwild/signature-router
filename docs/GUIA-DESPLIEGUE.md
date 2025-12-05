@@ -99,10 +99,13 @@ Si vas a usar el Keycloak de desarrollo (AD), actualiza los secrets en Vault:
 
 ```powershell
 # Actualizar secrets de Keycloak con valores reales (solicitar a infraestructura)
-docker-compose exec vault vault kv patch secret/signature-router \
-  keycloak.client-id="<client-id-real>" \
-  keycloak.client-secret="<client-secret-real>" \
-  keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
+# Opción 1: Todo en una línea
+docker-compose exec vault vault kv patch secret/signature-router keycloak.client-id="<client-id-real>" keycloak.client-secret="<client-secret-real>" keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
+
+# Opción 2: Ejecutar comandos por separado
+docker-compose exec vault vault kv patch secret/signature-router keycloak.client-id="<client-id-real>"
+docker-compose exec vault vault kv patch secret/signature-router keycloak.client-secret="<client-secret-real>"
+docker-compose exec vault vault kv patch secret/signature-router keycloak.issuer-uri="https://identitydev.sbtech.es/realms/customer"
 ```
 
 ### 3. Acceder a Vault UI (opcional)
