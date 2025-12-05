@@ -45,7 +45,7 @@ export default function AlertsPage() {
     setActionLoading(id);
     try {
       await apiClient.acknowledgeAlert(id);
-      setAlerts(alerts.map(a => 
+      setAlerts(alerts.map(a =>
         a.id === id ? { ...a, status: 'ACKNOWLEDGED' as const, acknowledgedAt: new Date().toISOString() } : a
       ));
     } catch (err) {
@@ -60,7 +60,7 @@ export default function AlertsPage() {
     setActionLoading(id);
     try {
       await apiClient.resolveAlert(id);
-      setAlerts(alerts.map(a => 
+      setAlerts(alerts.map(a =>
         a.id === id ? { ...a, status: 'RESOLVED' as const, resolvedAt: new Date().toISOString() } : a
       ));
     } catch (err) {
@@ -134,7 +134,7 @@ export default function AlertsPage() {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
+
     if (days > 0) return `Hace ${days} día${days > 1 ? 's' : ''}`;
     if (hours > 0) return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
     if (minutes > 0) return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
@@ -175,7 +175,7 @@ export default function AlertsPage() {
 
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -199,7 +199,7 @@ export default function AlertsPage() {
           </div>
         </div>
       </div>
-      
+
       <div className="mx-auto max-w-7xl space-y-6 p-6">
 
         {/* Error Message */}
@@ -222,8 +222,8 @@ export default function AlertsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{criticalCount}</div>
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 className="p-0 h-auto text-xs text-muted-foreground"
                 onClick={() => setFilter(f => f.severity === 'CRITICAL' ? {} : { severity: 'CRITICAL' })}
               >
@@ -241,8 +241,8 @@ export default function AlertsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{warningCount}</div>
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 className="p-0 h-auto text-xs text-muted-foreground"
                 onClick={() => setFilter(f => f.severity === 'WARNING' ? {} : { severity: 'WARNING' })}
               >
@@ -260,8 +260,8 @@ export default function AlertsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{infoCount}</div>
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 className="p-0 h-auto text-xs text-muted-foreground"
                 onClick={() => setFilter(f => f.severity === 'INFO' ? {} : { severity: 'INFO' })}
               >
@@ -279,8 +279,8 @@ export default function AlertsPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{resolvedCount}</div>
-              <Button 
-                variant="link" 
+              <Button
+                variant="link"
                 className="p-0 h-auto text-xs text-muted-foreground"
                 onClick={() => setFilter(f => f.status === 'RESOLVED' ? {} : { status: 'RESOLVED' })}
               >

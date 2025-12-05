@@ -70,7 +70,7 @@ export default function SignaturesPage() {
   const [selectedSignature, setSelectedSignature] = useState<SignatureRequest | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  
+
   // Pagination & Sorting states
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
@@ -83,7 +83,7 @@ export default function SignaturesPage() {
     setPage(0); // Reset to first page when filters change
     loadSignatures();
   }, [statusFilter, channelFilter, dateFrom, dateTo, size, sortField, sortDirection]);
-  
+
   useEffect(() => {
     loadSignatures();
   }, [page]);
@@ -131,7 +131,7 @@ export default function SignaturesPage() {
     setSearchTerm('');
     setPage(0);
   };
-  
+
   const handleSort = (field: string) => {
     if (sortField === field) {
       // Toggle direction if same field
@@ -143,12 +143,12 @@ export default function SignaturesPage() {
     }
     setPage(0); // Reset to first page
   };
-  
+
   const getSortIcon = (field: string) => {
     if (sortField !== field) {
       return <ChevronsUpDown className="ml-1 h-3 w-3 text-muted-foreground" />;
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ChevronUp className="ml-1 h-3 w-3" />
       : <ChevronDown className="ml-1 h-3 w-3" />;
   };
@@ -227,7 +227,7 @@ export default function SignaturesPage() {
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function SignaturesPage() {
       <div className="mx-auto max-w-7xl space-y-6 p-6">
         {/* Stats Cards - Current Page Only - DATOS 100% REALES */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -288,7 +288,7 @@ export default function SignaturesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -303,7 +303,7 @@ export default function SignaturesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -316,7 +316,7 @@ export default function SignaturesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -331,7 +331,7 @@ export default function SignaturesPage() {
         </div>
 
         {/* Filters */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm">
           <CardContent className="pt-6">
             <div className="space-y-4">
               {/* Search and Status Filters */}
@@ -493,7 +493,7 @@ export default function SignaturesPage() {
         </Card>
 
         {/* Signatures Table - DATOS 100% REALES */}
-        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -511,7 +511,7 @@ export default function SignaturesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer hover:bg-muted/50 select-none"
                     onClick={() => handleSort('id')}
                   >
@@ -519,7 +519,7 @@ export default function SignaturesPage() {
                       ID{getSortIcon('id')}
                     </div>
                   </TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer hover:bg-muted/50 select-none"
                     onClick={() => handleSort('customerId')}
                   >
@@ -529,7 +529,7 @@ export default function SignaturesPage() {
                   </TableHead>
                   <TableHead>Monto</TableHead>
                   <TableHead>Canal</TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer hover:bg-muted/50 select-none"
                     onClick={() => handleSort('status')}
                   >
@@ -537,7 +537,7 @@ export default function SignaturesPage() {
                       Estado{getSortIcon('status')}
                     </div>
                   </TableHead>
-                  <TableHead 
+                  <TableHead
                     className="cursor-pointer hover:bg-muted/50 select-none"
                     onClick={() => handleSort('createdAt')}
                   >
@@ -554,7 +554,7 @@ export default function SignaturesPage() {
                 {filteredSignatures.map((signature) => {
                   // Obtener el canal: primero de activeChallenge, luego del timeline (buscando en details → SMS/PUSH/etc)
                   let primaryChannel = signature.activeChallenge?.channelType || null;
-                  
+
                   if (!primaryChannel && signature.routingTimeline?.length > 0) {
                     // Buscar en el timeline - el details suele contener algo como "Rule 'X' matched → SMS"
                     const channelPatterns = ['SMS', 'PUSH', 'VOICE', 'BIOMETRIC', 'EMAIL'];
@@ -569,16 +569,16 @@ export default function SignaturesPage() {
                       if (primaryChannel) break;
                     }
                   }
-                  
+
                   primaryChannel = primaryChannel || 'N/A';
-                  
+
                   // Un fallback real ocurre cuando hay eventos de tipo FALLBACK, RETRY, o RULE_ERROR en el timeline
                   // No simplemente por tener más de 1 evento (ya que un flujo normal tiene al menos 1 evento RULE_MATCHED)
                   const hasFallback = (signature.routingTimeline || []).some(
                     (event: { event?: string; eventType?: string }) => {
                       const eventType = event.event || event.eventType || '';
-                      return eventType.includes('FALLBACK') || 
-                             eventType.includes('RETRY') || 
+                      return eventType.includes('FALLBACK') ||
+                             eventType.includes('RETRY') ||
                              eventType.includes('ERROR');
                     }
                   );
@@ -620,7 +620,7 @@ export default function SignaturesPage() {
                                   <div className="font-semibold text-sm border-b pb-1 mb-2">
                                     Detalles de Transacción
                                   </div>
-                                  
+
                                   {/* Amount */}
                                   <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
                                     <span className="text-muted-foreground font-medium">Monto:</span>
@@ -629,7 +629,7 @@ export default function SignaturesPage() {
                                       {signature.transactionContext.amount?.currency}
                                     </span>
                                   </div>
-                                  
+
                                   {/* Order ID */}
                                   {signature.transactionContext.orderId && (
                                     <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
@@ -639,7 +639,7 @@ export default function SignaturesPage() {
                                       </code>
                                     </div>
                                   )}
-                                  
+
                                   {/* Merchant ID */}
                                   {signature.transactionContext.merchantId && (
                                     <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
@@ -649,7 +649,7 @@ export default function SignaturesPage() {
                                       </code>
                                     </div>
                                   )}
-                                  
+
                                   {/* Description */}
                                   {signature.transactionContext.description && (
                                     <div className="grid grid-cols-[100px_1fr] gap-2 text-xs">
@@ -659,7 +659,7 @@ export default function SignaturesPage() {
                                       </span>
                                     </div>
                                   )}
-                                  
+
                                   {/* Hash */}
                                   {signature.transactionContext.hash && (
                                     <div className="grid grid-cols-[100px_1fr] gap-2 text-xs mt-3 pt-2 border-t">
@@ -737,7 +737,7 @@ export default function SignaturesPage() {
                 <p className="text-sm text-muted-foreground">Cargando firmas...</p>
               </div>
             )}
-            
+
             {/* Pagination Controls */}
             {!loading && signatures.length > 0 && (
               <div className="flex items-center justify-between px-2 py-4 border-t">
@@ -762,7 +762,7 @@ export default function SignaturesPage() {
                     Página {page + 1} de {totalPages}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"

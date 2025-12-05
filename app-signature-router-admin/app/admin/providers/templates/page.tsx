@@ -46,7 +46,7 @@ interface ProviderTemplate {
 export default function ProviderTemplatesPage() {
   const { toast } = useToast();
   const apiClient = getApiClient();
-  
+
   const [templates, setTemplates] = useState<ProviderTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedType, setSelectedType] = useState<string | null>(null);
@@ -100,7 +100,7 @@ export default function ProviderTemplatesPage() {
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -126,7 +126,7 @@ export default function ProviderTemplatesPage() {
       {/* Content */}
       <div className="mx-auto max-w-7xl space-y-6 p-6">
         {/* Filtros por tipo */}
-        <Card className="bg-white dark:bg-card shadow-sm">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm">
           <CardContent className="pt-6">
             <div className="flex gap-2 flex-wrap">
               <Button
@@ -164,7 +164,7 @@ export default function ProviderTemplatesPage() {
             {templates.map((template) => {
               const TypeIcon = getTypeIcon(template.provider_type);
               return (
-                <Card key={template.id} className="bg-white dark:bg-card shadow-sm hover:shadow-md transition-shadow">
+                <Card key={template.id} className="bg-gray-50 dark:bg-card shadow-sm hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
@@ -254,7 +254,7 @@ export default function ProviderTemplatesPage() {
 
         {/* Empty State */}
         {!loading && templates.length === 0 && (
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm">
             <CardContent className="py-12 text-center">
               <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg font-medium mb-2">No se encontraron templates</p>

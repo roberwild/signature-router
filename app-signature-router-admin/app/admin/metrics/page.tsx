@@ -65,7 +65,7 @@ export default function MetricsPage() {
   // Valores por defecto para datos incompletos del backend
   const defaultChannelData = { average: 0, median: 0, p95: 0 };
   const defaultChallengeData = { totalChallenges: 0, averageResponseTime: 0, completionRate: 0 };
-  
+
   const safeMetrics = metrics ? {
     ...metrics,
     signatureDuration: {
@@ -116,7 +116,7 @@ export default function MetricsPage() {
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export default function MetricsPage() {
             </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-3 mb-4">
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -177,7 +177,7 @@ export default function MetricsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -189,7 +189,7 @@ export default function MetricsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -204,7 +204,7 @@ export default function MetricsPage() {
           </div>
 
           {/* Duration by Channel */}
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm">
             <CardHeader>
               <CardTitle>Duración por Canal</CardTitle>
               <CardDescription>Tiempo promedio desde creación hasta firma completada</CardDescription>
@@ -259,7 +259,7 @@ export default function MetricsPage() {
               ✓ Datos reales
             </Badge>
           </h2>
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm">
             <CardHeader>
               <CardTitle>Tiempo de Respuesta por Canal</CardTitle>
               <CardDescription>
@@ -330,7 +330,7 @@ export default function MetricsPage() {
             </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-3 mb-4">
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -344,7 +344,7 @@ export default function MetricsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -356,7 +356,7 @@ export default function MetricsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -372,7 +372,7 @@ export default function MetricsPage() {
             </Card>
           </div>
 
-          <Card className="bg-white dark:bg-card shadow-sm">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm">
             <CardHeader>
               <CardTitle>Transiciones de Fallback por Canal</CardTitle>
               <CardDescription>Eventos FALLBACK_TRIGGERED detectados en routing timeline</CardDescription>
@@ -422,7 +422,7 @@ export default function MetricsPage() {
             </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-4">
-            <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -435,7 +435,7 @@ export default function MetricsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -448,7 +448,7 @@ export default function MetricsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -461,7 +461,7 @@ export default function MetricsPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white dark:bg-card shadow-sm">
+            <Card className="bg-gray-50 dark:bg-card shadow-sm">
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
@@ -477,7 +477,7 @@ export default function MetricsPage() {
         </div>
 
         {/* Latency Timeline Chart - TODO DYNATRACE */}
-        <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -550,7 +550,7 @@ export default function MetricsPage() {
         </Card>
 
         {/* Signature Duration Timeline - DATOS REALES */}
-        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Duración de Firmas en el Tiempo</CardTitle>
@@ -602,7 +602,7 @@ export default function MetricsPage() {
         </Card>
 
         {/* Error Rate Timeline - DATOS REALES */}
-        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Evolución de Tasa de Error</CardTitle>
@@ -646,7 +646,7 @@ export default function MetricsPage() {
         </Card>
 
         {/* Challenge Completion Timeline - DATOS REALES */}
-        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Tasa de Completado de Desafíos</CardTitle>

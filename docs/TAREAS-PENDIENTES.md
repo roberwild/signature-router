@@ -1,6 +1,45 @@
 # 📋 Tareas Pendientes - Signature Router
 
-**Última actualización:** 5 Diciembre 2025 (17:00)
+**Última actualización:** 5 Diciembre 2025 (20:00)
+
+---
+
+## 🆕 Epic 13: MuleSoft Integration (Planificación Completa) 🎯
+
+> **Fecha:** 5 Diciembre 2025  
+> **Status:** 📋 Planificación → ⏳ Esperando Kick-off  
+> **Esfuerzo:** 2 semanas  
+> **Cambio de Enfoque:** CRUD providers → Sync desde MuleSoft
+
+### EPIC-13: Provider Management - MuleSoft Integration
+
+**Descripción:**  
+Epic 13 cambió de enfoque desde "crear providers manualmente" a "sincronizar catálogo desde MuleSoft". Los providers se configuran centralmente en MuleSoft ESB, y Signature Router solo los consume.
+
+**Documentación Completa:**
+- 📖 [Epic Completo](./epics/epic-13-providers-mulesoft-integration.md) - 6 stories con acceptance criteria
+- 📊 [Resumen Ejecutivo](./EPIC-13-MULESOFT-RESUMEN.md) - Para stakeholders y PM
+- 🏗️ [Diagramas de Arquitectura](./diagrams/epic-13-mulesoft-architecture.md) - 11 diagramas Mermaid
+- 🔧 [Setup & Configuration](./setup/EPIC-13-MULESOFT-SETUP.md) - Guía DevOps completa
+- 📚 [Documentation Index](./EPIC-13-DOCUMENTATION-INDEX.md) - Índice maestro
+
+**Stories:**
+1. ✅ **Story 13.1:** Database Schema (0.5 días) - Tabla `provider_catalog`
+2. ⏳ **Story 13.2:** MuleSoft Client (2 días) - REST client + OAuth2
+3. ⏳ **Story 13.3:** Sync Service (1.5 días) - Sincronización automática cada 5 min
+4. ⏳ **Story 13.4:** REST API (1.5 días) - Endpoints para Admin Portal
+5. ⏳ **Story 13.5:** Admin UI (2 días) - Interfaz Next.js para gestión
+6. ⏳ **Story 13.6:** Fallback Logic (1.5 días) - Selección con fallback automático
+
+**Timeline:**
+- **2025-12-05:** ✅ Planificación completa
+- **2025-12-06:** ⏳ Kick-off meeting con MuleSoft Team
+- **2025-12-09-13:** 💻 Semana 1 - Backend implementation
+- **2025-12-16-20:** 🎨 Semana 2 - Frontend + testing
+- **2025-12-20:** 🚀 Deployment a UAT
+- **2025-12-23:** ✅ Go-live PRD
+
+**Prioridad:** Media | **Bloqueante para:** Epic 16 (Advanced Routing)
 
 ---
 

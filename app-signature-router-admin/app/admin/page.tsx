@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
       console.log('⏳ Waiting for authentication before fetching metrics...');
       return;
     }
-    
+
     try {
       setLoading(true);
       setError(null);
@@ -118,7 +118,7 @@ export default function AdminDashboardPage() {
   }, [isAuthenticated]);
 
   // Transform data for charts
-  const channelPieData = metrics?.byChannel 
+  const channelPieData = metrics?.byChannel
     ? Object.entries(metrics.byChannel).map(([name, data], index) => ({
         name,
         value: data.count,
@@ -207,7 +207,7 @@ export default function AdminDashboardPage() {
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -221,9 +221,9 @@ export default function AdminDashboardPage() {
               <span className="text-xs text-muted-foreground">
                 Actualizado: {lastRefresh.toLocaleTimeString()}
               </span>
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={fetchMetrics}
                 disabled={loading}
               >
@@ -335,7 +335,7 @@ export default function AdminDashboardPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Channel Distribution - Pie Chart - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+              <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -402,7 +402,7 @@ export default function AdminDashboardPage() {
 
             {/* Hourly Traffic - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+              <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -469,7 +469,7 @@ export default function AdminDashboardPage() {
 
             {/* Performance Metrics - TODO DYNATRACE */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+              <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -533,7 +533,7 @@ export default function AdminDashboardPage() {
 
             {/* Success Rate by Channel - Bar Chart - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+              <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -577,7 +577,7 @@ export default function AdminDashboardPage() {
 
             {/* Provider Health - UPTIME TODO */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm">
+              <Card className="bg-gray-50 dark:bg-card shadow-sm">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
@@ -669,7 +669,7 @@ export default function AdminDashboardPage() {
           <motion.div className="space-y-6" variants={containerVariants}>
             {/* Quick Actions */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm">
+              <Card className="bg-gray-50 dark:bg-card shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-base">Acciones Rápidas</CardTitle>
                 </CardHeader>
@@ -713,7 +713,7 @@ export default function AdminDashboardPage() {
 
             {/* Recent Activity - DATOS REALES */}
             <motion.div variants={cardVariants}>
-              <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+              <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Actividad Reciente</CardTitle>
@@ -770,9 +770,9 @@ export default function AdminDashboardPage() {
 
             {/* System Status */}
             <motion.div variants={cardVariants}>
-              <Card className={`bg-white dark:bg-card shadow-sm ${
-                (metrics?.overview.circuitBreakersOpen || 0) === 0 
-                  ? 'border-green-200 dark:border-green-800' 
+              <Card className={`bg-gray-50 dark:bg-card shadow-sm ${
+                (metrics?.overview.circuitBreakersOpen || 0) === 0
+                  ? 'border-green-200 dark:border-green-800'
                   : 'border-yellow-200 dark:border-yellow-800'
               }`}>
                 <CardHeader>

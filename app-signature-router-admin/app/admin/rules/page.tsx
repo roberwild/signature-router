@@ -57,7 +57,7 @@ export default function RoutingRulesPage() {
       const response = await apiClient.getProviders();
       const nameToIdMap: Record<string, string> = {};
       const providersList: Array<{ id: string; name: string; type: string }> = [];
-      
+
       response.providers.forEach((p: any) => {
         nameToIdMap[p.provider_name] = p.id;
         providersList.push({
@@ -66,7 +66,7 @@ export default function RoutingRulesPage() {
           type: p.provider_type,
         });
       });
-      
+
       setProviderNameToIdMap(nameToIdMap);
       setProviders(providersList);
     } catch (err) {
@@ -119,7 +119,7 @@ export default function RoutingRulesPage() {
         providerName = providerEntry[0];
       }
     }
-    
+
     // Mapear targetChannel a channel para el formulario
     setEditingRule({
       ...rule,
@@ -149,7 +149,7 @@ export default function RoutingRulesPage() {
     try {
       // Convertir nombre de proveedor a UUID
       const providerId = ruleData.provider ? providerNameToIdMap[ruleData.provider] : undefined;
-      
+
       if (editingRule) {
         // Editar regla existente
         const updateDto: UpdateRuleDto = {
@@ -197,7 +197,7 @@ export default function RoutingRulesPage() {
     setActionLoading(id);
     try {
       const updated = await apiClient.toggleRule(id, !rule.enabled);
-      setRules(rules.map(r => 
+      setRules(rules.map(r =>
         r.id === id ? { ...r, enabled: updated.enabled } : r
       ));
     } catch (err) {
@@ -220,12 +220,12 @@ export default function RoutingRulesPage() {
     const newRules = [...rules];
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     [newRules[index], newRules[targetIndex]] = [newRules[targetIndex], newRules[index]];
-    
+
     // Actualizar prioridades localmente
     newRules.forEach((rule, idx) => {
       rule.priority = idx + 1;
     });
-    
+
     setRules(newRules);
 
     // Actualizar en el backend - enviar todos los campos requeridos
@@ -233,10 +233,10 @@ export default function RoutingRulesPage() {
       // Convertir nombre de proveedor a UUID si existe
       const rule1 = newRules[index];
       const rule2 = newRules[targetIndex];
-      
+
       const providerId1 = rule1.provider ? providerNameToIdMap[rule1.provider] : rule1.providerId;
       const providerId2 = rule2.provider ? providerNameToIdMap[rule2.provider] : rule2.providerId;
-      
+
       await apiClient.updateRule(rule1.id, {
         name: rule1.name,
         description: rule1.description || '',
@@ -246,7 +246,7 @@ export default function RoutingRulesPage() {
         priority: rule1.priority,
         enabled: rule1.enabled,
       });
-      
+
       await apiClient.updateRule(rule2.id, {
         name: rule2.name,
         description: rule2.description || '',
@@ -311,7 +311,7 @@ export default function RoutingRulesPage() {
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -349,7 +349,7 @@ export default function RoutingRulesPage() {
 
         {/* Stats Cards - DATOS REALES */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -362,7 +362,7 @@ export default function RoutingRulesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -375,7 +375,7 @@ export default function RoutingRulesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -388,7 +388,7 @@ export default function RoutingRulesPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -405,7 +405,7 @@ export default function RoutingRulesPage() {
         </div>
 
         {/* Rules Table - DATOS REALES */}
-        <Card className="bg-white dark:bg-card shadow-sm border-green-200 dark:border-green-800">
+        <Card className="bg-gray-50 dark:bg-card shadow-sm border-green-200 dark:border-green-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>

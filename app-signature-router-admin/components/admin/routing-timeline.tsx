@@ -106,7 +106,7 @@ export function RoutingTimeline({ events, className }: RoutingTimelineProps) {
                 <div className="absolute left-[18px] top-[40px] h-[calc(100%+12px)] w-0.5 bg-border" />
               )}
 
-              <Card className="relative bg-white dark:bg-card shadow-sm border-l-4 border-l-primary/20 hover:border-l-primary/60 transition-colors">
+              <Card className="relative bg-gray-50 dark:bg-card shadow-sm border-l-4 border-l-primary/20 hover:border-l-primary/60 transition-colors">
                 <div className="p-4">
                   <div className="flex items-start gap-4">
                     {/* Icon */}

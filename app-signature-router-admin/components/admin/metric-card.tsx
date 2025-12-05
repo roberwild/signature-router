@@ -33,7 +33,7 @@ export function MetricCard({
   return (
     <Card
       className={cn(
-        'bg-white dark:bg-card shadow-sm hover:shadow-md transition-shadow border-l-4',
+        'bg-gray-50 dark:bg-card shadow-sm hover:shadow-md transition-shadow border-l-4',
         color === 'primary' && 'border-l-primary',
         color === 'success' && 'border-l-green-600',
         color === 'warning' && 'border-l-yellow-600',

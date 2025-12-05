@@ -62,7 +62,7 @@ interface Provider {
 export default function ProvidersPage() {
   const { toast } = useToast();
   const { apiClient, isLoading: authLoading, isAuthenticated, redirectToLogin } = useApiClientWithStatus({ autoRedirect: true });
-  
+
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -71,26 +71,26 @@ export default function ProvidersPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [testDialogOpen, setTestDialogOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState<any>(null);
-  
+
   // Use ref to avoid recreating loadProviders on every render
   const apiClientRef = useRef(apiClient);
   apiClientRef.current = apiClient;
-  
+
   // Track if initial load has been done
   const initialLoadDone = useRef(false);
 
   // Load providers and their metrics
   const loadProviders = useCallback(async () => {
     const client = apiClientRef.current;
-    
+
     try {
       const response = await client.getProviders();
-      
+
       // Convert API data to UI format and fetch metrics for each provider
       const providersWithMetrics = await Promise.all(
         response.providers.map(async (p: any) => {
           let metrics: ProviderMetrics | undefined;
-          
+
           try {
             metrics = await client.getProviderMetrics(p.id);
           } catch (err) {
@@ -99,7 +99,7 @@ export default function ProvidersPage() {
               console.warn(`Failed to load metrics for provider ${p.id}:`, err);
             }
           }
-          
+
           return {
             id: p.id,
             name: p.provider_name,
@@ -112,7 +112,7 @@ export default function ProvidersPage() {
           } as Provider;
         })
       );
-      
+
       setProviders(providersWithMetrics);
     } catch (error) {
       // Only show error if not an abort error
@@ -130,12 +130,12 @@ export default function ProvidersPage() {
   // Initial load - only runs once when authenticated
   useEffect(() => {
     if (authLoading || initialLoadDone.current) return;
-    
+
     if (!isAuthenticated) {
       setLoading(false);
       return;
     }
-    
+
     initialLoadDone.current = true;
     setLoading(true);
     loadProviders().finally(() => setLoading(false));
@@ -221,7 +221,7 @@ export default function ProvidersPage() {
 
   // Colores variados para el gráfico de uptime
   const UPTIME_COLORS = ['#3b82f6', '#8b5cf6', '#f97316', '#10b981', '#06b6d4', '#ec4899'];
-  
+
   const uptimeData = providers.map((p, index) => ({
     name: p.name,
     uptime: p.metrics?.uptime || 0,
@@ -265,7 +265,7 @@ export default function ProvidersPage() {
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
       {/* Header */}
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export default function ProvidersPage() {
               />
             </div>
             <div className="flex gap-2">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={handleRefresh}
                 disabled={refreshing}
@@ -284,14 +284,14 @@ export default function ProvidersPage() {
                 <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                 Actualizar
               </Button>
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => window.location.href = '/admin/providers/templates'}
               >
                 <BarChart3 className="mr-2 h-4 w-4" />
                 Templates
               </Button>
-              <Button 
+              <Button
                 className="bg-primary hover:bg-primary/90"
                 onClick={() => setCreateDialogOpen(true)}
               >
@@ -316,7 +316,7 @@ export default function ProvidersPage() {
                     Modo Demostración Activo
                   </h3>
                   <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                    Estás viendo datos de demostración. Los cambios no se persisten. 
+                    Estás viendo datos de demostración. Los cambios no se persisten.
                     Para usar el backend real, configura <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">NEXT_PUBLIC_USE_MOCK_DATA=false</code> en tu archivo <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">.env.local</code>
                   </p>
                 </div>
@@ -340,7 +340,7 @@ export default function ProvidersPage() {
                   </Badge>
                 </div>
                 <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                  Las métricas de <strong>latencia</strong>, <strong>uptime</strong>, <strong>requests</strong> y <strong>costos</strong> son estimaciones placeholder. 
+                  Las métricas de <strong>latencia</strong>, <strong>uptime</strong>, <strong>requests</strong> y <strong>costos</strong> son estimaciones placeholder.
                   Una vez completada la integración con MuleSoft, se mostrarán datos reales del gateway.
                 </p>
               </div>
@@ -350,7 +350,7 @@ export default function ProvidersPage() {
 
         {/* Global Stats - Placeholder Metrics */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -365,7 +365,7 @@ export default function ProvidersPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -382,7 +382,7 @@ export default function ProvidersPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -397,7 +397,7 @@ export default function ProvidersPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -416,7 +416,7 @@ export default function ProvidersPage() {
         {/* Analytics Charts - Placeholder Data */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Response Time Comparison */}
-          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -434,12 +434,12 @@ export default function ProvidersPage() {
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={responseTimeData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     stroke="#6b7280"
                     style={{ fontSize: '11px' }}
                   />
-                  <YAxis 
+                  <YAxis
                     stroke="#6b7280"
                     label={{ value: 'segundos', angle: -90, position: 'insideLeft' }}
                   />
@@ -451,15 +451,15 @@ export default function ProvidersPage() {
                       borderRadius: '8px',
                     }}
                   />
-                  <Bar 
-                    dataKey="tiempo" 
+                  <Bar
+                    dataKey="tiempo"
                     radius={[8, 8, 0, 0]}
                     animationDuration={1500}
                   >
                     {responseTimeData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={entry.tiempo < 2 ? '#10b981' : entry.tiempo < 3 ? '#f59e0b' : '#ef4444'} 
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.tiempo < 2 ? '#10b981' : entry.tiempo < 3 ? '#f59e0b' : '#ef4444'}
                       />
                     ))}
                   </Bar>
@@ -469,7 +469,7 @@ export default function ProvidersPage() {
           </Card>
 
           {/* Uptime Radial Chart */}
-          <Card className="bg-white dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
+          <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -485,20 +485,20 @@ export default function ProvidersPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <RadialBarChart 
-                  cx="30%" 
-                  cy="50%" 
-                  innerRadius="20%" 
-                  outerRadius="85%" 
+                <RadialBarChart
+                  cx="30%"
+                  cy="50%"
+                  innerRadius="20%"
+                  outerRadius="85%"
                   data={uptimeData}
                   startAngle={180}
                   endAngle={-180}
                 >
                   <RadialBar
                     minAngle={15}
-                    label={{ 
-                      position: 'insideStart', 
-                      fill: '#fff', 
+                    label={{
+                      position: 'insideStart',
+                      fill: '#fff',
                       fontSize: 11,
                       fontWeight: 'bold',
                       formatter: (value: number) => `${value.toFixed(1)}%`
@@ -509,13 +509,13 @@ export default function ProvidersPage() {
                     cornerRadius={6}
                     animationDuration={1500}
                   />
-                  <Legend 
+                  <Legend
                     iconSize={12}
                     iconType="circle"
                     layout="vertical"
                     verticalAlign="middle"
                     align="right"
-                    wrapperStyle={{ 
+                    wrapperStyle={{
                       fontSize: '12px',
                       paddingLeft: '20px',
                       lineHeight: '24px'
@@ -541,13 +541,13 @@ export default function ProvidersPage() {
             </CardContent>
           </Card>
 
-          {/* 
-            NOTA: Los gráficos "Volumen de Tráfico" y "Distribución de Costos" por provider 
+          {/*
+            NOTA: Los gráficos "Volumen de Tráfico" y "Distribución de Costos" por provider
             fueron eliminados porque requieren datos de MuleSoft que aún no están disponibles.
-            
+
             Cuando MuleSoft implemente la metadata de providers (ver docs/PROPUESTA-INTERFACES-MULESOFT.md),
             estos gráficos podrán ser restaurados con datos reales.
-            
+
             Datos necesarios de MuleSoft:
             - requests_today por provider
             - total_cost_today_eur por provider
@@ -559,9 +559,9 @@ export default function ProvidersPage() {
           {providers.map((provider) => {
             const StatusIcon = getStatusIcon(provider.status);
             const metrics = provider.metrics;
-            
+
             return (
-              <Card key={provider.id} className="bg-white dark:bg-card shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-green-500">
+              <Card key={provider.id} className="bg-gray-50 dark:bg-card shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-green-500">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="space-y-1">
@@ -682,8 +682,8 @@ export default function ProvidersPage() {
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Zap className={`h-3 w-3 ${metrics.mulesoft_integrated ? 'text-green-500' : 'text-amber-500'}`} />
                       <span>
-                        {metrics.mulesoft_integrated 
-                          ? `MuleSoft: ${metrics.mulesoft_provider_id}` 
+                        {metrics.mulesoft_integrated
+                          ? `MuleSoft: ${metrics.mulesoft_provider_id}`
                           : 'Métricas estimadas (MuleSoft pendiente)'}
                       </span>
                     </div>
@@ -691,8 +691,8 @@ export default function ProvidersPage() {
 
                   {/* Actions */}
                   <div className="grid grid-cols-2 gap-2 pt-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         setSelectedProvider(provider);
@@ -702,8 +702,8 @@ export default function ProvidersPage() {
                       <TestTube className="mr-2 h-4 w-4" />
                       Test
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => {
                         setSelectedProvider(provider);
@@ -713,16 +713,16 @@ export default function ProvidersPage() {
                       <Edit className="mr-2 h-4 w-4" />
                       Editar
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => window.location.href = `/admin/metrics?provider=${provider.id}`}
                     >
                       <BarChart3 className="mr-2 h-4 w-4" />
                       Métricas
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       onClick={() => {
@@ -742,7 +742,7 @@ export default function ProvidersPage() {
 
         {/* Empty State */}
         {providers.length === 0 && !loading && (
-          <Card className="bg-white dark:bg-card">
+          <Card className="bg-gray-50 dark:bg-card">
             <CardContent className="pt-6 text-center">
               <Server className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No hay proveedores configurados</h3>

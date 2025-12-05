@@ -43,9 +43,9 @@ function SignInForm() {
             <Image
               src={mounted && resolvedTheme === 'dark' ? '/singular-bank-logo.svg' : '/singular-bank-logo-black.png'}
               alt="Singular Bank"
-              width={200}
-              height={60}
-              style={{ width: 200, height: 60 }}
+              width={180}
+              height={54}
+              style={{ width: 180, height: 54 }}
               priority
               unoptimized
             />
@@ -63,7 +63,7 @@ function SignInForm() {
               {error === "OAuthAccountNotLinked" && "Esta cuenta ya está vinculada a otro proveedor."}
               {error === "OAuthCallback" && "Error al autenticar con Keycloak. Verifica la configuración."}
               {error === "AccessDenied" && "Acceso denegado. Contacta al administrador."}
-              {!["OAuthAccountNotLinked", "OAuthCallback", "AccessDenied"].includes(error) && 
+              {!["OAuthAccountNotLinked", "OAuthCallback", "AccessDenied"].includes(error) &&
                 `Error de autenticación: ${error}`}
             </div>
           )}

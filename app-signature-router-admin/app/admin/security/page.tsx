@@ -48,7 +48,7 @@ export default function SecurityPage() {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
+
     if (days > 0) return `Hace ${days} día${days > 1 ? 's' : ''}`;
     if (hours > 0) return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
     if (minutes > 0) return `Hace ${minutes} min`;
@@ -125,7 +125,7 @@ export default function SecurityPage() {
 
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -144,7 +144,7 @@ export default function SecurityPage() {
           </div>
         </div>
       </div>
-      
+
       <div className="mx-auto max-w-7xl space-y-6 p-6">
 
         {/* Error Message */}
@@ -193,7 +193,7 @@ export default function SecurityPage() {
                 <>
                   <div className="text-2xl font-bold">{overview?.users2FA || 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {overview && overview.totalUsers > 0 
+                    {overview && overview.totalUsers > 0
                       ? `${Math.round((overview.users2FA / overview.totalUsers) * 100)}% de usuarios con 2FA`
                       : 'Con verificación 2FA'}
                   </p>

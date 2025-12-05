@@ -55,7 +55,7 @@ const getNavigation = (badges: DynamicBadges) => [
     name: 'Monitoreo de Firmas',
     href: '/admin/signatures',
     icon: FileSignature,
-    badge: badges.pendingSignatures > 0 
+    badge: badges.pendingSignatures > 0
       ? { value: badges.pendingSignatures, variant: 'warning' as const }
       : null,
   },
@@ -81,7 +81,7 @@ const getNavigation = (badges: DynamicBadges) => [
     name: 'Alertas',
     href: '/admin/alerts',
     icon: Bell,
-    badge: badges.activeAlerts > 0 
+    badge: badges.activeAlerts > 0
       ? { value: badges.activeAlerts, variant: 'error' as const }
       : null,
   },
@@ -107,7 +107,7 @@ export function AdminSidebar() {
     if (!isAuthenticated) {
       return;
     }
-    
+
     try {
       // Cargar conteos en paralelo
       const [signaturesResult, alertsResult] = await Promise.allSettled([
@@ -115,10 +115,10 @@ export function AdminSidebar() {
         apiClient.getAlerts({ status: 'ACTIVE' }),
       ]);
 
-      const pendingSignatures = signaturesResult.status === 'fulfilled' 
-        ? signaturesResult.value.totalElements 
+      const pendingSignatures = signaturesResult.status === 'fulfilled'
+        ? signaturesResult.value.totalElements
         : 0;
-      
+
       const activeAlerts = alertsResult.status === 'fulfilled'
         ? alertsResult.value.filter((a: any) => a.status === 'ACTIVE').length
         : 0;
@@ -144,13 +144,13 @@ export function AdminSidebar() {
     if (isAuthenticated && !sessionLoading) {
       // Cargar badges iniciales
       loadBadges();
-      
+
       // Refrescar badges cada 60 segundos
       const interval = setInterval(loadBadges, 60000);
       return () => clearInterval(interval);
     }
   }, [isAuthenticated, sessionLoading, loadBadges]);
-  
+
   // Generar navegación con badges actuales
   const navigation = getNavigation(badges);
 
@@ -167,19 +167,19 @@ export function AdminSidebar() {
     <TooltipProvider delayDuration={0}>
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen bg-background border-r border-border transition-all duration-300 ease-in-out flex flex-col',
+          'fixed left-0 top-0 z-40 h-screen bg-gray-50 dark:bg-background border-r border-border transition-all duration-300 ease-in-out flex flex-col',
           collapsed ? 'w-16' : 'w-64'
         )}
       >
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-border px-4 bg-background relative">
+      <div className="flex h-16 items-center justify-between border-b border-border px-4 bg-gray-50 dark:bg-background relative">
         {!collapsed && mounted && (
           <div className="flex items-center gap-3 w-full">
             <Image
               src={theme === 'dark' ? '/singular-bank-logo.svg' : '/singular-bank-logo-black.png'}
               alt="Singular Bank"
-              width={140}
-              height={40}
+              width={126}
+              height={36}
               priority
             />
           </div>
@@ -256,7 +256,7 @@ export function AdminSidebar() {
                       className={cn(
                         'h-5 min-w-[20px] px-1.5',
                         item.badge.variant === 'warning' && 'bg-yellow-500 hover:bg-yellow-600',
-                        isActive && 'bg-white text-primary'
+                        isActive && 'bg-gray-50 dark:bg-white text-primary'
                       )}
                     >
                       {item.badge.value}

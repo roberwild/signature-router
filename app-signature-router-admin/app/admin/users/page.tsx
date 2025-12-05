@@ -50,7 +50,7 @@ export default function UsersPage() {
   }, [isAuthenticated]);
 
   // Filtrar usuarios por búsqueda
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,7 +124,7 @@ export default function UsersPage() {
 
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
-      <div className="bg-white dark:bg-card border-b border-border">
+      <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -143,7 +143,7 @@ export default function UsersPage() {
           </div>
         </div>
       </div>
-      
+
       <div className="mx-auto max-w-7xl space-y-6 p-6">
 
         {/* Error Message */}
