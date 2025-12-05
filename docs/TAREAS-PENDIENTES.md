@@ -1,46 +1,51 @@
 # 📋 Tareas Pendientes - Signature Router
 
-**Última actualización:** 5 Diciembre 2025
+**Última actualización:** 5 Diciembre 2025 (17:00)
 
 ---
 
 ## 🔴 Dashboard - Datos Placeholder (Auditoría 5 Dic 2025)
 
-> **Contexto:** Auditoría de pantallas identificó que varios campos del Dashboard usan valores hardcoded en lugar de datos reales.
+> **Contexto:** Auditoría de pantallas identificó que varios campos del Dashboard usan valores hardcoded en lugar de datos reales.  
+> **NOTA:** Estas tareas están marcadas como pendientes de integración con **Dynatrace** (ver Epic 15).
 
-### DASH-001: Latencia Promedio Hardcoded
+### DASH-001: Latencia Promedio Hardcoded ⏳ DYNATRACE
 
 **Problema:** `overview.avgLatency` siempre devuelve `245L` (placeholder)  
 **Ubicación:** `GetDashboardMetricsUseCaseImpl.java` línea 153  
-**Solución:** Calcular latencia real desde métricas Prometheus/Micrometer  
-**Prioridad:** Media | **Esfuerzo:** 2h
+**Solución:** Calcular latencia real desde métricas **Dynatrace** (no Prometheus)  
+**Prioridad:** Media | **Esfuerzo:** 2h  
+**Dependencia:** Epic 15 - Dynatrace Integration
 
 ---
 
-### DASH-002: Latencia Timeline con Valores Random
+### DASH-002: Latencia Timeline con Valores Random ⏳ DYNATRACE
 
 **Problema:** `latencyTimeline[].p50/p95/p99` usa `145 + random()`, `410 + random()`, etc.  
 **Ubicación:** `GetDashboardMetricsUseCaseImpl.java` líneas 248-253  
-**Solución:** Obtener percentiles reales desde histogramas de Prometheus  
-**Prioridad:** Media | **Esfuerzo:** 3h
+**Solución:** Obtener percentiles reales desde **Dynatrace API**  
+**Prioridad:** Media | **Esfuerzo:** 3h  
+**Dependencia:** Epic 15 - Dynatrace Integration
 
 ---
 
-### DASH-003: Latencia por Canal Placeholder
+### DASH-003: Latencia por Canal Placeholder ⏳ DYNATRACE
 
 **Problema:** `byChannel[].avgLatency` usa valores fijos por tipo de canal  
 **Ubicación:** `GetDashboardMetricsUseCaseImpl.java` líneas 301-307 (`getPlaceholderLatency()`)  
-**Solución:** Calcular latencia real desde métricas tagueadas por canal  
-**Prioridad:** Media | **Esfuerzo:** 1h
+**Solución:** Calcular latencia real desde métricas tagueadas por canal en **Dynatrace**  
+**Prioridad:** Media | **Esfuerzo:** 1h  
+**Dependencia:** Epic 15 - Dynatrace Integration
 
 ---
 
-### DASH-004: Uptime de Proveedores Hardcoded
+### DASH-004: Uptime de Proveedores Hardcoded ⏳ DYNATRACE
 
 **Problema:** `providerHealth[].uptime` siempre es `99.9`, `95.0` o `0.0`  
 **Ubicación:** `GetDashboardMetricsUseCaseImpl.java` línea 335  
-**Solución:** Calcular uptime real desde logs de health check o métricas  
-**Prioridad:** Baja | **Esfuerzo:** 30min
+**Solución:** Calcular uptime real desde health checks en **Dynatrace**  
+**Prioridad:** Baja | **Esfuerzo:** 30min  
+**Dependencia:** Epic 15 - Dynatrace Integration
 
 ---
 
@@ -83,7 +88,12 @@
 ### ~~RULES-003: Validación SpEL Simulada~~ ✅ COMPLETADO
 
 ~~**Problema:** La validación SpEL es local en frontend (regex básico)~~  
-**Implementado:** Conectado con endpoint `/admin/rules/validate-spel` con fallback local (5 Dic 2025)
+**Implementado:** Conectado con endpoint `/admin/routing-rules/validate-spel` con fallback local (5 Dic 2025)  
+**Fixes adicionales (5 Dic 2025 - Sesión 2):**
+- Corregido mapeo de respuesta backend (`isValid`/`errorMessage` → `valid`/`message`)
+- Corregido contexto de evaluación SpEL (`forPropertyAccessors` para comparaciones BigDecimal)
+- Actualizadas variables SpEL: `amountValue`, `amountCurrency`, `merchantId`, `orderId`, `description`
+- Limpieza de estado de validación al abrir diálogo
 
 ---
 
@@ -200,19 +210,28 @@ INSERT INTO routing_rule (..., provider_id, ...) VALUES (
 - [x] **Columna Provider en Grid** - Nueva columna en tabla de reglas (5 Dic 2025)
 - [x] **Console.logs Removidos** - Limpieza de logs de debug (5 Dic 2025)
 
+### Fixes Sesión 2 (5 Dic 2025 17:00):
+- [x] **URL Validación SpEL** - Corregido de `/admin/rules/validate-spel` a `/admin/routing-rules/validate-spel`
+- [x] **Mapeo Respuesta SpEL** - Backend `isValid`/`errorMessage` → Frontend `valid`/`message`
+- [x] **Contexto Evaluación SpEL** - Cambiado a `forPropertyAccessors()` para comparaciones BigDecimal
+- [x] **Variables SpEL Actualizadas** - `amountValue`, `amountCurrency`, `merchantId`, `orderId`, `description`
+- [x] **Estado Validación SpEL** - Se limpia al abrir diálogo de edición
+- [x] **Badge +Fallback** - Lógica corregida: solo muestra si hay eventos FALLBACK/RETRY/ERROR
+- [x] **Columna Canal Signatures** - Extrae canal de `routingTimeline.details` cuando `activeChallenge` es null
+
 ---
 
-## 📊 Resumen Auditoría de Pantallas (5 Dic 2025)
+## 📊 Resumen Auditoría de Pantallas (5 Dic 2025 - Actualizado 17:00)
 
 | Pantalla | Ruta | Estado | Tareas |
 |----------|------|--------|--------|
-| Dashboard | `/admin` | ⚠️ Parcial | DASH-001 a DASH-004 pendientes (Dynatrace) |
-| Reglas | `/admin/rules` | ⚠️ Parcial | RULES-001/002 pendientes, RULES-003 ✅ |
-| Firmas | `/admin/signatures` | ✅ 100% Real | - |
-| Proveedores | `/admin/providers` | ⚠️ Estimaciones | PROV-001 pendiente |
-| Métricas | `/admin/metrics` | ✅ 100% Real | - |
+| Dashboard | `/admin` | ⚠️ Parcial | DASH-001 a DASH-004 → Dynatrace (Epic 15) |
+| Reglas | `/admin/rules` | ✅ Funcional | RULES-003 ✅, validación SpEL OK, RULES-001/002 nice-to-have |
+| Firmas | `/admin/signatures` | ✅ 100% Real | Canal y Fallback corregidos |
+| Proveedores | `/admin/providers` | ⚠️ Estimaciones | PROV-001 → MuleSoft (Epic 11) |
+| Métricas | `/admin/metrics` | ⏳ Dynatrace | Latencias → Dynatrace (Epic 15) |
 | Seguridad | `/admin/security` | ✅ 100% Real | - |
-| Alertas | `/admin/alerts` | ⚠️ Mock activo | ALERTS-001 pendiente |
+| Alertas | `/admin/alerts` | ⚠️ Mock activo | ALERTS-001 → AlertManager real |
 | Usuarios | `/admin/users` | ✅ 100% Real (JWT audit) | - |
 | Sidebar | N/A | ✅ Badges dinámicos | SIDEBAR-001/002 ✅ |
 

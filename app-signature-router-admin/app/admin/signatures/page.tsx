@@ -552,8 +552,36 @@ export default function SignaturesPage() {
               </TableHeader>
               <TableBody>
                 {filteredSignatures.map((signature) => {
-                  const primaryChannel = signature.activeChallenge?.channelType || 'N/A';
-                  const hasFallback = (signature.routingTimeline || []).length > 1;
+                  // Obtener el canal: primero de activeChallenge, luego del timeline (buscando en details → SMS/PUSH/etc)
+                  let primaryChannel = signature.activeChallenge?.channelType || null;
+                  
+                  if (!primaryChannel && signature.routingTimeline?.length > 0) {
+                    // Buscar en el timeline - el details suele contener algo como "Rule 'X' matched → SMS"
+                    const channelPatterns = ['SMS', 'PUSH', 'VOICE', 'BIOMETRIC', 'EMAIL'];
+                    for (const event of signature.routingTimeline) {
+                      const details = (event as { details?: string }).details || '';
+                      for (const channel of channelPatterns) {
+                        if (details.toUpperCase().includes(channel)) {
+                          primaryChannel = channel;
+                          break;
+                        }
+                      }
+                      if (primaryChannel) break;
+                    }
+                  }
+                  
+                  primaryChannel = primaryChannel || 'N/A';
+                  
+                  // Un fallback real ocurre cuando hay eventos de tipo FALLBACK, RETRY, o RULE_ERROR en el timeline
+                  // No simplemente por tener más de 1 evento (ya que un flujo normal tiene al menos 1 evento RULE_MATCHED)
+                  const hasFallback = (signature.routingTimeline || []).some(
+                    (event: { event?: string; eventType?: string }) => {
+                      const eventType = event.event || event.eventType || '';
+                      return eventType.includes('FALLBACK') || 
+                             eventType.includes('RETRY') || 
+                             eventType.includes('ERROR');
+                    }
+                  );
                   const duration = calculateDuration(signature.createdAt, signature.updatedAt);
 
                   return (

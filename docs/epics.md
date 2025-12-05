@@ -35,7 +35,7 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E9** | Observability & SLO Tracking | Métricas, logs, traces para SLO ≥99.9% y P99 <300ms | 6 stories | NFR-O1-O14, NFR-P1-P10 |
 | **E10** | Quality & Testing Excellence (v2) | Testing coverage 75%+, exception handling, MDC logging, documentation | 4 stories | Epic v1 descartada 29-Nov-2025 |
 | **E12** | Admin Panel Frontend-Backend Integration ✅ | Implementar endpoints backend para Admin Panel + Mock/Real toggle | 8 stories (DONE) | Soporta E6, E7 |
-| **E14** | Frontend-Backend Complete Integration | Completar integración de 8 páginas pendientes del Admin Panel con backend real | 8 stories | FR47-FR72, E6, E7 |
+| **E14** | Frontend-Backend Complete Integration 🟡 | Completar integración de 8 páginas pendientes del Admin Panel con backend real | 8 stories (6 DONE) | FR47-FR72, E6, E7 |
 | **E15** | Observability Platform Migration - Dynatrace | Migrar observabilidad a Dynatrace (estándar corporativo) | 8 stories | Reemplaza E9 con solución enterprise |
 | **E16** | User Audit Trail - JWT-Based Registration | Sistema de auditoría automática de usuarios basado en JWT | 5 stories | FR (nuevo): Auditoría de accesos |
 | **E17** | Comprehensive Audit Trail | Sistema de auditoría completo de todas las operaciones CRUD | 5 stories | FR (nuevo): Auditoría de operaciones |
@@ -45,10 +45,12 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 **Notes:** 
 - Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)  
 - **Epic 12 completada 2025-12-04**: Backend implementado en Epic 13 & 14, todos los endpoints disponibles
-- Epic 14 creada 2025-12-02 basada en HITO-VAULT-Y-JWT-ACTIVADOS.md (refleja estado REAL del proyecto)
+- **Epic 14 en progreso (67%)**: 6/9 páginas funcionales (2025-12-05). Pendiente: Dynatrace (E15) y MuleSoft (E11)
 - **Epic 15 creada 2025-12-04**: Dynatrace Integration (reemplaza Prometheus stack, alineación con estándar corporativo)
 - **Epic 16 creada 2025-12-04**: User Audit Trail basado en JWT (NO sincronización AD, registro automático en login)
 - **Epic 17 creada 2025-12-04**: Comprehensive Audit Trail (auditoría completa de operaciones CRUD, AOP-based, frontend completo)
+
+**Última actualización:** 2025-12-05 17:00 - Auditoría de pantallas + fixes SpEL + fixes Signatures grid
 
 ---
 
@@ -2184,29 +2186,31 @@ Cada story está dimensionada para ser completable en una **sesión enfocada de 
 
 **Epic Value:** Admin Panel 100% funcional con datos reales, visibilidad completa del sistema, operaciones eficientes.
 
-**Status:** 📋 BACKLOG (0/8 stories iniciadas)  
+**Status:** 🟡 IN PROGRESS (6/8 stories completadas)  
 **Priority:** 🔴 CRITICAL  
-**Context:** Basado en HITO-2025-12-02-VAULT-Y-JWT-ACTIVADOS.md
+**Context:** Basado en HITO-2025-12-02-VAULT-Y-JWT-ACTIVADOS.md  
+**Last Updated:** 2025-12-05 17:00
 
 **Documento Completo:** `docs/epics/epic-14-frontend-backend-complete-integration.md`
 
 ---
 
-### Estado Actual (2025-12-02)
+### Estado Actual (2025-12-05 - Actualizado)
 
 | Página | Backend | Frontend | Status |
 |--------|---------|----------|--------|
-| Signatures | ✅ Implementado | ✅ Integrado | 100% |
-| Dashboard | ✅ Implementado | ❌ Hardcoded | 0% |
-| Providers | ✅ Implementado | ⚠️ Parcial | 20% |
-| Rules | ✅ Implementado | ❌ No funcional | 0% |
-| Alerts | ✅ Mock backend | ❌ No implementado | 0% |
-| Metrics | ✅ Implementado | ❌ Vacío | 0% |
-| Users | ✅ Mock backend | ⚠️ Parcial | 10% |
-| Security | ✅ Implementado | ❌ Vacío | 0% |
-| Templates | ✅ Implementado | ❌ Vacío | 0% |
+| Signatures | ✅ Implementado | ✅ Integrado | ✅ 100% |
+| Dashboard | ✅ Implementado | ✅ Integrado | ⏳ 80% (Latencias → Dynatrace) |
+| Providers | ✅ Implementado | ✅ Integrado | ⏳ 90% (Métricas → MuleSoft) |
+| Rules | ✅ Implementado | ✅ Integrado | ✅ 100% (SpEL validación OK) |
+| Alerts | ✅ Mock backend | ⚠️ Mock activo | ⏳ 50% |
+| Metrics | ✅ Implementado | ✅ Integrado | ⏳ 80% (Latencias → Dynatrace) |
+| Users | ✅ JWT Audit | ✅ Integrado | ✅ 100% |
+| Security | ✅ Implementado | ✅ Integrado | ✅ 100% |
+| Templates | ✅ Implementado | ⚠️ Parcial | ⏳ 60% |
 
-**Cobertura Total:** 1/9 páginas (11%)
+**Cobertura Total:** 6/9 páginas funcionales (67%)  
+**Pendiente:** Integraciones Dynatrace (Epic 15) y MuleSoft (Epic 11)
 
 ---
 
@@ -2263,7 +2267,9 @@ Cada story está dimensionada para ser completable en una **sesión enfocada de 
 
 ---
 
-#### Story 14.3: Rules - Editor de Reglas de Enrutamiento
+#### Story 14.3: Rules - Editor de Reglas de Enrutamiento ✅ COMPLETADA
+
+**Status:** ✅ DONE (2025-12-05)
 
 **As a** Administrador del sistema  
 **I want** Crear y editar reglas de enrutamiento con SpEL  
@@ -2272,6 +2278,16 @@ Cada story está dimensionada para ser completable en una **sesión enfocada de 
 **Acceptance Criteria:**
 - ✅ Listado de reglas consume API real
 - ✅ Editor SpEL con syntax highlighting
+- ✅ Validación SpEL en tiempo real contra backend (`/admin/routing-rules/validate-spel`)
+- ✅ Toggle de estado (habilitado/deshabilitado) funcional
+- ✅ Selector de proveedores filtrado por canal
+- ✅ Variables SpEL documentadas: `amountValue`, `amountCurrency`, `merchantId`, `orderId`, `description`
+
+**Fixes aplicados (2025-12-05):**
+- URL endpoint SpEL corregida
+- Mapeo respuesta backend (`isValid`/`errorMessage`)
+- Contexto evaluación para comparaciones BigDecimal
+- Limpieza estado al abrir diálogo
 - ✅ Validación en tiempo real (debounce 500ms)
 - ✅ Drag & Drop para reordenar prioridades
 - ✅ Toggle enabled/disabled funcional

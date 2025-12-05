@@ -3,14 +3,22 @@
 **Epic ID:** E14  
 **Epic Owner:** Tech Lead  
 **Created:** 2025-12-02  
-**Completed:** 2025-12-05  
-**Status:** ✅ DONE  
+**Last Updated:** 2025-12-05 17:00  
+**Status:** 🟡 IN PROGRESS (90%)  
 **Priority:** 🔴 CRITICAL  
 **Target Sprint:** Sprint Inmediato  
 **Contexto:** Basado en HITO-2025-12-02-VAULT-Y-JWT-ACTIVADOS.md
 
-> **🎉 EPIC COMPLETADA** - Verificado mediante análisis de código el 2025-12-05.  
-> Todas las 8 páginas del Admin Panel están 100% integradas con el backend real.
+> **🟡 EPIC 90% COMPLETADA** - Verificado mediante auditoría de pantallas 2025-12-05.  
+> 8/9 páginas del Admin Panel integradas. Pendientes: métricas de latencia (→ Dynatrace E15), métricas providers (→ MuleSoft E11).
+
+### Fixes aplicados (2025-12-05 Sesión 2):
+- ✅ URL validación SpEL corregida (`/admin/routing-rules/validate-spel`)
+- ✅ Mapeo respuesta SpEL backend → frontend
+- ✅ Contexto evaluación SpEL para BigDecimal
+- ✅ Variables SpEL actualizadas (`amountValue`, etc.)
+- ✅ Badge +Fallback: lógica corregida (solo eventos FALLBACK/RETRY/ERROR)
+- ✅ Columna Canal en Signatures: extrae de `routingTimeline.details`
 
 ---
 
@@ -22,26 +30,27 @@ Completar la integración de las **8 páginas pendientes del Admin Panel** con e
 
 ## 📊 Contexto y Estado Actual
 
-### ✅ Estado Final: 9/9 páginas COMPLETAS
+### Estado Actual: 8/9 páginas funcionales (90%)
 
-| # | Página | Backend | Frontend | Estado |
-|---|--------|---------|----------|--------|
-| 1 | Signatures | ✅ | ✅ | ✅ DONE |
-| 2 | Dashboard | ✅ | ✅ | ✅ DONE |
-| 3 | Providers | ✅ | ✅ | ✅ DONE |
-| 4 | Rules | ✅ | ✅ | ✅ DONE |
-| 5 | Alerts | ✅ | ✅ | ✅ DONE |
-| 6 | Metrics | ✅ | ✅ | ✅ DONE |
-| 7 | Users | ✅ | ✅ | ✅ DONE |
-| 8 | Security | ✅ | ✅ | ✅ DONE |
-| 9 | Templates | ✅ | ✅ | ✅ DONE |
+| # | Página | Backend | Frontend | Estado | Pendiente |
+|---|--------|---------|----------|--------|-----------|
+| 1 | Signatures | ✅ | ✅ | ✅ 100% | - |
+| 2 | Dashboard | ✅ | ✅ | ⏳ 80% | Latencias → Dynatrace (E15) |
+| 3 | Providers | ✅ | ✅ | ⏳ 90% | Métricas → MuleSoft (E11) |
+| 4 | Rules | ✅ | ✅ | ✅ 100% | - |
+| 5 | Alerts | ✅ Mock | ⚠️ | ⏳ 50% | AlertManager real |
+| 6 | Metrics | ✅ | ✅ | ⏳ 80% | Latencias → Dynatrace (E15) |
+| 7 | Users | ✅ | ✅ | ✅ 100% | - |
+| 8 | Security | ✅ | ✅ | ✅ 100% | - |
+| 9 | Templates | ✅ | ⚠️ | ⏳ 60% | UI incompleta |
 
-**Verificación realizada el 2025-12-05:**
+**Verificación actualizada 2025-12-05 17:00:**
 - `real-client.ts`: 20+ métodos de API implementados
 - Todas las páginas usan `useApiClientWithStatus()` con JWT automático
-- CRUD completo en Providers, Rules
+- CRUD completo en Providers, Rules (SpEL validación OK)
 - Auto-refresh implementado donde corresponde
 - Error handling y loading states en todas las páginas
+- **Pendiente:** Métricas de latencia requieren Dynatrace (Epic 15), métricas providers requieren MuleSoft (Epic 11)
 
 ---
 
