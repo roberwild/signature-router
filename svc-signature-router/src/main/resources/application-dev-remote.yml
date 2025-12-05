@@ -1,0 +1,29 @@
+# Development Profile - Remote Keycloak (Infraestructura SBTech)
+# Profile: dev-remote
+# Use: mvn spring-boot:run "-Dspring-boot.run.profiles=local,dev-remote" "-Dmaven.test.skip=true"
+# Nota: Usar junto con 'local' para heredar la config de DB, Vault, etc.
+
+spring:
+  # OAuth2 Resource Server - Keycloak de Desarrollo SBTech
+  # Sobreescribe la configuración de 'local' para usar Keycloak remoto
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://identitydev.sbtech.es/realms/customer
+          jwk-set-uri: https://identitydev.sbtech.es/realms/customer/protocol/openid-connect/certs
+
+# Epic 12: Admin Portal - Development Mode with Remote Auth
+admin:
+  portal:
+    user-management:
+      mode: LOCAL
+    alerts:
+      mock: true
+
+logging:
+  level:
+    root: INFO
+    com.bank.signature: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG

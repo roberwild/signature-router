@@ -1,9 +1,17 @@
 package com.bank.signature.application.controller;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.bank.signature.application.dto.request.SetSystemModeRequest;
 import com.bank.signature.application.dto.response.SystemModeResponse;
-import com.bank.signature.domain.model.valueobject.SystemMode;
 import com.bank.signature.infrastructure.resilience.DegradedModeManager;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,9 +22,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
 
 /**
  * REST controller for system mode management.
@@ -39,9 +44,9 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Admin - System Mode", description = "System operational mode management")
 @SecurityRequirement(name = "Bearer Authentication")
 public class SystemModeController {
-    
+
     private final DegradedModeManager degradedModeManager;
-    
+
     /**
      * Get current system operational mode.
      * Story 4.3 AC8: Admin API Override
@@ -55,40 +60,26 @@ public class SystemModeController {
      * @return ResponseEntity with SystemModeResponse
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPPORT', 'AUDITOR')")
-    @Operation(
-        summary = "Get current system mode",
-        description = "Retrieves the current operational mode of the system. " +
-                      "Requires ADMIN, SUPPORT, or AUDITOR role."
-    )
+    @PreAuthorize("hasAnyRole('PRF_ADMIN', 'PRF_CONSULTIVO')")
+    @Operation(summary = "Get current system mode", description = "Retrieves the current operational mode of the system. "
+            +
+            "Requires ADMIN, SUPPORT, or AUDITOR role.")
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "System mode retrieved successfully",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = SystemModeResponse.class)
-            )
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Forbidden - Requires ADMIN, SUPPORT, or AUDITOR role",
-            content = @Content(mediaType = "application/json")
-        )
+            @ApiResponse(responseCode = "200", description = "System mode retrieved successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SystemModeResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Requires ADMIN, SUPPORT, or AUDITOR role", content = @Content(mediaType = "application/json"))
     })
     public ResponseEntity<SystemModeResponse> getCurrentMode() {
         log.debug("Admin requested current system mode");
-        
+
         SystemModeResponse response = new SystemModeResponse(
-            degradedModeManager.getCurrentMode(),
-            degradedModeManager.getDegradedSince(),  // null if NORMAL
-            degradedModeManager.getDegradedReason(),  // null if NORMAL
-            degradedModeManager.getDegradedProviders()
-        );
-        
+                degradedModeManager.getCurrentMode(),
+                degradedModeManager.getDegradedSince(), // null if NORMAL
+                degradedModeManager.getDegradedReason(), // null if NORMAL
+                degradedModeManager.getDegradedProviders());
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Manually set system operational mode.
      * Story 4.3 AC8: Admin API Override
@@ -105,57 +96,38 @@ public class SystemModeController {
      * @return ResponseEntity with updated SystemModeResponse
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    @Operation(
-        summary = "Set system mode manually",
-        description = "Manually sets the system operational mode. " +
-                      "Requires ROLE_ADMIN. Audit log entry created with user identity."
-    )
+    @PreAuthorize("hasRole('PRF_ADMIN')")
+    @Operation(summary = "Set system mode manually", description = "Manually sets the system operational mode. " +
+            "Requires ROLE_ADMIN. Audit log entry created with user identity.")
     @ApiResponses(value = {
-        @ApiResponse(
-            responseCode = "200",
-            description = "System mode updated successfully",
-            content = @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = SystemModeResponse.class)
-            )
-        ),
-        @ApiResponse(
-            responseCode = "400",
-            description = "Invalid request (validation errors)",
-            content = @Content(mediaType = "application/json")
-        ),
-        @ApiResponse(
-            responseCode = "403",
-            description = "Forbidden - Requires ROLE_ADMIN",
-            content = @Content(mediaType = "application/json")
-        )
+            @ApiResponse(responseCode = "200", description = "System mode updated successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SystemModeResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request (validation errors)", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Forbidden - Requires ROLE_ADMIN", content = @Content(mediaType = "application/json"))
     })
     public ResponseEntity<SystemModeResponse> setSystemMode(
-        @Valid @RequestBody SetSystemModeRequest request
-    ) {
+            @Valid @RequestBody SetSystemModeRequest request) {
         // TODO Story 4.3: Capture authenticated user identity for audit log
         // For MVP, using "ADMIN" as placeholder
-        String adminUser = "ADMIN";  // Replace with SecurityContextHolder.getContext().getAuthentication().getName()
-        
-        log.warn("🔧 Admin override: setting system mode to {} (reason: \"{}\", user: {})", 
-            request.mode(), request.reason(), adminUser);
-        
+        String adminUser = "ADMIN"; // Replace with SecurityContextHolder.getContext().getAuthentication().getName()
+
+        log.warn("🔧 Admin override: setting system mode to {} (reason: \"{}\", user: {})",
+                request.mode(), request.reason(), adminUser);
+
         // Apply mode change
         switch (request.mode()) {
             case DEGRADED -> {
                 String reason = (request.reason() != null && !request.reason().isBlank())
-                    ? request.reason()
-                    : "Manual admin override";
+                        ? request.reason()
+                        : "Manual admin override";
                 degradedModeManager.enterDegradedMode(reason);
-                
+
                 // TODO Story 4.3: Write audit log entry
-                log.info("AUDIT: System mode set to DEGRADED by admin: user={}, reason=\"{}\"", 
-                    adminUser, reason);
+                log.info("AUDIT: System mode set to DEGRADED by admin: user={}, reason=\"{}\"",
+                        adminUser, reason);
             }
             case NORMAL -> {
                 degradedModeManager.exitDegradedMode();
-                
+
                 // TODO Story 4.3: Write audit log entry
                 log.info("AUDIT: System mode set to NORMAL by admin: user={}", adminUser);
             }
@@ -163,25 +135,23 @@ public class SystemModeController {
                 // For MVP, treat MAINTENANCE same as DEGRADED
                 // In production, MAINTENANCE may have different behavior (reject new requests)
                 String reason = (request.reason() != null && !request.reason().isBlank())
-                    ? request.reason()
-                    : "Manual admin override - maintenance";
+                        ? request.reason()
+                        : "Manual admin override - maintenance";
                 degradedModeManager.enterDegradedMode(reason);
-                
+
                 // TODO Story 4.3: Write audit log entry
-                log.info("AUDIT: System mode set to MAINTENANCE by admin: user={}, reason=\"{}\"", 
-                    adminUser, reason);
+                log.info("AUDIT: System mode set to MAINTENANCE by admin: user={}, reason=\"{}\"",
+                        adminUser, reason);
             }
         }
-        
+
         // Return updated mode
         SystemModeResponse response = new SystemModeResponse(
-            degradedModeManager.getCurrentMode(),
-            degradedModeManager.getDegradedSince(),
-            degradedModeManager.getDegradedReason(),
-            degradedModeManager.getDegradedProviders()
-        );
-        
+                degradedModeManager.getCurrentMode(),
+                degradedModeManager.getDegradedSince(),
+                degradedModeManager.getDegradedReason(),
+                degradedModeManager.getDegradedProviders());
+
         return ResponseEntity.ok(response);
     }
 }
-
