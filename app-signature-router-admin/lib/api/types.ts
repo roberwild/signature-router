@@ -91,30 +91,30 @@ export interface Provider {
 export interface ProviderMetrics {
   provider_id: string;
   provider_name: string;
-  
+
   // Request Metrics (Internal)
   requests_today: number;
   requests_7d: number;
   requests_30d: number;
   success_rate: number;
   failed_requests_today: number;
-  
+
   // Latency Metrics (From MuleSoft)
   avg_response_time: number;
   latency_p50_ms: number;
   latency_p95_ms: number;
   latency_p99_ms: number;
-  
+
   // Availability Metrics (From MuleSoft)
   uptime: number;
   health_check_failures_24h: number;
   seconds_since_last_health_check: number;
-  
+
   // Cost Metrics (From MuleSoft)
   cost_per_request_eur: number;
   total_cost_today_eur: number;
   total_cost_month_eur: number;
-  
+
   // MuleSoft Integration Metadata
   mulesoft_integrated: boolean;
   mulesoft_provider_id: string | null;
@@ -490,7 +490,14 @@ export interface IApiClient {
   toggleRule(id: string, enabled: boolean): Promise<RoutingRule>;
   validateSpel(expression: string): Promise<{ valid: boolean; message?: string }>;
 
-  // Providers (Epic 13 - CRUD Management)
+  // Providers (Epic 13 - MuleSoft Integration)
+  getProviderCatalog(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }>;
+  syncProvidersFromMuleSoft(): Promise<{ synced: number; message: string }>;
+  toggleProvider(id: string, action: 'enable' | 'disable'): Promise<any>;
+  updateProviderPriority(id: string, priority: number): Promise<any>;
+  testProviderHealth(id: string): Promise<{ healthy: boolean; latencyMs?: number; error?: string }>;
+
+  // Providers (Legacy - Epic 12 CRUD - Deprecated in favor of MuleSoft sync)
   getProviders(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }>;
   getProvider(id: string): Promise<any>;
   createProvider(data: any): Promise<any>;
@@ -498,7 +505,7 @@ export interface IApiClient {
   deleteProvider(id: string): Promise<void>;
   testProvider(id: string, data: { test_destination: string; test_message?: string }): Promise<any>;
   getProviderTemplates(type?: string): Promise<any[]>;
-  
+
   // Provider Metrics (Epic 14 - MuleSoft Integration Ready)
   getProviderMetrics(providerId: string): Promise<ProviderMetrics>;
 }

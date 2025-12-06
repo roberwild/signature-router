@@ -218,10 +218,10 @@ export class RealApiClient implements IApiClient {
     // Backend returns UsersListResponse, we extract the users array
     // and map backend fields to frontend User interface
     const response = await this.fetch('/admin/users');
-    
+
     // Handle both direct array (mock) and wrapped response (real backend)
     const users = response.users || response;
-    
+
     return users.map((u: any) => ({
       id: u.id,
       username: u.username,
@@ -374,6 +374,42 @@ export class RealApiClient implements IApiClient {
   async getProviderTemplates(type?: string): Promise<any[]> {
     const query = type ? `?type=${type}` : '';
     return this.fetch(`/admin/providers/templates${query}`);
+  }
+
+  // ============================================
+  // Providers - MuleSoft Integration (Epic 13)
+  // ============================================
+
+  async getProviderCatalog(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }> {
+    const query = new URLSearchParams();
+    if (params?.type) query.append('type', params.type);
+    if (params?.enabled !== undefined) query.append('enabled', params.enabled.toString());
+
+    return this.fetch(`/admin/providers/catalog${query.toString() ? '?' + query.toString() : ''}`);
+  }
+
+  async syncProvidersFromMuleSoft(): Promise<{ synced: number; message: string }> {
+    return this.fetch('/admin/providers/sync', {
+      method: 'POST',
+    });
+  }
+
+  async toggleProvider(id: string, action: 'enable' | 'disable'): Promise<any> {
+    return this.fetch(`/admin/providers/${id}/${action}`, {
+      method: 'PUT',
+    });
+  }
+
+  async updateProviderPriority(id: string, priority: number): Promise<any> {
+    return this.fetch(`/admin/providers/${id}/priority?priority=${priority}`, {
+      method: 'PUT',
+    });
+  }
+
+  async testProviderHealth(id: string): Promise<{ healthy: boolean; latencyMs?: number; error?: string }> {
+    return this.fetch(`/admin/providers/${id}/health`, {
+      method: 'GET',
+    });
   }
 
   // ========================================

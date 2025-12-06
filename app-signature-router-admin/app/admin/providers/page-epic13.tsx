@@ -41,6 +41,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
 import { useApiClientWithStatus } from '@/lib/api/use-api-client';
@@ -70,7 +71,7 @@ interface ProviderCatalog {
   lastUsedAt?: string;
 }
 
-export default function ProvidersPage() {
+export default function ProvidersPageEpic13() {
   const { toast } = useToast();
   const { apiClient, isLoading: authLoading, isAuthenticated } = useApiClientWithStatus({ autoRedirect: true });
 
@@ -419,28 +420,16 @@ export default function ProvidersPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Health Status</p>
-                  <div className="grid grid-cols-3 gap-2 mt-2">
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span className="text-xs text-muted-foreground">Healthy</span>
-                      </div>
-                      <span className="text-2xl font-bold text-green-600">{stats.healthy}</span>
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                        <span className="text-xs text-muted-foreground">Down</span>
-                      </div>
-                      <span className="text-2xl font-bold text-red-600">{stats.unhealthy}</span>
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                        <span className="text-xs text-muted-foreground">Unknown</span>
-                      </div>
-                      <span className="text-2xl font-bold text-gray-500">{stats.unknown}</span>
-                    </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="outline" className="bg-green-50 text-green-700">
+                      🟢 {stats.healthy}
+                    </Badge>
+                    <Badge variant="outline" className="bg-red-50 text-red-700">
+                      🔴 {stats.unhealthy}
+                    </Badge>
+                    <Badge variant="outline" className="bg-gray-50 text-gray-700">
+                      ⚪ {stats.unknown}
+                    </Badge>
                   </div>
                 </div>
                 <Activity className="h-8 w-8 text-green-500/30" />
@@ -630,47 +619,44 @@ function ProviderCard({
             Configuration
           </h4>
 
-          {/* Priority Switch (3-position toggle) */}
+          {/* Priority Slider */}
           <div className="mb-3">
-            <Label className="text-sm mb-3 block">Priority Level</Label>
-            <div className="flex items-center gap-0 bg-gray-200 dark:bg-gray-700 rounded-lg p-1 w-full">
-              <button
-                onClick={() => onPriorityChange(provider.id, 1)}
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm">Priority</Label>
+              <span className="text-sm font-bold">{provider.priority}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Slider
+                value={[provider.priority]}
+                min={1}
+                max={10}
+                step={1}
+                onValueCommit={(value) => onPriorityChange(provider.id, value[0])}
                 disabled={!provider.enabled}
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  provider.priority === 1
-                    ? 'bg-green-600 text-white shadow-md'
-                    : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                Primary
-              </button>
-              <button
-                onClick={() => onPriorityChange(provider.id, 2)}
-                disabled={!provider.enabled}
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  provider.priority === 2
-                    ? 'bg-amber-500 text-white shadow-md'
-                    : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                Fallback 1
-              </button>
-              <button
-                onClick={() => onPriorityChange(provider.id, 3)}
-                disabled={!provider.enabled}
-                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                  provider.priority === 3
-                    ? 'bg-orange-600 text-white shadow-md'
-                    : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                Fallback 2
-              </button>
+                className="flex-1"
+              />
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onPriorityChange(provider.id, Math.max(1, provider.priority - 1))}
+                  disabled={!provider.enabled || provider.priority === 1}
+                >
+                  ↑
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onPriorityChange(provider.id, Math.min(10, provider.priority + 1))}
+                  disabled={!provider.enabled || provider.priority === 10}
+                >
+                  ↓
+                </Button>
+              </div>
             </div>
             {provider.priority > 1 && provider.enabled && (
-              <p className="text-xs text-amber-600 mt-2">
-                ⚠️ This provider is used when Priority {provider.priority - 1} fails
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ Fallback provider (used when priority {provider.priority - 1} fails)
               </p>
             )}
           </div>

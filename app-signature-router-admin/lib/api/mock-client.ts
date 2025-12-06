@@ -429,7 +429,7 @@ export class MockApiClient implements IApiClient {
 
   async getProviders(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }> {
     this.log('GET', '/api/v1/admin/providers', params);
-    
+
     let providers = (mockProvidersData || []);
 
     if (params?.type) {
@@ -447,7 +447,7 @@ export class MockApiClient implements IApiClient {
 
   async getProvider(id: string): Promise<any> {
     this.log('GET', `/api/v1/admin/providers/${id}`);
-    
+
     const provider = (mockProvidersData || []).find((p: any) => p.id === id);
     if (!provider) {
       throw new Error(`Provider not found: ${id}`);
@@ -458,7 +458,7 @@ export class MockApiClient implements IApiClient {
 
   async createProvider(data: any): Promise<any> {
     this.log('POST', '/api/v1/admin/providers', data);
-    
+
     const newProvider = {
       id: `provider-${Date.now()}`,
       ...data,
@@ -471,13 +471,13 @@ export class MockApiClient implements IApiClient {
     if (mockProvidersData) {
       (mockProvidersData as any[]).push(newProvider);
     }
-    
+
     return this.delay(newProvider);
   }
 
   async updateProvider(id: string, data: any): Promise<any> {
     this.log('PUT', `/api/v1/admin/providers/${id}`, data);
-    
+
     const index = (mockProvidersData || []).findIndex((p: any) => p.id === id);
     if (index === -1) {
       throw new Error(`Provider not found: ${id}`);
@@ -498,7 +498,7 @@ export class MockApiClient implements IApiClient {
 
   async deleteProvider(id: string): Promise<void> {
     this.log('DELETE', `/api/v1/admin/providers/${id}`);
-    
+
     const provider = (mockProvidersData || []).find((p: any) => p.id === id);
     if (provider) {
       provider.enabled = false; // Soft delete
@@ -510,7 +510,7 @@ export class MockApiClient implements IApiClient {
 
   async testProvider(id: string, data: { test_destination: string; test_message?: string }): Promise<any> {
     this.log('POST', `/api/v1/admin/providers/${id}/test`, data);
-    
+
     const provider = (mockProvidersData || []).find((p: any) => p.id === id);
     if (!provider) {
       throw new Error(`Provider not found: ${id}`);
@@ -518,7 +518,7 @@ export class MockApiClient implements IApiClient {
 
     // Simulate test result
     const success = provider.enabled && Math.random() > 0.2; // 80% success rate for enabled providers
-    
+
     return this.delay({
       success,
       message: success ? 'Provider test successful' : 'Provider test failed',
@@ -530,14 +530,105 @@ export class MockApiClient implements IApiClient {
 
   async getProviderTemplates(type?: string): Promise<any[]> {
     this.log('GET', '/api/v1/admin/providers/templates', { type });
-    
+
     const templates = mockProviderTemplates || [];
-    
+
     if (type) {
       return this.delay(templates.filter((t: any) => t.provider_type === type));
     }
 
     return this.delay(templates);
+  }
+
+  // ============================================
+  // Providers - MuleSoft Integration (Epic 13)
+  // ============================================
+
+  async getProviderCatalog(params?: { type?: string; enabled?: boolean }): Promise<{ providers: any[]; total_count: number }> {
+    this.log('GET', '/api/v1/admin/providers/catalog', params);
+
+    let providers = mockProvidersData || [];
+
+    if (params?.type) {
+      providers = providers.filter((p: any) => p.provider_type === params.type);
+    }
+
+    if (params?.enabled !== undefined) {
+      providers = providers.filter((p: any) => p.enabled === params.enabled);
+    }
+
+    return this.delay({
+      providers,
+      total_count: providers.length,
+    });
+  }
+
+  async syncProvidersFromMuleSoft(): Promise<{ synced: number; message: string }> {
+    this.log('POST', '/api/v1/admin/providers/sync');
+
+    // Simulate sync delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    const synced = mockProvidersData?.length || 0;
+
+    return {
+      synced,
+      message: `Successfully synced ${synced} providers from MuleSoft`,
+    };
+  }
+
+  async toggleProvider(id: string, action: 'enable' | 'disable'): Promise<any> {
+    this.log('PUT', `/api/v1/admin/providers/${id}/${action}`);
+
+    const provider = (mockProvidersData || []).find((p: any) => p.id === id);
+    if (!provider) {
+      throw new Error(`Provider not found: ${id}`);
+    }
+
+    // Simulate toggle
+    provider.enabled = action === 'enable';
+
+    return this.delay({
+      ...provider,
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  async updateProviderPriority(id: string, priority: number): Promise<any> {
+    this.log('PUT', `/api/v1/admin/providers/${id}/priority`, { priority });
+
+    const provider = (mockProvidersData || []).find((p: any) => p.id === id);
+    if (!provider) {
+      throw new Error(`Provider not found: ${id}`);
+    }
+
+    // Simulate priority update
+    provider.priority = priority;
+
+    return this.delay({
+      ...provider,
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  async testProviderHealth(id: string): Promise<{ healthy: boolean; latencyMs?: number; error?: string }> {
+    this.log('GET', `/api/v1/admin/providers/${id}/health`);
+
+    const provider = (mockProvidersData || []).find((p: any) => p.id === id);
+    if (!provider) {
+      throw new Error(`Provider not found: ${id}`);
+    }
+
+    // Simulate health check
+    const healthy = provider.enabled && Math.random() > 0.1; // 90% healthy if enabled
+    const latencyMs = healthy ? Math.floor(Math.random() * 200) + 20 : undefined;
+    const error = healthy ? undefined : 'Connection timeout';
+
+    return this.delay({
+      healthy,
+      latencyMs,
+      error,
+    });
   }
 
   // ========================================
@@ -546,41 +637,41 @@ export class MockApiClient implements IApiClient {
 
   async getProviderMetrics(providerId: string): Promise<ProviderMetrics> {
     this.log('GET', `/api/v1/admin/providers/${providerId}/metrics`);
-    
+
     // Generate realistic mock metrics
     const mockMetrics: ProviderMetrics = {
       provider_id: providerId,
       provider_name: 'Mock Provider',
-      
+
       // Request Metrics
       requests_today: Math.floor(Math.random() * 10000) + 500,
       requests_7d: Math.floor(Math.random() * 50000) + 5000,
       requests_30d: Math.floor(Math.random() * 200000) + 20000,
       success_rate: 95 + Math.random() * 4.9,
       failed_requests_today: Math.floor(Math.random() * 100),
-      
+
       // Latency Metrics
       avg_response_time: 0.8 + Math.random() * 1.5,
       latency_p50_ms: 80 + Math.floor(Math.random() * 50),
       latency_p95_ms: 200 + Math.floor(Math.random() * 100),
       latency_p99_ms: 400 + Math.floor(Math.random() * 150),
-      
+
       // Availability Metrics
       uptime: 99 + Math.random() * 0.9,
       health_check_failures_24h: Math.floor(Math.random() * 3),
       seconds_since_last_health_check: 30 + Math.floor(Math.random() * 90),
-      
+
       // Cost Metrics
       cost_per_request_eur: 0.01 + Math.random() * 0.09,
       total_cost_today_eur: 50 + Math.random() * 450,
       total_cost_month_eur: 1500 + Math.random() * 13500,
-      
+
       // MuleSoft Integration
       mulesoft_integrated: false,
       mulesoft_provider_id: null,
       calculated_at: new Date().toISOString(),
     };
-    
+
     return this.delay(mockMetrics);
   }
 }
