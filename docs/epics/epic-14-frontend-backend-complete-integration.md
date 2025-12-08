@@ -3,14 +3,15 @@
 **Epic ID:** E14  
 **Epic Owner:** Tech Lead  
 **Created:** 2025-12-02  
-**Last Updated:** 2025-12-05 17:00  
-**Status:** 🟡 IN PROGRESS (90%)  
+**Last Updated:** 2025-12-06  
+**Status:** 🟡 85% COMPLETADA (Pending External Dependencies)  
 **Priority:** 🔴 CRITICAL  
-**Target Sprint:** Sprint Inmediato  
 **Contexto:** Basado en HITO-2025-12-02-VAULT-Y-JWT-ACTIVADOS.md
 
-> **🟡 EPIC 90% COMPLETADA** - Verificado mediante auditoría de pantallas 2025-12-05.  
-> 8/9 páginas del Admin Panel integradas. Pendientes: métricas de latencia (→ Dynatrace E15), métricas providers (→ MuleSoft E11).
+> **🟡 EPIC 85% COMPLETADA** - Admin Panel CRUD completo, pero requiere Epic 11 (MuleSoft) y Epic 15 (Dynatrace) para completar integración de métricas externas.  
+> 
+> **✅ Completado:** CRUD operations, SpEL validation, toggle enable/disable, audit log  
+> **⏳ Pendiente:** Provider metrics (MuleSoft), Latency metrics (Dynatrace), AlertManager real
 
 ### Fixes aplicados (2025-12-05 Sesión 2):
 - ✅ URL validación SpEL corregida (`/admin/routing-rules/validate-spel`)
@@ -19,6 +20,14 @@
 - ✅ Variables SpEL actualizadas (`amountValue`, etc.)
 - ✅ Badge +Fallback: lógica corregida (solo eventos FALLBACK/RETRY/ERROR)
 - ✅ Columna Canal en Signatures: extrae de `routingTimeline.details`
+
+### Final Update (2025-12-06):
+- ✅ Toggle enable/disable de reglas implementado (Story 14.3)
+- ⚠️ **DEPENDENCIAS EXTERNAS IDENTIFICADAS:**
+  - Epic 11 (MuleSoft): Provider metrics, health checks desde catalog externo
+  - Epic 15 (Dynatrace): Latency metrics P50/P95/P99, APM data
+  - AlertManager: Real alerts (actualmente mock)
+- 🎯 Epic 14 85% completa - Admin Panel funcional con datos internos, requiere Epic 11 & 15 para datos externos
 
 ---
 
@@ -30,27 +39,52 @@ Completar la integración de las **8 páginas pendientes del Admin Panel** con e
 
 ## 📊 Contexto y Estado Actual
 
-### Estado Actual: 8/9 páginas funcionales (90%)
+### Estado Actual: 9/9 páginas funcionales (85% - Pending External Data) 🟡
 
-| # | Página | Backend | Frontend | Estado | Pendiente |
-|---|--------|---------|----------|--------|-----------|
+| # | Página | Backend Local | Frontend | Estado | Bloqueadores Externos |
+|---|--------|---------------|----------|--------|-----------------------|
 | 1 | Signatures | ✅ | ✅ | ✅ 100% | - |
-| 2 | Dashboard | ✅ | ✅ | ⏳ 80% | Latencias → Dynatrace (E15) |
-| 3 | Providers | ✅ | ✅ | ⏳ 90% | Métricas → MuleSoft (E11) |
+| 2 | Dashboard | ✅ | ✅ | ⏳ 70% | **avgResponseTime → Dynatrace (E15)** |
+| 3 | Providers | ✅ | ✅ | ⏳ 60% | **Provider metrics, health → MuleSoft (E11)** |
 | 4 | Rules | ✅ | ✅ | ✅ 100% | - |
-| 5 | Alerts | ✅ Mock | ⚠️ | ⏳ 50% | AlertManager real |
-| 6 | Metrics | ✅ | ✅ | ⏳ 80% | Latencias → Dynatrace (E15) |
+| 5 | Alerts | ✅ Mock | ✅ | ⏳ 50% | **Real alerts → AlertManager integration** |
+| 6 | Metrics | ✅ | ✅ | ⏳ 50% | **P50/P95/P99 latency → Dynatrace (E15)** |
 | 7 | Users | ✅ | ✅ | ✅ 100% | - |
 | 8 | Security | ✅ | ✅ | ✅ 100% | - |
-| 9 | Templates | ✅ | ⚠️ | ⏳ 60% | UI incompleta |
+| 9 | Templates | ✅ | ✅ | ✅ 100% | - |
 
-**Verificación actualizada 2025-12-05 17:00:**
-- `real-client.ts`: 20+ métodos de API implementados
-- Todas las páginas usan `useApiClientWithStatus()` con JWT automático
-- CRUD completo en Providers, Rules (SpEL validación OK)
-- Auto-refresh implementado donde corresponde
-- Error handling y loading states en todas las páginas
-- **Pendiente:** Métricas de latencia requieren Dynatrace (Epic 15), métricas providers requieren MuleSoft (Epic 11)
+**Verificación final 2025-12-06:**
+- ✅ `real-client.ts`: 20+ métodos de API implementados
+- ✅ Todas las páginas usan `useApiClientWithStatus()` con JWT automático
+- ✅ CRUD completo en Providers, Rules (SpEL validación + toggle)
+- ✅ Auto-refresh implementado donde corresponde
+- ✅ Error handling y loading states en todas las páginas
+- ⚠️ **CRÍTICO:** Admin Panel tiene UI completa pero datos externos pendientes
+- 🔴 **Bloqueadores:** Epic 11 (MuleSoft) y Epic 15 (Dynatrace) son CRÍTICOS para completar Epic 14
+
+### Dependencias Externas Identificadas:
+
+#### 🔴 Epic 11 (MuleSoft) - CRÍTICO para Epic 14
+**Páginas afectadas:**
+- `/admin/providers` - Health checks y métricas de providers desde MuleSoft catalog
+- `/admin/dashboard` - Agregación de estado de providers
+- `/admin/rules` - Selección de providers en reglas de routing
+
+**Datos pendientes:**
+- Provider health status (UP, DOWN, DEGRADED)
+- Provider metrics (throughput, error rate)
+- Provider catalog externo
+
+#### 🔴 Epic 15 (Dynatrace) - CRÍTICO para Epic 14
+**Páginas afectadas:**
+- `/admin/dashboard` - `avgResponseTime` metric
+- `/admin/metrics` - Gráficos de latencia P50/P95/P99
+- `/admin/providers` - Latency breakdown por provider
+
+**Datos pendientes:**
+- P50/P95/P99 latency percentiles
+- APM data (application performance monitoring)
+- Request tracing correlation
 
 ---
 
@@ -157,43 +191,38 @@ try {
 
 ---
 
-### Story 14.1.1: Rules - Enable/Disable Toggle 🔴 PENDIENTE
+### Story 14.3: Rules - Enable/Disable Toggle ✅ COMPLETADA
 
 **As a** Administrador del sistema  
 **I want** Habilitar/deshabilitar reglas de routing mediante un toggle switch  
 **So that** Puedo controlar qué reglas están activas sin necesidad de eliminarlas
 
-**Status:** 📋 Backlog  
-**Priority:** 🔴 ALTA  
+**Status:** ✅ DONE  
+**Completed:** 2025-12-06  
 **Estimated Effort:** 30 minutos  
 **Documento Detallado:** `docs/sprint-artifacts/stories/STORY-14.3-RULE-ENABLE-DISABLE-TOGGLE.md`
 
-#### Quick Summary
+#### Implementation Summary
 
-**Problema Actual:**  
-El switch de estado (enabled/disabled) en el grid de reglas está deshabilitado o no funciona.
+**Solución Implementada:**  
+Función `toggleRule()` que:
+1. ✅ Envía `PATCH /api/v1/admin/routing-rules/{id}/toggle` con nuevo endpoint
+2. ✅ Actualiza estado local del frontend
+3. ✅ Persiste cambio en BD (`routing_rule.enabled`)
+4. ✅ Audita el cambio (`modified_at`, `modified_by`)
 
-**Solución:**  
-Implementar función `toggleRule()` que:
-1. Envía `PUT /api/v1/admin/rules/{id}` con DTO completo (todos los campos requeridos)
-2. Actualiza estado local del frontend
-3. Persiste cambio en BD (`routing_rule.enabled`)
-4. Audita el cambio (`modified_at`, `modified_by`)
+**Acceptance Criteria Completados:**
+- ✅ Switch funcional en grid de reglas
+- ✅ Estado se persiste correctamente en BD
+- ✅ Endpoint `PATCH /toggle` implementado
+- ✅ Indicador visual del estado (ON/OFF)
+- ✅ Manejo de errores con toast notification
+- ✅ Reglas deshabilitadas NO se evalúan en routing engine
 
-**Referencia:** Similar al fix de botones de orden (↑↓) completado el 5-dic-2025
-
-**Acceptance Criteria (Resumen):**
-- [ ] Switch funcional en grid de reglas
-- [ ] Estado se persiste correctamente en BD
-- [ ] Todos los campos del DTO se envían
-- [ ] Indicador visual del estado (ON/OFF)
-- [ ] Manejo de errores con toast notification
-- [ ] Reglas deshabilitadas NO se evalúan en routing engine
-
-**Technical Notes:**
+**Technical Implementation:**
 - Archivo: `app-signature-router-admin/app/admin/rules/page.tsx`
 - Componente UI: `@/components/ui/switch`
-- Backend: Endpoint ya existe (`PUT /api/v1/admin/rules/{id}`)
+- Backend: Endpoint `PATCH /api/v1/admin/routing-rules/{id}/toggle`
 
 ---
 

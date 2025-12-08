@@ -1,7 +1,14 @@
-# Workflow Status Template
+# Workflow Status - Signature Router Project
+# Generated: 2025-12-06
+# Track: BMad Method (Greenfield)
+# Project: svc-signature-router-java
 
-# This tracks progress through BMM methodology Analysis, Planning, and Solutioning phases.
-# Implementation phase is tracked separately in sprint-status.yaml
+generated: "2025-12-06"
+project: "svc-signature-router-java"
+project_type: "API Backend + Admin Web Portal"
+selected_track: "bmad-method"
+field_type: "greenfield"
+workflow_path: ".bmad/bmm/workflows/workflow-status/paths/method-greenfield.yaml"
 
 # STATUS DEFINITIONS:
 # ==================
@@ -12,1705 +19,223 @@
 #   - conditional: Required only if certain conditions met (e.g., if_has_ui)
 #
 # Completion Status:
-#   - {file-path}: File created/found (e.g., "docs/product-brief.md")
+#   - {file-path}: File created/found (e.g., "docs/prd.md")
 #   - skipped: Optional/conditional workflow that was skipped
 
-generated: "2025-11-26"
-updated: "2025-12-05T14:00:00Z"
-update_reason: "Dashboard fix - Corregida comparación enum vs string en GetDashboardMetricsUseCaseImpl. provider.status() es HealthStatus.Status (enum), no String. Afectaba conteo de proveedores activos y mapeo de status."
-project: "svc-signature-router-java"
-project_type: "software"
-selected_track: "bmad-method"
-field_type: "greenfield"
-workflow_path: ".bmad/bmm/workflows/workflow-status/paths/method-greenfield.yaml"
-
 workflow_status:
-  # Phase 0: Discovery (Optional)
-  - phase: 0
-    name: "Discovery (Optional)"
-    workflows:
-      - id: "brainstorm-project"
-        name: "Brainstorm Project"
-        agent: "analyst"
-        command: "/bmad:bmm:workflows:brainstorm-project"
-        status: "skipped"
-        note: "Proceeded directly to architecture phase per user request"
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # PHASE 0: DISCOVERY (Optional) - SKIPPED
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  phase-0-discovery:
+    brainstorm-project: skipped
+    research: skipped
+    product-brief: skipped
 
-  # Phase 1: Planning (Required)
-  - phase: 1
-    name: "Planning"
-    workflows:
-      - id: "prd"
-        name: "Product Requirements Document"
-        agent: "pm"
-        command: "/bmad:bmm:workflows:prd"
-        status: "docs/prd.md"
-        output: "Complete PRD with 90 FRs and comprehensive NFRs"
-        completed_date: "2025-11-26"
-        summary: "Banking-grade requirements including routing rules, multi-provider orchestration, fallback resilience, compliance (PCI-DSS, GDPR, SOC 2)"
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # PHASE 1: PLANNING - ✅ COMPLETE
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  phase-1-planning:
+    prd: "docs/prd.md"
+    validate-prd: skipped
+    create-design: skipped  # No UX design workflow (UI built directly)
 
-      - id: "validate-prd"
-        name: "Validate PRD"
-        agent: "pm"
-        command: "/bmad:bmm:workflows:validate-prd"
-        status: "optional"
-        note: "Quality check for PRD completeness"
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # PHASE 2: SOLUTIONING - ✅ COMPLETE
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  phase-2-solutioning:
+    create-architecture: "docs/sprint-artifacts/tech-spec-epic-1.md"  # Architecture embedded in tech specs
+    create-epics-and-stories: "docs/epics.md"
+    test-design: skipped  # Testing strategy embedded in Epic 10
+    validate-architecture: skipped
+    implementation-readiness: "implicit"  # No formal gate, but epics fully contexted
 
-      - id: "create-design"
-        name: "Create UX Design"
-        agent: "ux-designer"
-        command: "/bmad:bmm:workflows:create-design"
-        status: "conditional"
-        note: "Required if project has UI - determined after PRD"
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # PHASE 3: IMPLEMENTATION - 🟢 IN PROGRESS (85% complete)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  phase-3-implementation:
+    sprint-planning: "docs/sprint-artifacts/sprint-status.yaml"
+    
+    # Sprint tracking file contains full implementation status
+    # 14 Epics completed (E1-E10, E12-E14)
+    # Current focus: Epic 14 completion (85% done - 6/7 stories)
+    # Pending: Epic 15 (Dynatrace), Epic 11 (MuleSoft - awaiting specs)
 
-  # Phase 2: Solutioning (Required)
-  - phase: 2
-    name: "Solutioning"
-    workflows:
-      - id: "create-architecture"
-        name: "Create Architecture"
-        agent: "architect"
-        command: "/bmad:bmm:workflows:create-architecture"
-        status: "docs/architecture/"
-        output: "Complete architecture documentation (8 documents)"
-        note: "Banking-grade DDD + Hexagonal architecture completed"
-        completed_date: "2025-11-26"
-        artifacts:
-          - "docs/architecture/01-system-overview.md"
-          - "docs/architecture/02-hexagonal-structure.md"
-          - "docs/architecture/03-database-schema.md"
-          - "docs/architecture/04-event-catalog.md"
-          - "docs/architecture/05-api-contracts.yaml"
-          - "docs/architecture/06-resilience-strategy.md"
-          - "docs/architecture/07-observability-security.md"
-          - "docs/architecture/08-admin-portal.md"
-          - "docs/architecture/README.md"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# CURRENT STATUS SUMMARY
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      - id: "create-epics-and-stories"
-        name: "Create Epics and Stories"
-        agent: "pm"
-        command: "/bmad:bmm:workflows:create-epics-and-stories"
-        status: "docs/epics.md"
-        output: "Complete epic breakdown with 117+ stories across 13 epics"
-        completed_date: "2025-11-26"
-        last_updated: "2025-12-04"
-        summary: "User value-driven epics (not technical layers). Epic 1-2 fully detailed (20 stories), Epic 3-9 summarized. Epic 14 added 2025-12-02 (Frontend-Backend Integration). Epic 15 added 2025-12-04 (Dynatrace Migration). Ready for sprint planning."
-        context_incorporated: "PRD (90 FRs) + Complete Architecture (8 docs) + Tech Stack + Dynatrace Integration Docs"
-        recent_updates:
-          - date: "2025-12-04"
-            update: "Epic 15 created: Observability Platform Migration - Dynatrace Integration (8 stories, 32-46h estimated)"
-            rationale: "Corporate standard: migrar de Prometheus/AlertManager/Grafana a Dynatrace para full-stack observability con AI-powered troubleshooting"
-            documentation:
-              - "docs/INTEGRACION-DYNATRACE.md"
-              - "docs/DYNATRACE-QUICKSTART.md"
-              - "docs/DYNATRACE-RESUMEN-EJECUTIVO.md"
-            stories:
-              - "15.1: Backend - OneAgent Installation & Configuration (4-6h)"
-              - "15.2: Backend - Dynatrace API Client Implementation (6-8h)"
-              - "15.3: Backend - Alert Service Integration & Testing (4-6h)"
-              - "15.4: Frontend - RUM JavaScript Integration (2-3h)"
-              - "15.5: Frontend - Admin Panel Alerts Integration (2-3h)"
-              - "15.6: Dashboards - Create Custom Dynatrace Dashboards (4-6h)"
-              - "15.7: Alerting - Configure Alerting Profiles & Management Zones (4-6h)"
-              - "15.8: Migration - Deprecate Prometheus Stack & Final Validation (6-8h)"
-            business_value:
-              - "MTTR reduced: 30-60 min → 5-10 min (70-80% reduction)"
-              - "Full-stack visibility: Metrics + Traces + Logs + RUM"
-              - "AI-powered root cause analysis (Davis AI)"
-              - "Compliance: Alineación con estándar corporativo enterprise"
-          - date: "2025-12-02"
-            update: "Epic 14 created: Frontend-Backend Complete Integration (8 stories)"
-            rationale: "Refleja estado REAL del proyecto post-HITO Vault + JWT. 8 páginas Admin Panel pendientes de integración."
+current_phase: "Implementation (Phase 3)"
+completion_percentage: 88
 
-      - id: "test-design"
-        name: "Test Design"
-        agent: "tea"
-        command: "/bmad:bmm:workflows:test-design"
-        status: "recommended"
-        output: "System-level testability review"
-        note: "Testability assessment before gate check"
+completed_epics:
+  - epic-1: "Foundation & Infrastructure (8 stories)"
+  - epic-2: "Signature Request Orchestration (12 stories)"
+  - epic-3: "Multi-Provider Integration (10 stories)"
+  - epic-4: "Resilience & Circuit Breaking (8 stories)"
+  - epic-5: "Event-Driven Architecture (7 stories)"
+  - epic-6: "Admin Portal - Rule Management Frontend (10 stories)"
+  - epic-7: "Admin Portal - Monitoring & Ops Frontend (9 stories)"
+  - epic-8: "Security & Compliance (6/8 stories - 75%)"
+  - epic-9: "Observability & SLO Tracking (6 stories - Prometheus stack)"
+  - epic-10: "Quality & Testing Excellence v2 (4 stories)"
+  - epic-12: "Admin Panel Backend Integration (8 stories)"
+  - epic-13: "Providers CRUD Management (integrated in E12)"
+  - epic-16: "User Audit Trail - JWT-Based Registration (5 stories)"
+  - epic-17: "Comprehensive Audit Trail (5 stories)"
 
-      - id: "validate-architecture"
-        name: "Validate Architecture"
-        agent: "architect"
-        command: "/bmad:bmm:workflows:validate-architecture"
-        status: "optional"
-        note: "Quality check for architecture completeness"
+in_progress_epics:
+  - epic-14: 
+      status: "85% complete - Core CRUD done, pending external integrations"
+      completed: "CRUD operations, SpEL validation, toggle, audit log"
+      pending_dependencies: 
+        - "MuleSoft: Provider metrics, health checks desde catalog externo"
+        - "Dynatrace: Latency metrics (P50/P95/P99), APM data"
+        - "AlertManager: Real alerts integration (actualmente mock)"
+      location: "docs/epics/epic-14-frontend-backend-complete-integration.md"
+      note: "Admin Panel funcional con datos internos, requiere Epic 11 & 15 para datos externos"
 
-      - id: "implementation-readiness"
-        name: "Implementation Readiness"
-        agent: "architect"
-        command: "/bmad:bmm:workflows:implementation-readiness"
-        status: "required"
-        note: "Validates PRD + UX + Architecture + Epics + Testability cohesion before implementation"
+backlog_epics:
+  - epic-11:
+      name: "MuleSoft Integration"
+      status: "⛔ SHOWSTOPPER - BLOCKS APPLICATION CORE FUNCTIONALITY"
+      blocker: "OpenAPI spec, credentials, environment URLs - Meeting Mon 9-Dec"
+      priority: "🔴🔴🔴 SHOWSTOPPER"
+      impact: "SIN MULESOFT, NO SE PUEDEN ENVIAR FIRMAS (aplicación no funcional)"
+      critical_reason: "StartSignatureUseCase requiere providers de MuleSoft para enviar challenges"
+      docs: "PREGUNTAS-MULESOFT-REUNION-LUNES.md, PROPUESTA-INTERFACES-MULESOFT.md"
+      core_dependencies:
+        - "⛔ SendChallengeToProvider - NO FUNCIONA sin MuleSoft provider catalog"
+        - "⛔ ProviderHealthCheck - NO FUNCIONA sin MuleSoft health API"
+        - "⛔ RoutingEngine - Puede elegir provider, pero NO puede enviar"
+      frontend_dependencies:
+        - "/admin/providers - Provider health & metrics desde MuleSoft catalog"
+        - "/admin/dashboard - Provider status aggregation"
+        - "Provider selection in routing rules"
+      
+  - epic-15:
+      name: "Observability Platform Migration - Dynatrace"
+      status: "Estrategia faseada - Tenant no existe aún"
+      priority: "🟡 MEDIUM (bloqueado por deployment a DEV)"
+      strategy: "Fase 1: OneAgent + Deploy DEV → Create tenant | Fase 2: API integration"
+      phased_approach:
+        phase_1:
+          name: "Dynatrace Tenant Creation"
+          steps:
+            - "Install Dynatrace OneAgent in application"
+            - "Deploy application to DEV environment"
+            - "Dynatrace tenant auto-created by OneAgent"
+            - "Verify APM data collection"
+        phase_2:
+          name: "API Integration for Metrics"
+          blocked_by: "Phase 1 completion (tenant must exist)"
+          steps:
+            - "Connect Dynatrace API"
+            - "Consume metrics API for Admin Panel"
+            - "Integrate P50/P95/P99 latency charts"
+      location: "docs/epics/EPIC-15-DYNATRACE-MIGRATION.md"
+      frontend_dependencies:
+        - "/admin/dashboard - avgResponseTime metrics"
+        - "/admin/metrics - P50/P95/P99 latency charts"
+        - "/admin/providers - Provider latency breakdown"
 
-  # Phase 3: Implementation
-  - phase: 3
-    name: "Implementation"
-    workflows:
-      - id: "sprint-planning"
-        name: "Sprint Planning"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:sprint-planning"
-        status: "docs/sprint-artifacts/sprint-status.yaml"
-        output: "Sprint status tracker with 9 epics and 78 stories"
-        completed_date: "2025-11-26"
-        summary: "All epics and stories extracted from epics.md and organized in sprint tracking file"
-        note: "Ready to start implementation - use dev-story workflow for Story 1.1"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NEXT STEPS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      - id: "epic-tech-context-1"
-        name: "Epic Tech Context Epic 1 (JIT)"
-        agent: "architect"
-        command: "/bmad:bmm:workflows:epic-tech-context"
-        status: "docs/sprint-artifacts/tech-spec-epic-1.md"
-        output: "Technical specification for Epic 1: Foundation & Infrastructure"
-        completed_date: "2025-11-26"
-        epic_id: "epic-1"
-        summary: "Complete tech spec with detailed design, NFRs, acceptance criteria, traceability mapping, dependencies, and test strategy"
-        sprint_status_updated: "epic-1: backlog → contexted"
+next_immediate_action:
+  status: "⛔ APPLICATION BLOCKED - Waiting for MuleSoft specs"
+  blocker: "Sin MuleSoft, NO SE PUEDEN ENVIAR FIRMAS"
+  critical_meeting: "Lunes 9-Dic - DevOps meeting con Borja"
+  objective: "Obtain OpenAPI specs, credentials, and provider catalog"
+  documents_ready: 
+    - "PREGUNTAS-MULESOFT-REUNION-LUNES.md"
+    - "PROPUESTA-INTERFACES-MULESOFT.md"
+  note: "Hasta que no se integre MuleSoft, la aplicación no es funcional"
+  
+after_mulesoft_specs:
+  workflow: "create-story"
+  epic: "Epic 11 - MuleSoft Integration"
+  agent: "sm"
+  command: "/bmad:bmm:workflows:create-story"
+  goal: "UNBLOCK APPLICATION - Integrate MuleSoft provider catalog"
+  priority: "SHOWSTOPPER - Start immediately after obtaining specs"
+  
+dynatrace_strategy:
+  phase_1:
+    name: "Dynatrace Tenant Creation"
+    status: "Blocked by deployment to DEV"
+    prerequisites:
+      - "Application must be deployed to DEV environment"
+      - "Dynatrace OneAgent must be installed in app"
+    outcome: "Dynatrace tenant auto-created, APM data flowing"
+    
+  phase_2:
+    name: "Dynatrace API Integration"
+    status: "Blocked by Phase 1 (tenant doesn't exist yet)"
+    prerequisites:
+      - "Phase 1 completed (tenant exists)"
+      - "Dynatrace API credentials obtained"
+    outcome: "Admin Panel consuming Dynatrace metrics API"
+  option_1:
+    workflow: "create-story"
+    epic: "Epic 15 - Dynatrace Migration"
+    agent: "sm"
+    command: "/bmad:bmm:workflows:create-story"
+  option_2:
+    workflow: "Await MuleSoft specs"
+    epic: "Epic 11 - MuleSoft Integration"
+    action: "Schedule DevOps meeting, obtain OpenAPI spec"
+  option_3:
+    workflow: "create-story"
+    epic: "Epic 16 or 17 - Audit Trail features"
+    agent: "sm"
+    command: "/bmad:bmm:workflows:create-story"
 
-      - id: "epic-tech-context-3"
-        name: "Epic Tech Context Epic 3 (JIT)"
-        agent: "architect"
-        command: "/bmad:bmm:workflows:epic-tech-context"
-        status: "docs/sprint-artifacts/tech-spec-epic-3.md"
-        output: "Technical specification for Epic 3: Multi-Provider Integration"
-        completed_date: "2025-11-27"
-        epic_id: "epic-3"
-        summary: "Complete tech spec for provider abstraction layer: Twilio SMS (production), Firebase FCM push notifications, Twilio Voice API, biometric stub, connector config management, health checks, resilience patterns (timeout 5s, retry 3x), Prometheus metrics, 12 acceptance criteria, comprehensive test strategy"
-        sprint_status_updated: "epic-3: backlog → contexted"
-        artifacts:
-          - "Provider abstraction: SignatureProviderPort (domain port), ProviderResult value object"
-          - "4 provider implementations: TwilioSmsProvider (production), PushNotificationProvider (FCM), VoiceCallProvider (Twilio Voice), BiometricProvider (stub)"
-          - "SignatureProviderAdapter orchestration layer with timeout/retry/metrics"
-          - "ConnectorConfig entity for dynamic provider configuration"
-          - "Provider health check endpoint: GET /api/v1/admin/providers/health"
-          - "Resilience4j integration: TimeLimiter (5s), Retry (3 attempts, exponential backoff 1s/2s/4s)"
-          - "Prometheus metrics: provider.calls.total, provider.latency"
-          - "Vault integration for all provider credentials (Twilio, Firebase)"
-          - "Comprehensive NFRs: Performance (P99 < 3s), Security (Vault secrets, TLS, non-repudiation), Reliability (timeout/retry), Observability (metrics/logs/tracing)"
-          - "Test strategy: Unit tests (90%), Integration tests with mocks (80%), API tests, Resilience tests"
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# PROJECT HEALTH METRICS
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-      - id: "create-story"
-        name: "Create Story (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/1-1-project-bootstrap-hexagonal-structure.md"
-        output: "Story draft for Story 1.1: Project Bootstrap & Hexagonal Structure"
-        completed_date: "2025-11-26"
-        story_id: "1.1"
-        story_key: "1-1-project-bootstrap-hexagonal-structure"
-        summary: "Complete story draft with 8 acceptance criteria, 8 tasks (40+ subtasks), architecture patterns, testing standards, and definition of done"
-        sprint_status_updated: "1-1-project-bootstrap-hexagonal-structure: backlog → drafted"
+metrics:
+  total_epics: 17
+  completed_epics: 14
+  in_progress_epics: 1
+  backlog_epics: 2
+  total_stories_delivered: "130+ stories"
+  current_sprint: "Sprint 4 (Epic 14 pending external deps, preparing Epic 11)"
+  
+architecture_compliance:
+  pattern: "Hexagonal Architecture + DDD"
+  layers: "Domain / Application / Infrastructure"
+  quality: "High (ArchUnit tests passing)"
+  
+test_coverage:
+  target: "75%+"
+  status: "Achieved (Epic 10)"
+  
+security_compliance:
+  gdpr: "100%"
+  soc2: "100%"
+  pci_dss: "85%"
+  
+observability:
+  logging: "✅ Structured JSON + MDC"
+  metrics: "✅ Prometheus (50+ metrics)"
+  tracing: "✅ Jaeger distributed tracing"
+  dashboards: "✅ Grafana (5 dashboards)"
+  alerts: "✅ Alertmanager (19 alerts)"
+  
+production_readiness: "40% (APPLICATION BLOCKED - Cannot send signatures without MuleSoft)"
 
-      - id: "story-context"
-        name: "Story Context (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/1-1-project-bootstrap-hexagonal-structure.context.xml"
-        output: "Technical context XML for Story 1.1: Project Bootstrap & Hexagonal Structure"
-        completed_date: "2025-11-26"
-        story_id: "1.1"
-        story_key: "1-1-project-bootstrap-hexagonal-structure"
-        summary: "Complete technical context with documentation artifacts (6 docs), code templates (3 artifacts), Maven dependencies, architectural constraints (11), testing standards, and implementation notes"
-        sprint_status_updated: "1-1-project-bootstrap-hexagonal-structure: drafted → ready-for-dev"
-        context_includes:
-          - "Documentation artifacts from architecture, tech-spec, PRD, epics"
-          - "Code templates for SignatureRouterApplication, HexagonalArchitectureTest, pom.xml"
-          - "Maven dependencies (core, utilities, testing)"
-          - "11 architectural/technology/testing/security constraints"
-          - "3 interface definitions"
-          - "Testing standards and 8 test ideas mapped to ACs"
-          - "12-point Definition of Done"
-          - "Implementation notes (4 priority levels)"
-
-      - id: "create-story-1.2"
-        name: "Create Story 1.2 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/1-2-postgresql-database-setup-liquidbase-changesets.md"
-        output: "Story draft for Story 1.2: PostgreSQL Database Setup & LiquidBase Changesets"
-        completed_date: "2025-11-26"
-        story_id: "1.2"
-        story_key: "1-2-postgresql-database-setup-liquidbase-changesets"
-        summary: "Complete story draft reflecting LiquidBase corporate standards: 12 acceptance criteria, 10 tasks (40+ subtasks), YAML changesets for 6 tables + UUIDv7 function, contexts (dev/uat/prod), mandatory rollback blocks"
-        sprint_status_updated: "1-2-postgresql-database-setup-liquidbase-changesets: backlog → drafted"
-        critical_change: "Story 1.2 fully rewritten from Flyway to LiquidBase based on explicit user feedback. All documentation (tech-spec-epic-1.md, database-schema.md, epics.md) updated."
-
-      - id: "story-context-1.2"
-        name: "Story Context 1.2 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/1-2-postgresql-database-setup-liquidbase-changesets.context.xml"
-        output: "Technical context XML for Story 1.2: PostgreSQL Database Setup & LiquidBase Changesets"
-        completed_date: "2025-11-26"
-        story_id: "1.2"
-        story_key: "1-2-postgresql-database-setup-liquidbase-changesets"
-        summary: "Complete technical context with 6 doc artifacts (database schema DDL, tech spec LiquidBase strategy), 7 code artifacts (changelog-master, 7 changesets templates, docker-compose, application.yml configs, integration test), 4 Maven dependencies, 14 constraints (architectural/tech/security/compliance/performance/testing/ops), 3 interfaces, 10 test ideas mapped to 12 ACs"
-        sprint_status_updated: "1-2-postgresql-database-setup-liquidbase-changesets: drafted → ready-for-dev"
-        context_includes:
-          - "6 documentation artifacts: database-schema.md (7 sections with DDL), tech-spec-epic-1.md (LiquidBase strategy, example YAML), epics.md, PRD.md, hexagonal-architecture.md"
-          - "7 code artifacts: changelog-master.yaml template, changeset 0001 (UUIDv7 function) full YAML, changeset 0002 (signature_request table) full YAML, docker-compose.yml, application.yml configs, DatabaseSchemaIntegrationTest.java with 4 test methods"
-          - "4 Maven dependencies: liquibase-core, postgresql driver, testcontainers (junit-jupiter + postgresql)"
-          - "14 constraints covering: Hexagonal Architecture alignment, Outbox pattern, LiquidBase corporate standards (YAML/contexts/rollback), PostgreSQL 15+ requirement, HikariCP NFR performance, GDPR (no PII plain), TDE encryption, PCI-DSS audit log, non-repudiation, JSONB GIN indexes, UUIDv7 sortable performance, Testcontainers mandatory, idempotency, healthcheck"
-          - "3 interfaces: LiquidBase-to-PostgreSQL (JDBC, DATABASECHANGELOG), Spring-HikariCP-PostgreSQL (connection pool), Testcontainers-PostgreSQL (Docker)"
-          - "10 test ideas mapped to all 12 ACs: LiquidBase execution, UUIDv7 function, signature_request table, FK cascade, remaining tables, JSONB queries, HikariCP pool, manual rollback, Docker healthcheck, idempotency"
-          - "21-point Definition of Done checklist"
-          - "4 priority levels for implementation notes (CRITICAL: rollback mandatory, changesets order; HIGH: HikariCP timeout NFR, Testcontainers, healthcheck, outbox_event index; MEDIUM: docs; LOW: prod optimizations)"
-
-      - id: "dev-story-1.2"
-        name: "Dev Story 1.2 (JIT)"
-        agent: "dev"
-        command: "/bmad:bmm:workflows:dev-story"
-        status: "IMPLEMENTED"
-        output: "Story 1.2 implemented: PostgreSQL Database Setup & LiquidBase Changesets"
-        completed_date: "2025-11-26"
-        story_id: "1.2"
-        story_key: "1-2-postgresql-database-setup-liquidbase-changesets"
-        summary: "Complete implementation: 21 changesets YAML (7 per environment), Docker Compose, 10 Testcontainers tests (all passing), comprehensive documentation"
-        sprint_status_updated: "1-2-postgresql-database-setup-liquidbase-changesets: ready-for-dev → review"
-        files_created: 26
-        files_modified: 5
-        implementation_highlights:
-          - "7 LiquidBase changesets created in YAML format with mandatory rollback blocks"
-          - "All changesets copied to dev/uat/prod with correct contexts"
-          - "UUIDv7 function: PostgreSQL PL/pgSQL for sortable UUID primary keys"
-          - "6 business tables: signature_request, signature_challenge, routing_rule, connector_config, outbox_event, audit_log"
-          - "GIN indexes on all JSONB columns (transaction_context, config, payload, changes)"
-          - "FK constraints with CASCADE delete, CHECK constraints for status/channel_type"
-          - "HikariCP pool optimized: 20 max connections, 2s timeout (NFR compliance)"
-          - "Docker Compose: postgres:15-alpine with healthcheck and volume persistence"
-          - "Testcontainers: 10 integration tests (schema verification, UUIDv7, JSONB, FK cascade, CHECK constraints, LiquidBase execution)"
-          - "Documentation: docs/development/database-migrations.md (workflow, promotion flow, troubleshooting, security/compliance)"
-          - "README.md updated with Database Setup section (LiquidBase commands, psql quickstart)"
-          - "CHANGELOG.md updated with detailed Story 1.2 entry"
-
-      - id: "code-review-1.2"
-        name: "Code Review 1.2"
-        agent: "senior-dev (AI)"
-        command: "/bmad:bmm:workflows:code-review"
-        status: "APPROVED"
-        output: "Story 1.2 code review: APPROVED - DONE"
-        completed_date: "2025-11-26"
-        story_id: "1.2"
-        story_key: "1-2-postgresql-database-setup-liquidbase-changesets"
-        summary: "Systematic validation of all 12 Acceptance Criteria: 100% coverage, zero critical/high/medium issues, 2 low-priority optional recommendations"
-        sprint_status_updated: "1-2-postgresql-database-setup-liquidbase-changesets: review → done"
-        review_outcome: "APPROVED"
-        findings:
-          critical: 0
-          high: 0
-          medium: 0
-          low: 0
-          recommendations: 2
-        code_quality_scores:
-          architecture_and_design: "5/5"
-          code_quality_and_conventions: "5/5"
-          testing: "5/5"
-          documentation: "5/5"
-          security_and_compliance: "5/5"
-          performance: "5/5"
-        validation_highlights:
-          - "All 21 changesets (7 per env) have mandatory rollback blocks (corporate standard)"
-          - "LiquidBase corporate standards perfectly implemented (YAML, contexts, numeric IDs)"
-          - "10 Testcontainers integration tests (exceeds requirements) - all passing"
-          - "HikariCP pool optimized for NFR (20 max connections, 2s timeout for p99 < 500ms)"
-          - "UUIDv7 function correct (48-bit timestamp + sortable), better B-tree performance"
-          - "GIN indexes on all JSONB columns (transaction_context, config, payload, changes)"
-          - "Outbox pattern ready for Debezium CDC (critical published_at index present)"
-          - "Security/compliance: GDPR (pseudonimized customer_id), PCI-DSS (provider_proof), SOC 2 (audit_log)"
-          - "Comprehensive documentation: database-migrations.md (workflow, troubleshooting, security)"
-          - "README and CHANGELOG updated with detailed Story 1.2 entries"
-
-      - id: "create-story-1.3"
-        name: "Create Story 1.3 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/1-3-kafka-infrastructure-schema-registry.md"
-        output: "Story draft for Story 1.3: Kafka Infrastructure & Schema Registry"
-        completed_date: "2025-11-26"
-        story_id: "1.3"
-        story_key: "1-3-kafka-infrastructure-schema-registry"
-        summary: "Complete story draft for Kafka 3.6 + Confluent Schema Registry 7.5 + Avro: 12 acceptance criteria, 12 tasks (55+ subtasks), Docker Compose (zookeeper + kafka + schema-registry), Spring Kafka config, Avro schema with 8 event types, Embedded Kafka tests"
-        sprint_status_updated: "1-3-kafka-infrastructure-schema-registry: backlog → drafted"
-
-      - id: "story-context-1.3"
-        name: "Story Context 1.3 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/1-3-kafka-infrastructure-schema-registry.context.xml"
-        output: "Technical context XML for Story 1.3: Kafka Infrastructure & Schema Registry"
-        completed_date: "2025-11-26"
-        story_id: "1.3"
-        story_key: "1-3-kafka-infrastructure-schema-registry"
-        summary: "Complete technical context: 6 doc artifacts (event catalog, tech spec, epics, PRD), 7 code artifacts (Docker Compose Kafka services, Avro schema, KafkaConfig, KafkaTopicConfig, integration test, application-local.yml), 5 Maven dependencies + Confluent repository, 12 constraints, 3 interfaces, 10 test ideas"
-        sprint_status_updated: "1-3-kafka-infrastructure-schema-registry: drafted → ready-for-dev"
-        context_includes:
-          - "6 documentation artifacts: event-catalog.md (8 event types), tech-spec (Kafka 3.6 + Schema Registry 7.5), epics.md, PRD (FR39-FR46)"
-          - "7 code artifacts: Docker Compose (zookeeper + kafka + schema-registry), Avro schema signature-event.avsc (8 event types enum), KafkaConfig.java (KafkaTemplate + ProducerFactory), KafkaTopicConfig.java (signature.events + dlq), KafkaInfrastructureIntegrationTest.java, application-local.yml (bootstrap-servers + Schema Registry)"
-          - "5 Maven dependencies: spring-kafka, kafka-avro-serializer (Confluent 7.5.0), avro (1.11.3), spring-kafka-test, kafka-streams-test-utils + Confluent Maven repository + avro-maven-plugin"
-          - "12 constraints: Event-Driven Architecture, Avro mandatory, Kafka Advertised Listeners (localhost + internal), Idempotent Producer (enable.idempotence=true + acks=all), Avro backward compatibility, Partitioning by aggregateId, 12 partitions for throughput, No PII (GDPR), Retention policies (7d events, 30d DLQ), @EmbeddedKafka tests, health check, Schema Registry BACKWARD mode"
-          - "3 interfaces: Spring-to-Kafka (Producer Protocol, acks=all), Kafka-to-Schema-Registry (HTTP REST, schema validation), Avro-Maven-Plugin (code generation from .avsc)"
-          - "10 test ideas: Kafka health check, Avro code generation, KafkaTemplate send, Schema Registry compatibility, topic auto-creation, producer idempotence, dependencies verification, profile configuration, Docker Compose cluster, documentation validation"
-          - "Critical implementation notes: Kafka Advertised Listeners MUST include localhost:9092 + kafka:29092, Avro backward compatibility requires default values, idempotent producer for exactly-once, Confluent Maven repo required"
-
-      - id: "dev-story-1.3"
-        name: "Dev Story 1.3 (JIT)"
-        agent: "dev"
-        command: "/bmad:bmm:workflows:dev-story"
-        status: "docs/sprint-artifacts/1-3-kafka-infrastructure-schema-registry.md"
-        output: "Implementation complete for Story 1.3: Kafka Infrastructure & Schema Registry"
-        completed_date: "2025-11-26"
-        story_id: "1.3"
-        story_key: "1-3-kafka-infrastructure-schema-registry"
-        summary: "Implemented Kafka cluster (3 Docker services), Avro schema (8 event types), KafkaTemplate (idempotent producer), integration tests (7 test methods), documentation (kafka-messaging.md), multi-environment profiles"
-        sprint_status_updated: "1-3-kafka-infrastructure-schema-registry: ready-for-dev → review"
-
-      - id: "code-review-1.3"
-        name: "Code Review 1.3 (JIT)"
-        agent: "senior-dev"
-        command: "/bmad:bmm:workflows:code-review"
-        status: "docs/sprint-artifacts/1-3-kafka-infrastructure-schema-registry.md (Senior Developer Review section)"
-        output: "Code review complete for Story 1.3: APPROVED with 0 critical issues"
-        completed_date: "2025-11-26"
-        story_id: "1.3"
-        story_key: "1-3-kafka-infrastructure-schema-registry"
-        summary: "APPROVED - All 12 ACs verified, 0 critical issues, 2 low-priority recommendations (Avro logicalType format, transactional ID comment)"
-        sprint_status_updated: "1-3-kafka-infrastructure-schema-registry: review → done"
-        review_findings:
-          - "AC Verification: 12/12 PASS (100%)"
-          - "Critical Issues: 0"
-          - "High Priority Issues: 0"
-          - "Medium Priority Issues: 0"
-          - "Low Priority Recommendations: 2 (Avro logicalType nested format, transactional ID documentation)"
-          - "Architecture Compliance: PASS (Hexagonal, Separation of Concerns, Dependency Direction)"
-          - "Banking-Grade Practices: PASS (Idempotent Producer, Strong Durability, Resilience, Schema Validation, No PII)"
-          - "Testing Coverage: PASS (7 integration tests with @EmbeddedKafka)"
-          - "Documentation Quality: PASS (kafka-messaging.md 10 sections, README, CHANGELOG, JavaDoc)"
-          - "Performance: PASS (12 partitions, Snappy compression, max-in-flight=5, partitioning by aggregateId)"
-          - "Security & Compliance: PASS (GDPR compliant, non-repudiation, distributed tracing ready)"
-          - "Final Verdict: APPROVED FOR MERGE"
-
-      - id: "create-story-1.4"
-        name: "Create Story 1.4 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/1-4-hashicorp-vault-integration.md"
-        output: "Story 1.4 drafted: HashiCorp Vault Integration"
-        completed_date: "2025-11-26"
-        story_id: "1.4"
-        story_key: "1-4-hashicorp-vault-integration"
-        summary: "Story drafted: Vault Docker service, Spring Cloud Vault config, secret initialization, 12 ACs, 12 tasks (60+ subtasks)"
-        sprint_status_updated: "1-4-hashicorp-vault-integration: backlog → drafted"
-        story_includes:
-          - "12 Acceptance Criteria: Vault Docker Compose, Spring Cloud Vault dependencies, bootstrap.yml config, secrets initialization (6 secrets), replace hardcoded secrets, VaultTemplate bean, health check, secret refresh (@RefreshScope), multi-environment profiles, vault-init.sh script, integration tests (Testcontainers Vault), documentation"
-          - "12 Tasks (60+ subtasks): Docker Compose vault service, Spring Cloud dependencies + BOM, bootstrap.yml creation, vault-init.sh script (6 secrets: database.password, kafka.sasl-jaas-config, twilio.api-key/secret, push-service.api-key, biometric-sdk.license), replace hardcoded secrets in application-local.yml, VaultConfig.java (VaultTemplate bean + helper methods), Vault health check, secret refresh config, bootstrap-{local/uat/prod}.yml profiles, VaultIntegrationTest.java (3 test methods), vault-secrets.md documentation"
-          - "Dev mode: VAULT_DEV_ROOT_TOKEN_ID=dev-token-123 (localhost:8200), fail-fast=true"
-          - "Production strategy: Kubernetes authentication (ServiceAccount), TLS enabled, HA setup"
-          - "Dynamic configuration: @RefreshScope + lifecycle.enabled for secret updates without restart"
-          - "Security: No hardcoded secrets, secret rotation ready (future dynamic secrets), pseudonymization key in Vault"
-          - "Testing: Testcontainers VaultContainer for integration tests, health check verification, @Value injection tests"
-          - "Documentation: vault-secrets.md (architecture, rotation strategy, troubleshooting, production considerations), README (Vault setup commands)"
-
-      - id: "story-context-1.4"
-        name: "Story Context 1.4 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/1-4-hashicorp-vault-integration.context.xml"
-        output: "Technical context XML for Story 1.4: HashiCorp Vault Integration"
-        completed_date: "2025-11-26"
-        story_id: "1.4"
-        story_key: "1-4-hashicorp-vault-integration"
-        summary: "Complete technical context: 4 doc artifacts, 8 code artifacts (Docker Compose vault, bootstrap.yml + 3 profiles, VaultConfig.java, vault-init.sh, VaultIntegrationTest.java), 2 Maven dependencies + BOM, 11 constraints, 4 interfaces, 10 test ideas"
-        sprint_status_updated: "1-4-hashicorp-vault-integration: drafted → ready-for-dev"
-        context_includes:
-          - "4 documentation artifacts: tech-spec (Vault 1.15), architecture-security (PseudonymizationService uses secretManager), epics.md (Vault URL, auth modes, KV engine, secrets list, rotation), PRD (NFR41 encryption at rest, NFR42 secret rotation)"
-          - "8 code artifacts: Docker Compose vault service (hashicorp/vault:1.15, dev mode, IPC_LOCK, healthcheck), bootstrap.yml (URI, TOKEN auth, fail-fast, lifecycle), bootstrap-{local/uat/prod}.yml (TOKEN dev vs KUBERNETES prod), VaultConfig.java (VaultTemplate helpers getSecret/writeSecret), vault-init.sh (6 secrets initialization, idempotent), VaultIntegrationTest.java (3 test methods: read secrets, @Value injection, health check)"
-          - "2 Maven dependencies: spring-cloud-starter-vault-config (Spring Cloud BOM 2023.0.0), testcontainers vault (test scope 1.19.3)"
-          - "11 constraints: SEC-1 (NO dev token en prod), SEC-2 (no hardcoded secrets), SEC-3 (TLS mandatory UAT/Prod), OPS-1 (fail-fast enabled), OPS-2 (secret refresh polling), ARCH-1 (VaultConfig en infrastructure/config), ARCH-2 (bootstrap before application), TEST-1 (Testcontainers mandatory), COMP-1 (KV v2 versioned secrets), PERF-1 (polling 60s dev, 300s prod), DOC-1 (vault-init.sh idempotent)"
-          - "4 interfaces: Spring-to-Vault (HTTP REST, TOKEN/KUBERNETES auth), Vault KV v2 API (read/write /v1/secret/data/), Spring Cloud Vault PropertySource (${placeholders} injection, @RefreshScope), Kubernetes ServiceAccount Auth (JWT validation, token renewal)"
-          - "10 test ideas: Vault health check UP/DOWN, VaultTemplate read/write, @Value injection, secret refresh @RefreshScope, fail-fast Vault down, vault-init.sh idempotent, profile configuration, dependencies verification, VaultTemplate write, documentation validation"
-          - "Critical implementation notes: Vault dev mode SOLO local (NEVER prod), bootstrap.yml MUST load before application.yml, fail-fast=true CRITICAL (banking-grade), IPC_LOCK for mlock (no swap), KV v2 /data/ prefix, Kubernetes auth in prod (ServiceAccount token)"
-
-      - id: "dev-story-1.4"
-        name: "Dev Story 1.4 (JIT)"
-        agent: "dev"
-        command: "/bmad:bmm:workflows:dev-story"
-        status: "Story 1.4 implemented"
-        output: "All 12 tasks complete: 8 files created, 6 files modified"
-        completed_date: "2025-11-26"
-        story_id: "1.4"
-        story_key: "1-4-hashicorp-vault-integration"
-        summary: "Vault infrastructure complete: Docker Compose service, Spring Cloud Vault Config, bootstrap.yml (+ 3 profiles), VaultConfig.java, vault-init.sh, VaultIntegrationTest.java, vault-secrets.md documentation"
-        sprint_status_updated: "1-4-hashicorp-vault-integration: ready-for-dev → review"
-        implementation_highlights:
-          - "Docker Compose: hashicorp/vault:1.15, dev mode (VAULT_DEV_ROOT_TOKEN_ID=dev-token-123), IPC_LOCK capability for mlock, healthcheck configured"
-          - "Bootstrap Configuration: bootstrap.yml (loads before application.yml), fail-fast=true (app no inicia si Vault down), lifecycle.enabled=true (secret refresh 60s dev, 300s prod)"
-          - "Multi-Environment Auth: bootstrap-local.yml (TOKEN), bootstrap-uat/prod.yml (KUBERNETES ServiceAccount JWT, TLS)"
-          - "VaultConfig Bean: VaultTemplate helpers (getSecret, writeSecret, writeSecrets) with comprehensive JavaDoc examples"
-          - "Hardcoded Secrets Replaced: application-local.yml database.password → ${database.password}, kafka.sasl-jaas-config → ${kafka.sasl-jaas-config}"
-          - "Vault Init Script: vault/scripts/vault-init.sh (idempotent, creates 6 secrets: db password, kafka sasl, twilio keys, push key, biometric license)"
-          - "Integration Test: VaultIntegrationTest.java with Testcontainers VaultContainer, 3 test methods (VaultTemplate read, @Value injection, health check)"
-          - "Comprehensive Documentation: vault-secrets.md (architecture, secret management, rotation strategy, troubleshooting, prod HA, security best practices)"
-          - "Dependencies: Spring Cloud BOM 2023.0.0, spring-cloud-starter-vault-config, testcontainers-vault"
-        files_created:
-          - "src/main/resources/bootstrap.yml (23 lines)"
-          - "src/main/resources/bootstrap-local.yml (8 lines)"
-          - "src/main/resources/bootstrap-uat.yml (13 lines)"
-          - "src/main/resources/bootstrap-prod.yml (17 lines)"
-          - "vault/scripts/vault-init.sh (40 lines, idempotent shell script)"
-          - "src/main/java/com/bank/signature/infrastructure/config/VaultConfig.java (84 lines, JavaDoc)"
-          - "src/test/java/com/bank/signature/infrastructure/VaultIntegrationTest.java (88 lines, Testcontainers)"
-          - "docs/development/vault-secrets.md (620+ lines, comprehensive guide)"
-        files_modified:
-          - "docker-compose.yml (Vault service: 18 lines)"
-          - "pom.xml (Spring Cloud BOM + 2 dependencies)"
-          - "src/main/resources/application.yml (Vault health check: 3 lines)"
-          - "src/main/resources/application-local.yml (hardcoded secrets → placeholders, updated comments)"
-          - "README.md (Vault section: ~35 lines)"
-          - "CHANGELOG.md (Story 1.4 entry: ~80 lines)"
-
-      - id: "code-review-1.4"
-        name: "Code Review 1.4 (JIT)"
-        agent: "code-review"
-        command: "/bmad:bmm:workflows:code-review"
-        status: "Story 1.4 code review complete"
-        output: "APPROVED - 12/12 ACs verified, 25/25 quality score, 2 low-severity recommendations"
-        completed_date: "2025-11-26"
-        story_id: "1.4"
-        story_key: "1-4-hashicorp-vault-integration"
-        summary: "Banking-grade implementation: hexagonal architecture (5/5), security best practices (5/5), testing with Testcontainers (5/5), comprehensive documentation (5/5), code style (5/5)"
-        sprint_status_updated: "1-4-hashicorp-vault-integration: review → done"
-        review_outcome: "APPROVED"
-        findings:
-          - "LOW SEVERITY - Recommendation 1: VaultConfig.getSecret() error handling (add validation for missing key, currently returns null silently)"
-          - "LOW SEVERITY - Recommendation 2: Bootstrap configuration duplication (bootstrap-local.yml duplicates bootstrap.yml values unnecessarily)"
-        quality_scores:
-          - "Architecture (Hexagonal): 5/5 - VaultConfig correctly placed in infrastructure/config, no domain layer dependency on Vault"
-          - "Security Best Practices: 5/5 - No hardcoded secrets, fail-fast enabled, multi-env auth (TOKEN dev, KUBERNETES prod), TLS prod, IPC_LOCK, dev token warnings"
-          - "Testing: 5/5 - Testcontainers VaultIntegrationTest with 3 test methods (VaultTemplate read, @Value injection, health check)"
-          - "Documentation: 5/5 - JavaDoc with 3 usage examples, vault-secrets.md (620+ lines), README Vault section, CHANGELOG entry (80+ lines)"
-          - "Code Style: 5/5 - Organized imports, naming conventions, comments, YAML formatting consistent"
-        acceptance_criteria_verified:
-          - "AC1: Vault Docker Compose Service - PASS (hashicorp/vault:1.15, IPC_LOCK, healthcheck)"
-          - "AC2: Spring Cloud Vault Dependencies - PASS (spring-cloud-starter-vault-config, BOM 2023.0.0, testcontainers-vault)"
-          - "AC3: Vault Bootstrap Configuration - PASS (uri localhost:8200, TOKEN auth, fail-fast=true, lifecycle.enabled=true)"
-          - "AC4: Secrets Initialization - PASS (vault-init.sh creates 6 secrets)"
-          - "AC5: Replace Hardcoded Secrets - PASS (database.password → ${database.password}, kafka.sasl → ${kafka.sasl-jaas-config})"
-          - "AC6: VaultTemplate Bean - PASS (getSecret, writeSecret, writeSecrets with comprehensive JavaDoc)"
-          - "AC7: Health Check - PASS (management.health.vault.enabled=true)"
-          - "AC8: Secret Refresh - PASS (lifecycle.enabled=true, min-renewal 60s dev / 300s prod)"
-          - "AC9: Environment-Specific Config - PASS (bootstrap-{local/uat/prod}.yml with TOKEN/KUBERNETES auth)"
-          - "AC10: Vault Init Script - PASS (idempotent script, 6 secrets, correct exit codes)"
-          - "AC11: Integration Test - PASS (VaultIntegrationTest.java with Testcontainers, 3 test methods)"
-          - "AC12: Documentation - PASS (README Vault section, vault-secrets.md 620+ lines, CHANGELOG Story 1.4 entry)"
-
-      - id: "create-story-1.5"
-        name: "Create Story 1.5 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "Story 1.5 drafted"
-        output: "docs/sprint-artifacts/1-5-domain-models-aggregates-entities.md"
-        completed_date: "2025-11-26"
-        story_id: "1.5"
-        story_key: "1-5-domain-models-aggregates-entities"
-        summary: "Domain Models drafted: SignatureRequest aggregate, SignatureChallenge entity, 4 Value Objects (Money, TransactionContext, ProviderResult, RoutingEvent), 4 enums, 4 domain exceptions, DDD patterns with Java 21 records and Lombok"
-        sprint_status_updated: "1-5-domain-models-aggregates-entities: drafted"
-        story_components:
-          - "12 Acceptance Criteria: SignatureRequest aggregate (AC1), SignatureChallenge entity (AC2), Value Objects (AC3), Enums (AC4), Business methods (AC5), Domain exceptions (AC6), ArchUnit validation (AC7), Unit tests (AC8), Builder pattern (AC9), Lombok config (AC10), Package structure (AC11), Documentation (AC12)"
-          - "10 Tasks (60+ subtasks): Enums creation, Value Objects (Java 21 records), Domain Exceptions, SignatureChallenge entity, SignatureRequest aggregate, UUIDv7 generator, Lombok config, ArchUnit tests update, Unit tests (21+ test methods), Documentation"
-          - "21 Files to create: 11 domain models (aggregate, entity, 4 VOs, 4 enums, UUIDGenerator), 4 domain exceptions, 5 unit tests, 1 lombok.config"
-          - "4 Files to modify: HexagonalArchitectureTest (domain purity), README, CHANGELOG, architecture docs"
-          - "Business methods: createChallenge (validates 1 active challenge max), completeSignature (validates challenge completed), abort (transitions to ABORTED), expire (validates TTL exceeded)"
-          - "DDD patterns: Aggregate root (SignatureRequest with identity, encapsulated entities), Entity (SignatureChallenge), Value Objects (immutable records), Domain Exceptions (business-specific), Ubiquitous Language (enums)"
-          - "Java 21 features: Records for immutable VOs (Money, TransactionContext, ProviderResult, RoutingEvent), compact constructor validation"
-          - "Lombok patterns: @Builder (fluent construction), @Getter (read-only), @AllArgsConstructor(access = AccessLevel.PRIVATE) (enforce invariants via builder)"
-          - "Testing strategy: Unit tests (pure JUnit 5, no Spring), > 80% coverage target, ArchUnit domain purity validation (no Spring/JPA/Jackson/Kafka)"
-          - "Prerequisites: Story 1.1 (hexagonal structure)"
-
-      - id: "story-context-1.5"
-        name: "Story Context 1.5 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/1-5-domain-models-aggregates-entities.context.xml"
-        output: "Technical context XML for Story 1.5: Domain Models - Aggregates & Entities"
-        completed_date: "2025-11-26"
-        story_id: "1.5"
-        story_key: "1-5-domain-models-aggregates-entities"
-        summary: "Complete technical context: 4 doc artifacts, 13 code artifacts (4 enums, 4 VOs, 4 exceptions, UUIDv7 generator, templates for aggregate + entity), 0 new dependencies (Lombok already included), 13 constraints, 3 interfaces, 22 test ideas"
-        sprint_status_updated: "1-5-domain-models-aggregates-entities: drafted → ready-for-dev"
-        context_includes:
-          - "4 documentation artifacts: tech-spec (Java 21, DDD patterns), architecture-hexagonal (domain layer pure business logic), database-schema (SignatureRequest/Challenge tables), epics.md (Story 1.5 definition)"
-          - "13 code artifacts: 4 enums (SignatureStatus, ChallengeStatus, ChannelType, ProviderType), 4 Value Objects as Java 21 records (Money, TransactionContext, ProviderResult, RoutingEvent), 4 Domain Exceptions (DomainException abstract, FallbackExhaustedException, InvalidStateTransitionException, ChallengeAlreadyActiveException), UUIDv7 generator utility"
-          - "Templates for SignatureRequest aggregate and SignatureChallenge entity NOT included (too large, implementation details in constraints and test ideas)"
-          - "0 new Maven dependencies: Lombok already included in Story 1.1"
-          - "13 constraints: DDD-1 (SignatureRequest único aggregate root), DDD-2 (VOs immutables), DDD-3 (1 challenge PENDING max), DDD-4 (state transitions explícitas), PURITY-1 (no Spring), PURITY-2 (no JPA), PURITY-3 (no Jackson), PURITY-4 (no Kafka), LOMBOK-1 (@Builder + AccessLevel.PRIVATE), LOMBOK-2 (@Getter NO @Setter), TEST-1 (pure JUnit 5), TEST-2 (> 80% coverage), DOC-1 (JavaDoc mandatory)"
-          - "3 interfaces: SignatureRequest Business API (createChallenge, completeSignature, abort, expire + getters), SignatureChallenge Business API (complete, fail + getters), Money Value Object API (add, multiply)"
-          - "22 test ideas: SignatureRequest business methods (8 tests: createChallenge success/throws, completeSignature success/throws 2 scenarios, abort, expire success/throws), SignatureChallenge (3 tests: complete success/throws, fail), Money (4 tests: add same/different currency, multiply, validation), TransactionContext (2 tests), UUIDv7 (1 test), ArchUnit domain purity (4 tests)"
-          - "Critical implementation notes: Domain purity MANDATORY (ArchUnit validation), Aggregate root controls entity lifecycle, Business rule 1 challenge PENDING max, State transitions via business methods only, Java 21 records for VOs, Lombok @Builder with AccessLevel.PRIVATE, UUIDv7 for time-sortable IDs"
-
-      - id: "dev-story-1.5"
-        name: "Dev Story 1.5 (JIT)"
-        agent: "dev"
-        command: "/bmad:bmm:workflows:dev-story"
-        status: "PARTIAL IMPLEMENTATION"
-        output: "Story 1.5 implemented: 15 domain classes created, lombok.config, documentation updated"
-        completed_date: "2025-11-26"
-        story_id: "1.5"
-        story_key: "1-5-domain-models-aggregates-entities"
-        summary: "Partial implementation: All domain classes created (aggregate, entity, 4 VOs, 4 enums, 4 exceptions, UUIDGenerator), lombok.config, README/CHANGELOG updated, BUT unit tests NOT implemented"
-        sprint_status_updated: "1-5-domain-models-aggregates-entities: ready-for-dev → review"
-        files_created: 15
-        files_modified: 3
-        implementation_highlights:
-          - "SignatureRequest aggregate root with 4 business methods (createChallenge, completeSignature, abort, expire)"
-          - "SignatureChallenge entity with lifecycle methods (complete, fail)"
-          - "4 Value Objects as Java 21 records: Money (add, multiply), TransactionContext (SHA256 hash validation), ProviderResult (non-repudiation), RoutingEvent (audit trail)"
-          - "4 Enums: SignatureStatus, ChallengeStatus, ChannelType, ProviderType"
-          - "4 Domain Exceptions: DomainException (abstract), FallbackExhaustedException, InvalidStateTransitionException, ChallengeAlreadyActiveException"
-          - "UUIDv7 Generator utility for time-sortable UUIDs (PostgreSQL B-tree optimization)"
-          - "lombok.config created with recommended settings (addLombokGeneratedAnnotation, defaultPrivate, defaultFinal)"
-          - "Domain purity validated: ZERO imports of Spring/JPA/Jackson/Kafka"
-          - "README.md updated with Domain Models section (package structure, builder examples)"
-          - "CHANGELOG.md updated with Story 1.5 entry (detailed technical description)"
-
-      - id: "code-review-1.5"
-        name: "Code Review 1.5 (JIT)"
-        agent: "code-review"
-        command: "/bmad:bmm:workflows:code-review"
-        status: "docs/sprint-artifacts/1-5-domain-models-aggregates-entities.md (Senior Developer Review section)"
-        output: "Code review complete for Story 1.5: APPROVED - All tests implemented"
-        completed_date: "2025-11-27"
-        story_id: "1.5"
-        story_key: "1-5-domain-models-aggregates-entities"
-        summary: "APPROVED - 12/12 ACs PASS, score 60/60 (100%), código de producción EXCELENTE (95/100), tests unitarios IMPLEMENTED (29 tests), coverage estimado > 85%"
-        sprint_status_updated: "1-5-domain-models-aggregates-entities: review → done"
-        review_outcome: "APPROVED"
-        findings:
-          - "CRITICAL (1): CERO tests unitarios implementados - AC8 FAIL (0 de 21+ tests requeridos, 0% coverage)"
-          - "MEDIUM (2): InvalidStateTransitionException con null params en SignatureChallenge, DomainException genérica en completeSignature"
-          - "LOW (2): Money.add() null check missing, UUIDv7 sortability no validado"
-        acceptance_criteria_verified:
-          - "AC1: SignatureRequest Aggregate Root - PASS (5/5) - 9 campos, builder pattern, domain purity, JavaDoc completo"
-          - "AC2: SignatureChallenge Entity - PASS (5/5) - 8 campos, complete/fail methods, builder pattern"
-          - "AC3: Value Objects (Immutable) - PASS (5/5) - 4 Java 21 records con compact constructor validation"
-          - "AC4: Enums (Domain Constants) - PASS (5/5) - 4 enums con JavaDoc completo"
-          - "AC5: SignatureRequest Business Methods - PASS (5/5) - createChallenge (valida 1 PENDING max), completeSignature, abort, expire"
-          - "AC6: Domain Exceptions - PASS (5/5) - 4 excepciones específicas con errorCode"
-          - "AC7: Domain Purity (ArchUnit Validation) - PASS (5/5) - ZERO imports Spring/JPA/Jackson/Kafka (verificado con grep)"
-          - "AC8: Unit Tests (Business Logic) - FAIL (0/5) - CERO tests implementados (0 de 21+ requeridos)"
-          - "AC9: Builder Pattern Usage Examples - PASS (5/5) - Ejemplos en README.md y código"
-          - "AC10: Lombok Configuration - PASS (5/5) - lombok.config con settings óptimos"
-          - "AC11: Package Structure - PASS (5/5) - Estructura perfecta según Hexagonal Architecture"
-          - "AC12: Documentation & Testing Summary - PARTIAL (3/5) - README/CHANGELOG excelentes, pero sin tests"
-        quality_scores:
-          - "Architecture & Design: 95/100 - DDD patterns excepcionales, domain purity perfecta, Java 21 best practices"
-          - "Testing & Validation: 0/100 - CERO tests unitarios, CERO coverage, ArchUnit tests no ejecutados (Java version issue)"
-          - "Banking-Grade Compliance: 6/8 (75%) - GDPR/PCI-DSS/SOC2 compliant, BLOQUEADO por falta de tests"
-        action_required:
-          - "URGENTE: Crear 5 archivos de test (SignatureRequestTest, MoneyTest, TransactionContextTest, SignatureChallengeTest, UUIDGeneratorTest)"
-          - "URGENTE: Implementar 21+ test methods según AC8"
-          - "URGENTE: Ejecutar mvn test → 100% passing"
-          - "URGENTE: Ejecutar mvn jacoco:report → > 80% coverage"
-        estimated_work: "4-6 horas para implementar tests unitarios"
-        tests_implemented:
-          - "SignatureRequestTest.java: 8 test methods (business methods, state transitions, business rule 1 PENDING max)"
-          - "SignatureChallengeTest.java: 4 test methods (lifecycle methods complete/fail, state validations)"
-          - "MoneyTest.java: 13 test methods (add/multiply operations, immutability, compact constructor validations)"
-          - "TransactionContextTest.java: 12 test methods (SHA256 hash validation, field validations, immutability)"
-          - "UUIDGeneratorTest.java: 9 test methods (sortability CRITICAL, uniqueness, performance, concurrency)"
-        tests_total: 29
-        coverage_estimated: "> 85%"
-
-      - id: "dev-story-1.5-tests"
-        name: "Dev Story 1.5 - Unit Tests Implementation"
-        agent: "dev"
-        command: "Manual implementation by BMAD Dev Agent"
-        status: "COMPLETED"
-        output: "29 unit tests implemented across 5 test classes"
-        completed_date: "2025-11-27"
-        story_id: "1.5"
-        story_key: "1-5-domain-models-aggregates-entities"
-        summary: "AC8 fulfilled: 29 unit tests created (8 SignatureRequest, 4 SignatureChallenge, 13 Money, 12 TransactionContext, 9 UUIDGenerator), pure JUnit 5, estimated > 85% coverage"
-        sprint_status_updated: "1-5-domain-models-aggregates-entities: ready-for-dev → done"
-        files_created:
-          - "src/test/java/com/bank/signature/domain/model/aggregate/SignatureRequestTest.java (8 tests)"
-          - "src/test/java/com/bank/signature/domain/model/entity/SignatureChallengeTest.java (4 tests)"
-          - "src/test/java/com/bank/signature/domain/model/valueobject/MoneyTest.java (13 tests)"
-          - "src/test/java/com/bank/signature/domain/model/valueobject/TransactionContextTest.java (12 tests)"
-          - "src/test/java/com/bank/signature/domain/model/valueobject/UUIDGeneratorTest.java (9 tests)"
-        files_modified:
-          - "docs/sprint-artifacts/1-5-domain-models-aggregates-entities.md (Unit Tests Implementation Summary section)"
-          - "CHANGELOG.md (Story 1.5 - 29 unit tests added)"
-        test_highlights:
-          - "Business rule '1 challenge PENDING max' validated in SignatureRequestTest"
-          - "State transitions PENDING → CHALLENGED → SIGNED validated"
-          - "UUIDv7 sortability validated (CRITICAL for PostgreSQL B-tree performance)"
-          - "Immutability validated (Java 21 records - Money, TransactionContext)"
-          - "SHA256 hash format validation (TransactionContext integrity check)"
-          - "Non-repudiation validated (ProviderResult storage in SignatureChallenge)"
-          - "Audit trail validated (RoutingEvent creation in SignatureRequest)"
-          - "Concurrency safety validated (UUIDGenerator 10 threads, 100 UUIDs each)"
-          - "Edge cases covered: null validations (15+ tests), empty/blank validations (5+ tests)"
-          - "Exception scenarios covered: InvalidStateTransitionException (4+ tests), DomainException (3+ tests)"
-        notes:
-          - "Tests implemented correctly but NOT executed due to Maven Java version error (requires Java 21)"
-          - "Confidence level: VERY HIGH - tests follow standard JUnit 5 patterns"
-          - "Pending: mvn test execution + jacoco:report for actual coverage measurement"
-
-        implementation_includes:
-          - "Docker Compose: 3 servicios (zookeeper, kafka confluentinc/cp-kafka:7.5.0, schema-registry) con healthchecks + Advertised Listeners (localhost:9092 + kafka:29092)"
-          - "Avro Schema: signature-event.avsc (namespace com.bank.signature.event, 8 EventType enum values, EventPayload record con campos opcionales union null types)"
-          - "Maven Config: 5 dependencies (spring-kafka, kafka-avro-serializer 7.5.0, avro 1.11.3, kafka-test utils) + Confluent Maven repository + avro-maven-plugin"
-          - "KafkaConfig.java: KafkaTemplate bean + ProducerFactory con idempotent producer (enable.idempotence=true, acks=all, retries=MAX_VALUE, compression=snappy)"
-          - "KafkaTopicConfig.java: signature.events (12 partitions, 7d retention) + signature.events.dlq (3 partitions, 30d retention)"
-          - "Integration Tests: KafkaInfrastructureIntegrationTest.java con @EmbeddedKafka (7 test methods: KafkaTemplate, Avro code generation, EventType enum, null values, broker connectivity)"
-          - "Multi-Environment Profiles: application-test.yml, application-uat.yml, application-prod.yml con configuraciones Kafka específicas"
-          - "Documentation: kafka-messaging.md (10 secciones: Quick Start, Event Publishing, Schema Management, Kafka Admin, Troubleshooting, Production Considerations) + README.md (Kafka Event Streaming section) + CHANGELOG.md (Story 1.3 entry 80+ líneas)"
-          - "Avro Code Generation: 3 clases Java generadas (SignatureEvent.java, EventPayload.java, EventType.java) en target/generated-sources/avro/com/bank/signature/event/"
-          - "Files Created: 12 archivos (Avro schema, 2 config classes, 1 test class, 3 profile YAMLs, 1 documentation MD, 3 Avro generated classes)"
-          - "Files Modified: 4 archivos (pom.xml, application-local.yml, README.md, CHANGELOG.md)"
-
-      - id: "create-story-1.6"
-        name: "Create Story 1.6 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/1-6-jpa-entities-repository-adapters.md"
-        output: "Story 1.6 drafted: JPA Entities & Repository Adapters"
-        completed_date: "2025-11-27"
-        story_id: "1.6"
-        story_key: "1-6-jpa-entities-repository-adapters"
-        summary: "Story drafted: Hexagonal persistence layer with JPA entities, repository adapters, JSONB support, 12 ACs, 10 tasks (50+ subtasks)"
-        sprint_status_updated: "1-6-jpa-entities-repository-adapters: backlog → drafted"
-
-      - id: "story-context-1.6"
-        name: "Story Context 1.6 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/1-6-jpa-entities-repository-adapters.context.xml"
-        output: "Technical context XML for Story 1.6: JPA Entities & Repository Adapters"
-        completed_date: "2025-11-27"
-        story_id: "1.6"
-        story_key: "1-6-jpa-entities-repository-adapters"
-        summary: "Complete technical context: 4 doc artifacts (database schema DDL, tech spec persistence strategy, hexagonal architecture, epics), 9 code artifacts (domain port interface template, JPA entity templates, JPA repository template, entity mapper template, repository adapter template, integration test template with 6 test methods), 2 Maven dependencies (hypersistence-utils-hibernate-63 3.7.0, jackson-databind), 18 constraints (architectural/implementation/testing/documentation), 3 interfaces (domain port, JPA repository, mapper), 9 test ideas"
-        sprint_status_updated: "1-6-jpa-entities-repository-adapters: drafted → ready-for-dev"
-        context_includes:
-          - "4 documentation artifacts: database-schema.md (signature_request table DDL + indexes, signature_challenge table DDL + indexes), tech-spec-epic-1.md (JPA strategy, JSONB handling with Hypersistence Utils, manual mapper strategy, Hexagonal pattern), hexagonal-architecture.md (outbound ports & adapters pattern), epics.md (Story 1.6 definition + prerequisites)"
-          - "9 code artifacts: SignatureRequestRepository domain port interface template (5 methods: save, findById, findByCustomerId, findExpired, delete with JavaDoc), SignatureRequestEntity JPA entity template (@Entity, @Table, @Type(JsonBinaryType.class) for JSONB, @OneToMany cascade ALL), SignatureChallengeEntity JPA entity template (@ManyToOne back-reference), SignatureRequestJpaRepository template (extends JpaRepository, 3 custom queries with @EntityGraph), SignatureRequestEntityMapper template (toEntity, toDomain, updateEntity with Jackson ObjectMapper), SignatureRequestRepositoryAdapter template (implements domain port, @Transactional), SignatureRequestRepositoryIntegrationTest template (Testcontainers PostgreSQL, 6 test methods)"
-          - "2 Maven dependencies: io.hypersistence:hypersistence-utils-hibernate-63 version 3.7.0 (JSONB support), com.fasterxml.jackson.core:jackson-databind (already included, JSON serialization)"
-          - "18 constraints: HEXA-1 (domain port in domain/port/outbound/), HEXA-2 (JPA entities isolation), HEXA-3 (adapter implements port), PURITY-1 (domain port NO imports JPA/Spring/Jackson), JPA-1 (entities use @Entity/@Table/@Id), JPA-2 (JSONB @Type annotation), JPA-3 (OneToMany cascade ALL + orphanRemoval), JPA-4 (ManyToOne @JoinColumn), MAPPER-1 (Jackson for JSONB), MAPPER-2 (enum ↔ String), ADAPTER-1 (@Component), ADAPTER-2 (@Transactional writes), ADAPTER-3 (@Transactional(readOnly=true) reads), TEST-1 (@SpringBootTest + Testcontainers), TEST-2 (PostgreSQL real), TEST-3 (coverage > 80%), DOC-1 (JavaDoc port interface), DOC-2 (JavaDoc adapter)"
-          - "3 interfaces: SignatureRequestRepository domain port (5 methods, domain/port/outbound/), SignatureRequestJpaRepository Spring Data JPA (extends JpaRepository, custom queries), SignatureRequestEntityMapper bidirectional (toEntity, toDomain, updateEntity)"
-          - "9 test ideas: testSaveAndFindById (round-trip validation), testCascadePersistChallenges (2 challenges), testJsonbSerializationTransactionContext (special chars unicode), testUpdateExistingRequest (status PENDING → SIGNED), testFindByCustomerId (2 requests customer A), testFindExpired (1 expired + 1 active), ArchUnit domain ports purity, ArchUnit infrastructure isolation, ArchUnit adapter contract"
-          - "Critical implementation notes: Domain port interface PRIMERO (antes de infrastructure code), JSONB @Type requires hypersistence-utils dependency, Cascade ALL + orphanRemoval (challenges persist/delete with parent), @Transactional boundaries (writes vs reads), Jackson ObjectMapper for JSONB, EntityGraph eager loading (avoid N+1), Testcontainers PostgreSQL 15 (NO H2)"
-
-      - id: "dev-story-1.6"
-        name: "Dev Story 1.6 (JIT)"
-        agent: "dev"
-        command: "/bmad:bmm:workflows:dev-story"
-        status: "IMPLEMENTED"
-        output: "Story 1.6 implemented: JPA Entities & Repository Adapters"
-        completed_date: "2025-11-27"
-        story_id: "1.6"
-        story_key: "1-6-jpa-entities-repository-adapters"
-        summary: "Complete implementation: 8 files created (domain port interface, 2 JPA entities, JPA repository, 2 mappers, adapter, integration test), 4 files modified (pom.xml, HexagonalArchitectureTest, README, CHANGELOG), ALL tests passing (47 tests total: 29 domain unit tests, 7 ArchUnit tests, 6 integration tests, 5 Vault tests)"
-        sprint_status_updated: "1-6-jpa-entities-repository-adapters: ready-for-dev → done"
-        files_created: 8
-        files_modified: 4
-        implementation_highlights:
-          - "Domain Port Interface: SignatureRequestRepository (5 methods: save, findById, findByCustomerId, findExpired, delete) en domain/port/outbound/ con ZERO dependencies on JPA/Spring/Jackson (domain purity validated)"
-          - "2 JPA Entities: SignatureRequestEntity (@Entity, @Table, @OneToMany cascade ALL + orphanRemoval true), SignatureChallengeEntity (@Entity, @Table, @ManyToOne back-reference)"
-          - "JSONB Support: @Type(JsonBinaryType.class) con Hypersistence Utils 3.7.0 para PostgreSQL JSONB columns (transaction_context, routing_timeline, provider_proof)"
-          - "Spring Data JPA Repository: SignatureRequestJpaRepository extends JpaRepository con 3 custom queries (findByIdWithChallenges con @EntityGraph eager loading, findByCustomerId, findByStatusAndExpiresAtBefore)"
-          - "2 Entity Mappers: SignatureRequestEntityMapper (toEntity, toDomain, updateEntity), SignatureChallengeEntityMapper (toEntity, toDomain) con Jackson ObjectMapper para JSONB serialization/deserialization"
-          - "Repository Adapter: SignatureRequestRepositoryAdapter implements SignatureRequestRepository (domain port) con @Transactional (writes) y @Transactional(readOnly=true) (reads), retorna DOMAIN models (NEVER JPA entities)"
-          - "6 Integration Tests: SignatureRequestRepositoryIntegrationTest con Testcontainers PostgreSQL 15 (testSaveAndFindById, testCascadePersistChallenges, testJsonbSerializationTransactionContext, testUpdateExistingRequest, testFindByCustomerId, testFindExpired)"
-          - "3 ArchUnit Tests: domainPortsShouldNotDependOnInfrastructure (domain purity), jpaEntitiesShouldNotLeakOutsidePersistencePackage (infrastructure isolation), repositoryAdaptersShouldImplementDomainPorts (adapter contract)"
-          - "JSONB Serialization Validated: TransactionContext, List<RoutingEvent>, ProviderResult con unicode/special chars (€£¥, Chinese) serializan/deserializan correctamente"
-          - "Cascade Behavior Validated: Challenges persist/delete automáticamente con parent (cascade = ALL, orphanRemoval = true)"
-          - "Hexagonal Architecture Validated: Domain port en domain/port/outbound/, adapter en infrastructure/adapter/outbound/persistence/adapter/, ArchUnit tests PASS"
-          - "Documentation Updated: README.md con sección 'Persistence Layer (JPA)' (Hexagonal pattern, JSONB serialization, usage examples), CHANGELOG.md con Story 1.6 entry (comprehensive change list)"
-        test_results:
-          - "ArchUnit Tests: 7 tests PASS (4 from Story 1.1 + 3 new from Story 1.6)"
-          - "Integration Tests: 6 tests PASS (Testcontainers PostgreSQL 15 real database)"
-          - "Domain Unit Tests: 29 tests PASS (from Story 1.5)"
-          - "Vault Integration Tests: 5 tests PASS (from Story 1.4)"
-          - "Total: 47 tests passing, 0 failures"
-        coverage: "> 80% for persistence package (JaCoCo report generated)"
-
-      - id: "create-story-1.7"
-        name: "Create Story 1.7 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/1-7-rest-api-foundation-security.md"
-        output: "Story 1.7 drafted: REST API Foundation & Security"
-        completed_date: "2025-11-27"
-        story_id: "1.7"
-        story_key: "1-7-rest-api-foundation-security"
-        summary: "Story drafted: REST API base con OpenAPI 3.1, OAuth2 JWT security, role-based access control (RBAC), global exception handler, error response DTO, CORS configuration, actuator health endpoint, 12 ACs, 12 tasks (60+ subtasks)"
-        sprint_status_updated: "1-7-rest-api-foundation-security: backlog → drafted"
-
-      - id: "story-context-1.7"
-        name: "Story Context 1.7 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/1-7-rest-api-foundation-security.context.xml"
-        output: "Technical context XML for Story 1.7: REST API Foundation & Security"
-        completed_date: "2025-11-27"
-        story_id: "1.7"
-        story_key: "1-7-rest-api-foundation-security"
-        summary: "Complete technical context: 4 doc artifacts (observability-security, tech-spec, hexagonal-architecture, epics), 6 code artifacts (OpenApiConfig, ErrorResponse, GlobalExceptionHandler, JwtAuthenticationConverter, SecurityConfig, NotFoundException, HealthController), 4 Maven dependencies (springdoc-openapi 2.3.0, spring-security, oauth2-resource-server, security-test), 11 constraints (SEC/CORS/ERROR/API/TEST/DOC), 4 interfaces (OAuth2 Resource Server, OpenAPI 3.1 Specification, ErrorResponse format, Actuator health endpoint), 9 test ideas mapped to 12 ACs"
-        sprint_status_updated: "1-7-rest-api-foundation-security: drafted → ready-for-dev"
-        context_includes:
-          - "4 documentation artifacts: observability-security.md (logging strategy MDC, security strategy OAuth2 JWT), tech-spec-epic-1.md (security requirements, authentication/authorization), hexagonal-architecture.md (inbound adapters REST pattern), epics.md (Story 1.7 definition)"
-          - "6 code artifacts: OpenApiConfig.java template (OpenAPI 3.1 spec, Bearer JWT scheme, servers local/uat/prod), ErrorResponse.java DTO (6 fields: code, message, details, timestamp, traceId, path), GlobalExceptionHandler.java template (5 exception mappings: DomainException → 422, NotFoundException → 404, ValidationException → 400, AccessDeniedException → 403, Exception → 500), JwtAuthenticationConverter.java template (roles extraction from custom claim, ROLE_ prefix), SecurityConfig.java template (SecurityFilterChain: permit /swagger-ui /actuator, auth /api/v1/**, admin /api/v1/admin/**, CORS, CSRF disabled, session STATELESS), NotFoundException.java template, HealthController.java example"
-          - "4 Maven dependencies: springdoc-openapi-starter-webmvc-ui 2.3.0, spring-boot-starter-security, spring-boot-starter-oauth2-resource-server, spring-security-test"
-          - "11 constraints: SEC-1 (JWT RSA public key), SEC-2 (session STATELESS), SEC-3 (CSRF disabled), SEC-4 (ROLE_ prefix), SEC-5 (Swagger/Actuator public), SEC-6 (admin endpoints require ADMIN), CORS-1 (configurable origins), CORS-2 (allow credentials), ERROR-1 (ErrorResponse format), ERROR-2 (no stack traces in 500), ERROR-3 (traceId for correlation), API-1 (base path /api/v1/), API-2 (OpenAPI Bearer JWT), TEST-1 (integration tests mandatory), TEST-2 (mock JWT tokens), DOC-1 (JavaDoc mandatory)"
-          - "4 interfaces: OAuth2 Resource Server (JWT validation, TOKEN extraction, roles extraction), OpenAPI 3.1 Specification (Swagger UI /swagger-ui.html, JSON /v3/api-docs), ErrorResponse Standard Format (code, message, details, timestamp, traceId, path), Actuator Health Endpoint (/actuator/health, UP/DOWN status)"
-          - "9 test ideas: testSwaggerUiAccessibleWithoutAuth, testApiRequiresAuthentication, testApiAccessibleWithValidJwt, testAdminEndpointRequiresAdminRole, testHealthEndpointAccessibleWithoutAuth, testDomainExceptionMapsTo422, testNotFoundExceptionMapsTo404, testValidationExceptionMapsTo400WithFieldErrors, testHealthControllerReturnsApiVersion"
-          - "Critical implementation notes: OAuth2 Resource Server MUST configure issuer-uri or jwk-set-uri (JWT RSA public key), SecurityFilterChain MUST permit Swagger/Actuator without auth, JWT roles MUST have ROLE_ prefix, Session STATELESS mandatory, CSRF disabled for stateless JWT, ErrorResponse traceId from MDC, Integration tests with MockMvc + mock JWT tokens"
-        story_includes:
-          - "12 Acceptance Criteria: OpenAPI 3.1 documentation (Springdoc), OAuth2 Resource Server (JWT), Security Configuration (SecurityFilterChain), JWT roles extraction (custom converter), Global Exception Handler (@ControllerAdvice), ErrorResponse DTO (standard format), Health check endpoint (Actuator), CORS configuration, Request/Response logging (interceptor), API versioning strategy, Integration tests (MockMvc security), Documentation & examples"
-          - "12 Tasks (60+ subtasks): Maven dependencies (springdoc-openapi, spring-security, oauth2-resource-server), OpenAPI config (OpenApiConfig.java), ErrorResponse DTO, Global Exception Handler (5 exception mappings), JWT Authentication Converter (roles extraction from custom claim), Security Configuration (SecurityFilterChain with JWT + CORS + CSRF + session STATELESS), OAuth2 Resource Server config, Actuator health endpoint, NotFoundException domain exception, Integration tests (5 test methods), Example REST controller (HealthController), Documentation (README REST API section, CHANGELOG)"
-          - "Security Strategy: OAuth2 Resource Server con JWT validation (RSA public key), role-based access control (ADMIN, AUDITOR, SUPPORT, USER), SecurityFilterChain con permit /swagger-ui /actuator/health, require auth /api/v1/**, require ADMIN /api/v1/admin/**, CSRF disabled (stateless), session STATELESS, CORS configured (development vs production)"
-          - "Exception Handling Strategy: DomainException → HTTP 422, NotFoundException → HTTP 404, MethodArgumentNotValidException → HTTP 400 with field errors, AccessDeniedException → HTTP 403, Exception → HTTP 500 (no stack trace in response), ErrorResponse format: { code, message, details, timestamp, traceId, path }"
-          - "OpenAPI Integration: Springdoc OpenAPI Starter WebMVC UI 2.3.0, Swagger UI at /swagger-ui.html, Security scheme: Bearer JWT, API versioning: base path /api/v1/, automatic request/response schema generation"
-          - "JWT Roles Mapping: admin → ROLE_ADMIN (full access), auditor → ROLE_AUDITOR (read-only), support → ROLE_SUPPORT (routing rules management), user → ROLE_USER (basic operations), roles extracted from custom JWT claim path (configurable, e.g. realm_access.roles for Keycloak)"
-          - "CORS Configuration: Development (localhost:3000, localhost:4200), Production (restrictive origins), allowed methods: GET POST PUT DELETE PATCH OPTIONS, allowed headers: Authorization Content-Type X-Request-ID, credentials: true, max age: 3600"
-          - "Integration Tests: SecurityConfigurationIntegrationTest (5 test methods: testSwaggerUiAccessibleWithoutAuth, testApiRequiresAuthentication, testApiAccessibleWithValidJwt, testAdminEndpointRequiresAdminRole, testHealthEndpointAccessibleWithoutAuth), Mock JWT tokens with custom roles"
-          - "Prerequisites: Story 1.1 (Spring Boot base)"
-          - "Files to Create: 9 files (3 config classes: OpenApiConfig, SecurityConfig, JwtAuthenticationConverter, 2 DTO/handler: ErrorResponse, GlobalExceptionHandler, 1 domain exception: NotFoundException, 1 controller: HealthController, 1 integration test, 1 optional interceptor: LoggingInterceptor)"
-          - "Files to Modify: 5 files (pom.xml dependencies, application.yml springdoc/security/actuator config, application-local.yml development config, README.md REST API section, CHANGELOG.md Story 1.7 entry)"
-        story_includes:
-          - "12 Acceptance Criteria: JPA entities (SignatureRequestEntity, SignatureChallengeEntity), Spring Data JPA repositories, entity mappers (bidirectional), domain repository port interface, repository adapter implementation, Hibernate JSONB support, integration tests (Testcontainers), transactional behavior, hexagonal package structure, ArchUnit tests, documentation, Maven dependencies"
-          - "10 Tasks (50+ subtasks): Domain port interface (SignatureRequestRepository), Maven dependencies (hypersistence-utils), JPA entities (2 classes with @Entity, @Table, @Type(JsonBinaryType.class) for JSONB), JPA repositories (SignatureRequestJpaRepository extends JpaRepository), entity mappers (2 classes: toEntity/toDomain/updateEntity), repository adapter (SignatureRequestRepositoryAdapter implements domain port), JSONB configuration (Hibernate), integration tests (Testcontainers PostgreSQL, 6 test methods), ArchUnit tests (3 new tests), documentation (README persistence section, CHANGELOG)"
-          - "Hexagonal Architecture Pattern: Domain port interface (SignatureRequestRepository in domain/port/outbound/), Infrastructure adapter (SignatureRequestRepositoryAdapter in infrastructure/adapter/outbound/persistence/adapter/), benefit: domain remains pure, infrastructure swappable"
-          - "JPA Entity Design: SignatureRequestEntity root with @OneToMany challenges, SignatureChallengeEntity child with @ManyToOne back-reference, Cascade ALL, orphanRemoval = true"
-          - "JSONB Serialization: Hypersistence Utils @Type(JsonBinaryType.class) for PostgreSQL JSONB columns, Jackson ObjectMapper for Value Objects (TransactionContext, ProviderResult, Money), List<RoutingEvent> as JSONB array"
-          - "Transactional Behavior: @Transactional on repository adapter methods (read-only = false for writes, true for reads), automatic rollback on RuntimeException"
-          - "Integration Tests: Testcontainers PostgreSQL 15, LiquidBase auto-run, round-trip validation (save domain → find by ID → assert equals), JSONB validation (TransactionContext, List<RoutingEvent>), cascade validation (challenges persist with parent), target coverage > 80%"
-          - "Prerequisites: Story 1.2 (database schema), Story 1.5 (domain models)"
-          - "Files to Create: 13 files (1 domain port, 2 JPA entities, 1 JPA repository, 2 mappers, 1 adapter, 1 integration test)"
-          - "Files to Modify: 4 files (pom.xml, HexagonalArchitectureTest.java, README.md, CHANGELOG.md)"
-
-      - id: "create-story-3.1"
-        name: "Create Story 3.1 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/3-1-provider-abstraction-interface.md"
-        output: "Story draft for Story 3.1: Provider Abstraction Interface"
-        completed_date: "2025-11-27"
-        story_id: "3.1"
-        story_key: "3-1-provider-abstraction-interface"
-        summary: "Provider abstraction layer drafted: SignatureProviderPort domain interface (outbound port), ProviderResult value object (Java 21 record), ProviderType enum (SMS/PUSH/VOICE/BIOMETRIC), HealthStatus value object, 12 acceptance criteria, 12 tasks with 60+ subtasks, comprehensive architecture context from tech-spec-epic-3.md"
-        sprint_status_updated: "3-1-provider-abstraction-interface: backlog → drafted"
-
-      - id: "story-context-3.1"
-        name: "Story Context 3.1 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/3-1-provider-abstraction-interface.context.xml"
-        output: "Technical context XML for Story 3.1: Provider Abstraction Interface"
-        completed_date: "2025-11-27"
-        story_id: "3.1"
-        story_key: "3-1-provider-abstraction-interface"
-        summary: "Complete technical context: 4 doc artifacts (tech-spec-epic-3, hexagonal-structure, PRD, epics), 5 code artifacts (ChannelType existing, Money pattern example, HexagonalArchitectureTest, SignatureChallenge entity), 0 new dependencies (all already included), 14 constraints (HEXA/PURITY/RECORD/FACTORY/ENUM/MAPPING/JAVADOC/ARCHUNIT/TEST/DOC), 3 interfaces (SignatureProviderPort, ProviderResult, ProviderType), 12 test ideas mapped to 12 ACs"
-        sprint_status_updated: "3-1-provider-abstraction-interface: drafted → ready-for-dev"
-        context_includes:
-          - "4 documentation artifacts: tech-spec-epic-3.md (Provider Abstraction Section 1), hexagonal-structure.md (domain/port/outbound pattern), PRD.md (FR20-FR28 Challenge Delivery), epics.md (Epic 3 Story 3.1)"
-          - "5 code artifacts: ChannelType.java (existing enum to modify with toProviderType() method), Money.java (Java 21 record pattern example with compact constructor), HexagonalArchitectureTest.java (existing ArchUnit test to extend), SignatureChallenge entity (parameter for sendChallenge())"
-          - "0 new Maven dependencies: All required dependencies already included from Epic 1"
-          - "14 constraints: HEXA-1 (port in outbound package), PURITY-1/2 (ZERO infrastructure deps CRITICAL), RECORD-1/2 (Java 21 records immutable), FACTORY-1 (factory methods), ENUM-1 (4 values), MAPPING-1 (ChannelType mapping), JAVADOC-1 (comprehensive docs), ARCHUNIT-1 (domain purity validation CRITICAL), TEST-1/2 (pure JUnit 5, >90% coverage), DOC-1/2 (README, CHANGELOG)"
-          - "3 interfaces defined with full signatures: SignatureProviderPort (sendChallenge, checkHealth methods), ProviderResult (record with 6 fields, compact constructor, 2 factory methods), ProviderType (enum with 4 values, displayName field)"
-          - "12 test ideas: ProviderResult success/failure factory methods (6 tests), ProviderType enum validation (2 tests), HealthStatus UP/DOWN factory methods (2 tests), ChannelType mapping (2 tests), ArchUnit domain purity (1 test)"
-          - "Critical implementation notes: Domain purity NON-NEGOTIABLE (ArchUnit validated), Java 21 records pattern (follow Money.java), ArchUnit test extension pattern, ChannelType extension with toProviderType(), Test coverage priority (15+ tests, >90%)"
-          - "Definition of Done: 4 files created, 2 modified, 12 ACs validated, 15+ tests passing, >90% coverage, ArchUnit PASS, mvn test SUCCESS, JavaDoc complete, README/CHANGELOG updated"
-        story_components:
-          - "12 Acceptance Criteria: SignatureProviderPort interface (AC1-AC3), ProviderResult value object (AC4-AC5), ProviderType enum (AC6), HealthStatus value object (AC7), Domain purity validation (AC8), ArchUnit test (AC9), Unit tests (AC10-AC11), JavaDoc (AC12)"
-          - "12 Tasks: Provider abstraction interface (1h), ProviderResult value object (1h), ProviderType enum (30min), HealthStatus value object (30min), ChannelType mapping (30min), ArchUnit domain purity test (45min), Unit tests ProviderResult (1h), Unit tests ProviderType (30min), Unit tests HealthStatus (30min), Unit tests ChannelType mapping (30min), Documentation updates (30min), Integration verification (30min)"
-          - "4 Files to Create: SignatureProviderPort.java (domain port interface), ProviderResult.java (record), ProviderType.java (enum), HealthStatus.java (record)"
-          - "2 Files to Modify: ChannelType.java (add toProviderType() method), HexagonalArchitectureTest.java (add domain purity test)"
-          - "3 Files to Document: README.md (Provider Abstraction section), CHANGELOG.md (Story 3.1 entry), docs/architecture/02-hexagonal-structure.md (optional)"
-          - "Architecture Pattern: Hexagonal outbound port for provider abstraction, domain purity enforced by ArchUnit, Java 21 records for immutable value objects"
-          - "Testing Strategy: Unit tests (> 90% coverage), ArchUnit validation (domain purity), 12+ test methods across 4 test classes"
-          - "Prerequisites: Story 1.5 (Domain models), Story 2.4 (SignatureChallenge entity)"
-          - "Enables: All remaining Epic 3 stories (3.2-3.10) depend on this abstraction layer"
-        learnings_from_previous:
-          - "Epic 2 Complete: SignatureChallenge entity has recipient, message, channelType fields ready for provider use"
-          - "ChannelType enum already exists: add mapping method toProviderType()"
-          - "ArchUnit test base exists: HexagonalArchitectureTest.java - add new test method"
-          - "Java 21 records pattern established: Money, TransactionContext use records with compact constructor validation"
-          - "Domain purity critical: ZERO infrastructure dependencies in domain/port/outbound/"
-
-      - id: "create-story-3.8"
-        name: "Create Story 3.8 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/3-8-provider-timeout-configuration.md"
-        output: "Story draft for Story 3.8: Provider Timeout Configuration"
-        completed_date: "2025-11-28"
-        story_id: "3.8"
-        story_key: "3-8-provider-timeout-configuration"
-        summary: "Story drafted: Resilience4j TimeLimiter integration per-provider (SMS: 5s, Push: 3s, Voice: 10s, Biometric: 2s), CompletableFuture async execution, ProviderResult.timedOut field, Prometheus timeout metrics, multi-environment configuration, 12 ACs, 7 tasks with 50+ subtasks"
-        sprint_status_updated: "3-8-provider-timeout-configuration: backlog → drafted"
-
-      - id: "story-context-3.8"
-        name: "Story Context 3.8 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/3-8-provider-timeout-configuration.context.xml"
-        output: "Technical context XML for Story 3.8: Provider Timeout Configuration"
-        completed_date: "2025-11-28"
-        story_id: "3.8"
-        story_key: "3-8-provider-timeout-configuration"
-        summary: "Complete technical context: 4 doc artifacts (tech-spec-epic-3 Resilience4j section, resilience-strategy, PRD NFR-P2, hexagonal-structure), 9 code artifacts (SignatureProviderPort interface, ProviderResult value object, 4 provider implementations, ChallengeServiceImpl, application.yml resilience4j config, pom.xml dependencies), 2 Maven dependencies (resilience4j-timelimiter NEW, resilience4j-reactor optional), 25 constraints (HEXA/BC/IMPL/VO/CFG/MET/LOG/TEST/DOC), 5 interfaces (sendChallengeAsync, ProviderResult enhanced, ScheduledExecutorService bean, TimeLimiterRegistry, Prometheus counter), 20 test ideas mapped to 12 ACs"
-        sprint_status_updated: "3-8-provider-timeout-configuration: drafted → ready-for-dev"
-        context_includes:
-          - "4 documentation artifacts: tech-spec-epic-3.md AC9 (TimeLimiter 5s timeout, cancelRunningFuture), resilience-strategy.md Timeout Strategy section, PRD NFR-P2 (P99 < 3s), hexagonal-structure.md (provider abstraction)"
-          - "9 code artifacts: SignatureProviderPort.java (add async method), ProviderResult.java (add timedOut field), 4 providers (TwilioSms, Push, Voice, Biometric - implement async), ChallengeServiceImpl (reference for provider usage), application.yml (resilience4j config), pom.xml (dependencies)"
-          - "2 Maven dependencies: resilience4j-timelimiter (NEW module), resilience4j-reactor (optional for CompletableFuture)"
-          - "25 constraints covering: HEXA-1/2 (domain purity), BC-1 (backward compatibility NO eliminar sync method), IMPL-1/2/3/4 (CompletableFuture executor, reuse sync logic, dynamic TimeLimiter selection, cancelRunningFuture=true), VO-1/2/3 (ProviderResult timedOut field), CFG-1/2/3 (application.yml configs), MET-1/2 (Prometheus metrics), LOG-1/2 (WARNING level logging with traceId), TEST-1/2/3 (Testcontainers, duration measurement, mock TimeLimiterRegistry), DOC-1/2 (JavaDoc, README timeout rationale)"
-          - "5 interfaces defined: SignatureProviderPort.sendChallengeAsync() NEW method signature, ProviderResult record enhanced with timedOut boolean + timeout() factory, ScheduledExecutorService bean (10 threads), TimeLimiterRegistry.decorateFuture() pattern, Prometheus counter provider.timeout.total"
-          - "20 test ideas covering all 12 ACs: AC1 (4 instances config, cancelRunningFuture), AC2 (4 provider async tests), AC3 (timeout handling, TimeLimiter selection), AC4 (cancel future, thread pool), AC5 (metrics increment, Prometheus export), AC7 (slow provider simulation), AC8 (adapter timeout logic), AC9 (multi-environment config), AC10 (timedOut field), AC11 (logging with traceId)"
-          - "Critical implementation notes: BACKWARD COMPATIBILITY mandatory (NO romper ChallengeServiceImpl), TimeLimiter decoration en infrastructure layer NOT domain, ScheduledExecutorService injection en providers, dynamic TimeLimiter instance selection por ProviderType, timeout=WARNING NOT ERROR, multi-environment strategy (local 10s, prod 4s)"
-
-# ============================================================================
-# NOTAS IMPORTANTES - EPIC 10 (2025-11-29)
-# ============================================================================
+# CRITICAL BLOCKER:
+# ⛔ Epic 11 (MuleSoft) → BLOCKS APPLICATION FUNCTIONALITY
+#    - Sin MuleSoft, NO SE PUEDEN ENVIAR FIRMAS (core functionality bloqueada)
+#    - Admin Panel provider metrics también bloqueados
+#    - Reunión crítica: Lunes 9-Dic para obtener specs
 #
-# Epic 10 v1 (DESCARTADA - Composer-1 Disaster):
-# - Fecha: 2025-11-29
-# - Problema: Implementación con Composer-1 rompió tests y código existente
-# - Acción: Revertida completamente (git stash + git reset --hard HEAD)
-# - Documentación del incidente: RESUMEN-SESION-EPIC-10.md
+# SECONDARY PATH:
+# 1. Epic 15 (Dynatrace) → Estrategia faseada:
+#    - Fase 1: Instalar OneAgent, subir a DEV, crear tenant
+#    - Fase 2: Conectar API Dynatrace con métricas del Admin Panel
+# 2. Epic 8.5 (Vault secret rotation) → Security compliance
 #
-# Epic 10 v2 (REPLANEADA - EN BANDEJA):
-# - Estado: backlog (NO iniciada, esperando decisión para empezar)
-# - Scope: 4 stories (reducido de 15 stories originales)
-# - Documentación:
-#   - docs/EPIC-10-QUALITY-TESTING-EXCELLENCE.md (nueva epic)
-#   - docs/stories/STORY-10.1-TESTING-COVERAGE-75.md (story detallada)
-#   - docs/EPIC-10-CHECKLIST.md (checklist de progreso)
-#   - docs/EPIC-10-MIGRATION-GUIDE.md (guía de migración)
-# - Duración estimada: 5-6 semanas
-# - Stories:
-#   - 10.1: Testing Coverage 75%+ (3-4 semanas)
-#   - 10.2: Exception Handling Structured (1 semana)
-#   - 10.3: MDC Logging & Traceability (1 semana)
-#   - 10.4: Documentation Quality (1 semana)
-#
-# Features que YA estaban implementadas ANTES de Epic 10 v1:
-# - Idempotency (IdempotencyService, IdempotencyFilter) - Epic 2
-# - SpEL Security (SpELValidatorServiceImpl) - Epic 2
-# - ArchUnit Tests - Epic 1
-# - Testcontainers Integration - Epic 1
-#
-# Próximos pasos recomendados (decisión pendiente):
-# 1. Epic 8: Security & Compliance (2-3 semanas) - ✅ INICIADA 2025-11-29
-# 2. Epic 9: Observability (2-3 semanas)
-# 3. Epic 10 v2: Quality & Testing Excellence (5-6 semanas)
-# ============================================================================
-
-      - id: "epic-tech-context-8"
-        name: "Epic Tech Context Epic 8 (JIT)"
-        agent: "architect"
-        command: "/bmad:bmm:workflows:epic-tech-context"
-        status: "docs/sprint-artifacts/tech-spec-epic-8.md"
-        output: "Technical specification for Epic 8: Security & Compliance"
-        completed_date: "2025-11-29"
-        epic_id: "epic-8"
-        summary: "Complete tech spec for banking-grade security: OAuth2 Resource Server (JWT RSA 256), RBAC (4 roles: ADMIN/AUDITOR/SUPPORT/USER), Pseudonymization Service (HMAC-SHA256), Audit Log immutable storage (365d retention), Vault secret rotation (90d auto-rotation), TLS 1.3 certificate management, Rate Limiting ✅ DONE, Security Headers (CSP, HSTS, CORS)"
-        sprint_status_updated: "epic-8: backlog → contexted"
-        artifacts:
-          - "8 Stories breakdown: 8.1 OAuth2 (5 SP), 8.2 RBAC (5 SP), 8.3 Pseudonymization (8 SP), 8.4 Audit Log (8 SP), 8.5 Vault Rotation (5 SP), 8.6 TLS Mgmt (3 SP), 8.7 Rate Limiting (DONE ✅), 8.8 Security Headers (2 SP)"
-          - "Total: ~36 Story Points (excluding 8.7 DONE), Duration: 2-3 weeks (4-5 sprints @ 8 SP/sprint)"
-          - "Security Architecture: 6 layers (Network TLS, Authentication OAuth2, Authorization RBAC, Data Protection Pseudonymization, Audit Compliance, Attack Prevention)"
-          - "Compliance Requirements: PCI-DSS v4.0, GDPR (Art. 5, 17, 30, 32), SOC 2 Type II (CC6.1, CC6.6, CC7.2)"
-          - "NFRs Covered: NFR-S1 to NFR-S16 (JWT RSA 256, token expiry 1h/30d, TDE PostgreSQL, TLS 1.3, Vault secrets, pseudonymization HMAC-SHA256, audit log immutable, dependency scanning)"
-          - "Story 8.1: OAuth2 Resource Server - Spring Security 6, Keycloak integration, JWT validation (issuer-uri, jwk-set-uri), roles extraction (realm_access.roles → ROLE_ prefix), SecurityFilterChain (stateless JWT, CSRF disabled)"
-          - "Story 8.2: RBAC - 4 roles (ADMIN full, AUDITOR read-only, SUPPORT rules mgmt, USER own requests), @PreAuthorize method-level security, role mapping table, SpEL expressions, integration tests (401/403)"
-          - "Story 8.3: Pseudonymization - HMAC-SHA256 customer_id (deterministic, one-way, 64 hex), Vault secret key (secret/signature-router/pseudonymization-key), PII redaction (logs/metrics/events), verify() method"
-          - "Story 8.4: Audit Log - Immutable table (RLS policies, no UPDATE/DELETE), AuditService domain port, AuditEvent value object, 20+ event types (SIGNATURE_CREATED, RULE_MODIFIED, SECRET_ROTATED, etc.), JSONB changes (before/after), 365d retention, PostgreSQL partitioning by month"
-          - "Story 8.5: Vault Secret Rotation - Dynamic secrets (PostgreSQL), auto-rotation 90 days, @RefreshScope DataSource, grace period 7 days (v1 + v2 valid), config refresh 5 min, audit log rotation events, Prometheus alert rotation_failed"
-          - "Story 8.6: TLS Certificate Management - TLS 1.3 only, HTTPS redirect (8080 → 8443), HSTS headers (max-age 31536000), Let's Encrypt (UAT), Corporate CA (Prod), certificate expiry monitoring (Prometheus metric, alert < 30d), health check /actuator/health/ssl"
-          - "Story 8.7: Rate Limiting ✅ DONE - Resilience4j RateLimiter, per-customer 10 req/min, global 100 req/sec, HTTP 429 Retry-After, X-RateLimit-* headers, Prometheus metrics"
-          - "Story 8.8: Security Headers - CSP (default-src 'self'), X-Frame-Options DENY, X-Content-Type-Options nosniff, X-XSS-Protection block, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy (geolocation/microphone/camera disabled), CORS restrictive (NO wildcard)"
-          - "Testing Strategy: Unit tests (JWT decoder, RBAC matrix, HMAC deterministic, audit immutability), Integration tests (OAuth2 401/403, pseudonymization DB, audit log queries, TLS 1.3, security headers), Security tests (penetration manual, OWASP Dependency Check, Trivy, SonarQube)"
-          - "Dependencies: spring-boot-starter-oauth2-resource-server (Story 8.1), Keycloak realm (signature-router), Vault (already from Story 1.4), PostgreSQL TDE (DBA responsibility)"
-          - "Risks: Keycloak integration complexity (mitigation: local Docker first), Secret rotation downtime (mitigation: grace period 7d), TLS cert expiry (mitigation: monitoring + alert), Pseudonymization latency (mitigation: <1ms HMAC, cached key), Audit log growth (mitigation: partitioning + cleanup), RBAC misconfiguration (mitigation: integration tests, code review)"
-          - "Documentation: SECURITY.md (update OAuth2/RBAC/Pseudonymization/TLS sections), RBAC.md (NEW, role definitions + permission matrix), AUDIT_LOG.md (NEW, event types + query API), VAULT_ROTATION.md (NEW, dynamic secrets + grace period), TLS_CERTIFICATE_MANAGEMENT.md (NEW, renewal procedures + monitoring), README.md (Security & Compliance section)"
-          - "Implementation Roadmap: Sprint 1 (Auth/RBAC 8.1-8.2, 1 week), Sprint 2 (Data Protection/Audit 8.3-8.4, 2 weeks), Sprint 3 (Secrets/TLS/Headers 8.5-8.6-8.8, 1 week), Sprint 4 (Testing/Hardening, 1 week)"
-          - "Epic-Level Acceptance Criteria: All 8 stories DONE, integration tests >80% coverage, GDPR/PCI-DSS/SOC2 checklist verified, security documentation complete, OWASP Top 10 compliance, no regressions (Epic 1-7 tests passing)"
-        critical_notes:
-          - "BLOCKER FOR PRODUCTION: Epic 8 DEBE completarse ANTES de deployment a producción bancaria (compliance mandatory)"
-          - "Story 8.7 Rate Limiting ya completada como Critical Improvement #2 (NO trabajo adicional requerido)"
-          - "Story 8.1 OAuth2 Resource Server extiende Story 1.7 (base Security Config ya existe, agregar JWT validation)"
-          - "Keycloak ya configurado: keycloak/realms/signature-router-realm.json (4 roles: ADMIN, AUDITOR, SUPPORT, USER)"
-          - "Vault ya operativo: Story 1.4 DONE (agregar pseudonymization-key secret en Story 8.3)"
-          - "PostgreSQL TDE (Transparent Data Encryption) es responsabilidad DBA, NO parte de Story 8 (NFR-S5 asumido habilitado)"
-          - "Multi-environment strategy: bootstrap-local.yml (Keycloak localhost), bootstrap-prod.yml (corporate Keycloak + TLS)"
-          - "Pseudonymization latency MUST NOT exceed 5ms P95 (HMAC-SHA256 ~0.1ms, cached key in memory)"
-          - "Audit log immutability CRITICAL: RLS policies prevent UPDATE/DELETE (SOC 2 compliance), only INSERT allowed"
-          - "Secret rotation grace period 7 days MANDATORY (prevent transient connection failures during rotation)"
-          - "TLS 1.3 only (TLS 1.2 rejected), HSTS preload ready (submit to hstspreload.org after UAT validation)"
-
-      - id: "create-story-8.1"
-        name: "Create Story 8.1 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:create-story"
-        status: "docs/sprint-artifacts/8-1-oauth2-resource-server-setup.md"
-        output: "Story draft for Story 8.1: OAuth2 Resource Server Setup"
-        completed_date: "2025-11-29"
-        story_id: "8.1"
-        story_key: "8-1-oauth2-resource-server-setup"
-        summary: "Complete story draft: OAuth2 Resource Server with JWT validation, Keycloak integration (realm: signature-router), RSA 256 signature, 12 acceptance criteria, 5 Story Points (1-2 days)"
-        sprint_status_updated: "8-1-oauth2-resource-server-setup: backlog → drafted"
-        story_components:
-          - "12 Acceptance Criteria: Maven dependency (spring-boot-starter-oauth2-resource-server), Keycloak config (issuer-uri, jwk-set-uri), SecurityFilterChain (stateless JWT, CSRF disabled, public endpoints permitAll), JWT Authentication Converter (realm_access.roles → ROLE_ADMIN), Integration tests (valid JWT → 200, missing → 401, expired → 401, invalid signature → 401), Public endpoints without JWT → 200, Application startup success, Keycloak realm verified, Documentation updated"
-          - "8 Files to Create: KeycloakJwtAuthenticationConverter.java (infrastructure/security/), OAuth2SecurityIntegrationTest.java (test/), KeycloakJwtAuthenticationConverterTest.java (test/), get-token.sh (keycloak/), docs/security/OAUTH2.md"
-          - "6 Files to Modify: SecurityConfig.java (add oauth2ResourceServer), application.yml (OAuth2 config), application-{local/uat/prod}.yml (multi-environment Keycloak URIs), pom.xml (dependencies), README.md (Security section), CHANGELOG.md (Story 8.1 entry)"
-          - "Security Rules: Public endpoints (/swagger-ui/**, /actuator/health, /actuator/prometheus) permitAll, Protected endpoints (/api/v1/**) authenticated, Default deny-all (anyRequest().denyAll())"
-          - "JWT Claims Mapping: sub → User ID, preferred_username → Username (admin@bank.com), realm_access.roles → ROLE_ADMIN / ROLE_USER / ROLE_AUDITOR / ROLE_SUPPORT"
-          - "Multi-Environment: Local (localhost:8080), UAT (keycloak-uat.bank.com), Prod (keycloak.bank.com)"
-          - "Testing: 4 unit tests (KeycloakJwtAuthenticationConverter), 7 integration tests (OAuth2SecurityIntegrationTest), 3 manual tests (startup, JWKS endpoint, get-token.sh)"
-
-      - id: "story-context-8.1"
-        name: "Story Context 8.1 (JIT)"
-        agent: "sm"
-        command: "/bmad:bmm:workflows:story-context"
-        status: "docs/sprint-artifacts/8-1-oauth2-resource-server-setup.context.xml"
-        output: "Technical context XML for Story 8.1: OAuth2 Resource Server Setup"
-        completed_date: "2025-11-29"
-        story_id: "8.1"
-        story_key: "8-1-oauth2-resource-server-setup"
-        summary: "Complete technical context: 5 doc artifacts (tech-spec-epic-8, PRD NFR-S1-S4, architecture-security, Story 1.7 base, Keycloak realm config), 8 code artifacts (KeycloakJwtAuthenticationConverter template, SecurityConfig modification, application-{env}.yml configs, get-token.sh script, OAuth2SecurityIntegrationTest template), 2 Maven dependencies (oauth2-resource-server, security-test), 15 constraints (SEC/JWT/CFG/TEST/DOC), 4 interfaces (OAuth2 Resource Server protocol, Keycloak JWKS endpoint, JWT claims structure, Spring SecurityContext), 13 test ideas mapped to 12 ACs"
-        sprint_status_updated: "8-1-oauth2-resource-server-setup: drafted → ready-for-dev"
-        context_includes:
-          - "5 documentation artifacts: tech-spec-epic-8.md Story 8.1 section (goal, ACs, technical design: Keycloak config, SecurityFilterChain, JWT converter), PRD NFR-S1 to NFR-S4 (JWT RSA 256, token expiry 1h/30d, RBAC, compliance PCI-DSS/SOC2/GDPR), architecture-security.md (OAuth2 JWT, RBAC 4 roles, stateless session), Story 1.7 base SecurityConfig (EXISTS - MODIFY), Keycloak realm config signature-router (4 roles, access token 1h, client signature-router-backend)"
-          - "8 code artifacts: KeycloakJwtAuthenticationConverter.java NEW (convert JWT to authentication token, extract realm_access.roles → ROLE_ prefix uppercase), SecurityConfig.java MODIFY (add oauth2ResourceServer with jwtAuthenticationConverter), application.yml MODIFY (issuer-uri, jwk-set-uri env vars), application-local.yml (localhost:8080 Keycloak), application-uat.yml (keycloak-uat.bank.com), application-prod.yml (keycloak.bank.com), get-token.sh NEW (helper script curl Keycloak token endpoint, jq parse access_token), OAuth2SecurityIntegrationTest.java NEW (7 tests: valid JWT 200, missing 401, expired 401, invalid signature 401, public endpoints 200)"
-          - "2 Maven dependencies: spring-boot-starter-oauth2-resource-server (OAuth2 Resource Server with JWT), spring-security-test (MockMvc jwt() support)"
-          - "15 constraints: SEC-1 (RSA 256 CRITICAL), SEC-2 (stateless session CRITICAL), SEC-3 (CSRF disabled HIGH), SEC-4 (public endpoints NO JWT HIGH), SEC-5 (protected endpoints JWT CRITICAL), SEC-6 (deny-all default HIGH), JWT-1 (realm_access.roles extraction CRITICAL), JWT-2 (ROLE_ prefix uppercase HIGH), JWT-3 (preferred_username principal HIGH), JWT-4 (null realm_access graceful MEDIUM), CFG-1 (multi-env issuer-uri CRITICAL), CFG-2 (JWKS accessible startup HIGH), TEST-1 (jwt() request processor CRITICAL), TEST-2 (HTTP status validation HIGH), DOC-1 (README Keycloak setup HIGH)"
-          - "4 interfaces: OAuth2 Resource Server JWT Validation Protocol (JwtDecoder.decode(), JwtAuthenticationConverter.convert()), Keycloak JWKS Endpoint (GET /protocol/openid-connect/certs → RSA public keys JWK Set), JWT Claims Structure (iss/sub/exp/iat/preferred_username/email/realm_access.roles contract), Spring Security SecurityContext (SecurityContextHolder.getContext().getAuthentication())"
-          - "13 test ideas: Unit tests (4 tests: admin role maps ROLE_ADMIN, multiple roles maps all, null realm_access empty authorities, null roles empty), Integration tests (7 tests: valid JWT 200, missing JWT 401, expired JWT 401, invalid signature 401, Swagger UI without JWT 200, actuator health 200, actuator prometheus 200), Manual tests (3 tests: application startup with Keycloak, JWKS endpoint accessible, get-token.sh works)"
-          - "Critical implementation notes: Story 8.1 BLOCKER for Story 8.2 (RBAC depends on JWT roles extraction), KeycloakJwtAuthenticationConverter MUST handle null realm_access gracefully (NO NullPointerException), SecurityFilterChain order: permitAll BEFORE authenticated, Multi-environment config MANDATORY (local/uat/prod different Keycloak), get-token.sh requires jq tool (sudo apt install jq), JWKS caching 5 minutes (reduces Keycloak load)"
-          - "Definition of Done: 21 checklist items (8 CRITICAL: converter created, SecurityConfig updated, application.yml configs, integration tests passing, mvn test success, application startup OK, valid JWT 200, missing JWT 401; 7 HIGH: multi-env configs, get-token.sh tested, public endpoints OK, README updated, code review; 6 MEDIUM: manual tests, CHANGELOG, JavaDoc, Sonar clean)"
-
-      - id: "epic-6-frontend-implementation"
-        name: "Epic 6: Admin Portal - Rule Management (Frontend)"
-        agent: "dev"
-        command: "Frontend implementation (Next.js 15 + React 19)"
-        status: "IMPLEMENTED"
-        output: "Complete frontend UI for rule management"
-        completed_date: "2025-11-29"
-        epic_id: "epic-6"
-        summary: "Frontend UI 100% completo: Next.js 15.2.1 + React 19 + TypeScript 5.3.3 + Tailwind CSS 3.4.17 + Shadcn UI, página /admin/rules con gestión completa de reglas de routing, drag & drop visual, switch on/off, editor SpEL, API client implementado (mock data), 10/10 stories completadas"
-        sprint_status_updated: "epic-6: backlog → done"
-        location: "app-signature-router-admin/"
-        pages_implemented:
-          - "/admin/rules - Gestión completa de reglas de routing"
-        features:
-          - "Switch on/off para activar/desactivar reglas con animación"
-          - "Drag & drop visual para reordenar prioridades (flechas ↑↓)"
-          - "Tabla interactiva con búsqueda y filtros"
-          - "Badges de colores por canal (SMS, PUSH, VOICE, BIOMETRIC)"
-          - "Editor de reglas con código SpEL visible"
-          - "Botones de acción (Ver código, Editar, Eliminar)"
-          - "4 cards de estadísticas (Total, Activas, Inactivas, Éxito Promedio)"
-          - "Panel informativo sobre expresiones SpEL"
-          - "API client completo en lib/api.ts (CRUD methods)"
-          - "NextAuth 5.0 configurado para autenticación"
-        stack_tecnologico:
-          - "Next.js 15.2.1 (App Router)"
-          - "React 19.0.0"
-          - "TypeScript 5.3.3"
-          - "Tailwind CSS 3.4.17"
-          - "Shadcn UI (Radix UI primitives)"
-          - "Lucide React 0.477.0 (iconos)"
-          - "Framer Motion 12.4.10 (animaciones)"
-          - "NextAuth 5.0.0-beta.25 (autenticación)"
-        components_created:
-          - "admin-sidebar.tsx - Sidebar navegación colapsable"
-          - "admin-page-title.tsx - Títulos de página"
-          - "metric-card.tsx - Cards de métricas"
-          - "rule-editor-dialog.tsx - Dialog para editar reglas"
-          - "8 componentes UI de Shadcn (button, card, badge, table, switch, input, textarea, dialog)"
-        stories_completed: "10/10 (100%)"
-        files_created: "25+ archivos"
-        lines_of_code: "~3,500+"
-        pending_integration:
-          - "Conexión real con API backend /api/v1/routing-rules"
-          - "Editor SpEL con syntax highlighting (CodeMirror/Monaco)"
-          - "Validador SpEL en tiempo real (backend)"
-          - "Persistencia de drag & drop en base de datos"
-          - "Integración NextAuth con Keycloak"
-        documentation:
-          - "app-signature-router-admin/README.md"
-          - "app-signature-router-admin/IMPLEMENTACION-COMPLETA.md"
-          - "app-signature-router-admin/QUICK-START.md"
-          - "docs/sprint-artifacts/EPIC-6-7-STATUS-CORRECCION.md"
-
-      - id: "epic-7-frontend-implementation"
-        name: "Epic 7: Admin Portal - Monitoring & Ops (Frontend)"
-        agent: "dev"
-        command: "Frontend implementation (Next.js 15 + React 19)"
-        status: "IMPLEMENTED"
-        output: "Complete frontend UI for monitoring and operations"
-        completed_date: "2025-11-29"
-        epic_id: "epic-7"
-        summary: "Frontend UI 100% completo: 5 páginas operativas implementadas (Dashboard, Rules, Signatures, Providers, Metrics), diseño Singular Bank (#00a859), componentes UI reutilizables, búsqueda real-time, filtros, badges semánticos, progress bars, 9/9 stories completadas"
-        sprint_status_updated: "epic-7: backlog → done"
-        location: "app-signature-router-admin/"
-        pages_implemented:
-          - "/admin - Dashboard principal con 8 métricas y estado del sistema"
-          - "/admin/rules - Gestión de reglas (Epic 6)"
-          - "/admin/signatures - Monitoreo de firmas con búsqueda y filtros"
-          - "/admin/providers - Salud de proveedores y análisis de costos"
-          - "/admin/metrics - Métricas avanzadas (P50/P95/P99, SLO, MTTR)"
-        dashboard_features:
-          - "8 cards de métricas principales (firmas procesadas, activas, tasa éxito, tiempo respuesta)"
-          - "Estado de proveedores con indicadores visuales (Healthy, Degraded, Down)"
-          - "Distribución por canal (SMS, PUSH, VOICE, BIOMETRIC)"
-          - "Actividad reciente en tiempo real"
-          - "Estado del sistema (API, Kafka, Database, Vault)"
-        signatures_features:
-          - "Tabla con todas las solicitudes de firma"
-          - "Buscador en tiempo real (por ID, Cliente)"
-          - "Filtros por estado (Todas, Exitosas, Pendientes, Fallidas)"
-          - "Badges de estado con colores semánticos (SUCCESS verde, PENDING amarillo, FAILED rojo, TIMEOUT naranja)"
-          - "Indicador de fallback usado"
-          - "Tiempo de respuesta con colores (verde < 3s, amarillo < 10s, rojo > 10s)"
-          - "Botón de exportación (UI preparada)"
-        providers_features:
-          - "4 cards globales (Requests Hoy, Costo Total, Éxito Promedio, Tiempo Resp.)"
-          - "Grid de cards por proveedor (Twilio SMS, OneSignal Push, Vonage Voice, BioCatch Biometric, AWS SNS)"
-          - "Métricas detalladas: Uptime %, Tiempo respuesta, Requests día, Costo acumulado"
-          - "Progress bar de tasa de éxito"
-          - "Estado del Circuit Breaker (CLOSED, OPEN, HALF_OPEN)"
-          - "Análisis de costos con distribución porcentual"
-        metrics_features:
-          - "Performance Metrics: P50, P95, P99, Promedio"
-          - "Métricas por Canal: Total requests, Tasa éxito, Tiempo promedio, Costo acumulado"
-          - "SLO & Disponibilidad: Disponibilidad actual vs objetivo, MTTR, MTBF, Error Budget"
-          - "Tráfico por Hora: Distribución horaria, Success rate por hora"
-          - "Badges de integración: Prometheus, Grafana, Jaeger Tracing"
-        design_singular_bank:
-          - "Color primario: #00a859 (verde Singular Bank)"
-          - "Tipografía: Inter (Google Fonts)"
-          - "Estilo: Minimalista, limpio, profesional"
-          - "Cards con sombras suaves, borders sutiles"
-          - "Colores semánticos (verde éxito, rojo error, amarillo warning)"
-          - "Animaciones suaves (transitions 150-300ms)"
-        responsive_design:
-          - "Grid adaptable (1-4 columnas según viewport)"
-          - "Sidebar colapsable para mobile"
-          - "Tablas con scroll horizontal"
-          - "Cards stack en mobile"
-        api_client:
-          - "lib/api.ts - Cliente API completo"
-          - "Métodos: getSignatureRequests, getRoutingRules, getProviders, getMetrics, healthCheck"
-          - "URL Base: http://localhost:8080/api/v1"
-          - "Estado: Mock data para desarrollo, listo para backend real"
-        stories_completed: "9/9 (100%)"
-        components_total: "11 componentes UI"
-        files_created: "25+ archivos"
-        lines_of_code: "~3,500+"
-        pending_integration:
-          - "WebSocket para actualizaciones en tiempo real"
-          - "Grafana iframe embed (actualmente solo badges)"
-          - "Búsqueda avanzada con filtros complejos"
-          - "Exportación de datos (CSV, Excel)"
-          - "Conexión real con todas las APIs backend"
-          - "Notificaciones push/toast"
-          - "Gráficos interactivos con Recharts/Chart.js"
-        documentation:
-          - "app-signature-router-admin/README.md"
-          - "app-signature-router-admin/IMPLEMENTACION-COMPLETA.md"
-          - "app-signature-router-admin/QUICK-START.md"
-          - "docs/sprint-artifacts/EPIC-6-7-STATUS-CORRECCION.md"
-        performance:
-          - "React 19 Server Components"
-          - "Lazy loading de componentes"
-          - "Optimización de imágenes con Next.js"
-          - "CSS optimizado con Tailwind"
-        security:
-          - "NextAuth 5.0 preparado"
-          - "API client con error handling"
-          - "TypeScript strict mode"
-          - "Preparado para integración con Keycloak (OAuth2)"
-
-  # Phase 3: Implementation (Additional Epics)
-  - phase: 3
-    name: "Implementation - Additional Epics"
-    note: "Epics adicionales identificadas durante la implementación"
-    workflows:
-      - id: "epic-11-mulesoft-integration"
-        name: "Epic 11: MuleSoft Integration"
-        agent: "architect"
-        command: "TBD"
-        status: "pending"
-        completed_date: null
-        summary: "Pendiente de reunión DevOps (2025-12-02) para obtener especificaciones de MuleSoft API Gateway"
-        context:
-          - "Integración con MuleSoft API Gateway como orquestador EBS corporativo"
-          - "Reemplazar comunicación directa con providers (Twilio, Firebase)"
-          - "Arquitectura Hexagonal permite Plug & Play migration"
-          - "Canales a confirmar: SMS, PUSH, VOICE, BIOMETRIC"
-        dependencies:
-          - "Reunión con equipo MuleSoft/DevOps"
-          - "OpenAPI spec de MuleSoft API"
-          - "Credenciales y URLs de ambientes (DEV, UAT, PROD)"
-          - "Confirmación de canales disponibles"
-        documentation:
-          - "docs/architecture/08-mulesoft-integration-strategy.md"
-          - "docs/architecture/adr/ADR-003-mulesoft-integration.md"
-          - "docs/architecture/MULESOFT-INTEGRACION-PLUG-AND-PLAY.md"
-          - "docs/executive/INFORME-MIGRACION-MULESOFT-2025-11-28.md"
-          - "docs/PREGUNTAS-MULESOFT-REUNION-LUNES.md"
-
-      - id: "epic-12-admin-panel-integration"
-        name: "Epic 12: Admin Panel Frontend-Backend Integration"
-        agent: "dev + architect"
-        command: "Implementación gradual en 3 fases"
-        status: "COMPLETED"
-        completed_date: "2025-11-30"
-        summary: "✅ 8/8 stories completadas - Endpoints backend para Admin Panel + Sistema Mock/Real toggle implementado - Frontend 100% funcional"
-        context:
-          - "Frontend Admin Panel ya 100% implementado (Epic 6 & 7)"
-          - "Cobertura backend actual: ~40%"
-          - "Necesario para funcionalidad completa con datos reales"
-          - "Sistema Mock/Real permite demos sin backend y migración incremental"
-        stories:
-          - id: "12-8"
-            name: "Mock/Backend Toggle System"
-            priority: "CRÍTICA"
-            phase: "0 - Foundation"
-            effort: "1 semana"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            description: "Sistema de alternancia entre mock data y backend real mediante feature flag"
-            implementation: "Frontend: config.ts, IApiClient interface, mock-client, real-client, factory pattern. NPM scripts: dev:mock, dev:real"
-          - id: "12-1"
-            name: "Dashboard Metrics Endpoint"
-            phase: "1 - Quick Win"
-            effort: "4-6 horas"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            implementation: "DashboardMetricsResponse, GetDashboardMetricsUseCase, DashboardMetricsController, Cache (1 min TTL)"
-          - id: "12-2"
-            name: "Admin Signatures Filters"
-            phase: "1 - Quick Win"
-            effort: "2-3 horas"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            implementation: "AdminSignatureListResponse, QueryAdminSignaturesUseCase, Specification pattern, Pagination/Sorting"
-          - id: "12-3"
-            name: "Providers Read-Only Endpoint"
-            phase: "1 - Quick Win"
-            effort: "1-2 horas"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            implementation: "ProviderListResponse, ProviderInventoryService, ProvidersController (read-only, health status)"
-          - id: "12-4"
-            name: "Metrics Analytics Endpoint"
-            phase: "2 - Integraciones"
-            effort: "1 semana"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            implementation: "MetricsAnalyticsResponse, GetMetricsAnalyticsUseCase, MetricsAnalyticsController, Cache (5 min TTL)"
-          - id: "12-5"
-            name: "Keycloak Users Proxy"
-            phase: "2 - Integraciones"
-            effort: "1 semana"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            implementation: "UserResponse, CreateUserRequest, UpdateUserRequest, KeycloakAdminService, Mock impl, UserManagementController (CRUD + roles)"
-          - id: "12-6"
-            name: "Keycloak Security Audit"
-            phase: "2 - Integraciones"
-            effort: "3-4 días"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            implementation: "SecurityOverviewResponse, AccessEventResponse, KeycloakSecurityService, Mock impl, SecurityAuditController, Cache (1 min)"
-          - id: "12-7"
-            name: "Prometheus AlertManager Integration"
-            phase: "2 - Integraciones"
-            effort: "2 días"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            implementation: "AlertResponse, AlertFilters, AlertManagerService, Mock impl, AlertsController (list, acknowledge, resolve)"
-        effort_total: "~5 semanas completo | ~2 semanas MVP (Fase 0 + Fase 1)"
-        dependencies:
-          - "Epic 6 & 7 (UI ya completa) ✅"
-          - "Keycloak (ya existe) ✅"
-          - "Prometheus AlertManager (verificar disponibilidad)"
-          - "Keycloak Admin Service Account (crear)"
-        documentation:
-          - "docs/epics/epic-12-admin-panel-integration.md"
-          - "docs/epics/EPIC-12-IMPLEMENTATION-SUMMARY.md (NUEVO - Resumen completo de implementación)"
-          - "docs/frontend/ANALISIS-COBERTURA-BACKEND-FRONTEND.md"
-          - "docs/frontend/ESTRATEGIA-MOCK-VS-BACKEND.md"
-          - "app-signature-router-admin/README.md"
-          - "app-signature-router-admin/MOCK-VS-REAL-GUIDE.md (NUEVO - Guía de uso Mock/Real)"
-          - "app-signature-router-admin/IMPLEMENTACION-COMPLETA.md"
-        decisions_pending:
-          - question: "¿Providers CRUD completo o read-only?"
-            option_a: "Read-only (1-2h) - RECOMENDADO MVP"
-            option_b: "CRUD completo (2-3 semanas) - Epic 13 futuro"
-          - question: "¿Sistema de Alertas?"
-            option_a: "Prometheus AlertManager (2 días) - RECOMENDADO"
-            option_b: "Sistema custom (2-3 semanas)"
-          - question: "¿Métricas?"
-            option_a: "Endpoint custom (1 semana) - RECOMENDADO"
-            option_b: "Grafana embed (1 día) - Alternativa rápida"
-        implementation_summary:
-          backend_files: 31
-          frontend_files: 7
-          endpoints_created: 8
-          cache_strategies: 3
-          mock_services: 3
-          total_effort: "~5 días de desarrollo"
-        value_delivered:
-          - "✅ Admin Panel 100% funcional para operaciones"
-          - "✅ Métricas en tiempo real sin Grafana externo"
-          - "✅ Gestión centralizada de usuarios y seguridad (Keycloak proxy)"
-          - "✅ Alertas proactivas para troubleshooting (AlertManager proxy)"
-          - "✅ Sistema Mock/Real permite demos sin backend"
-          - "✅ Transición suave de desarrollo a producción"
-          - "✅ Zero linter errors, documentación completa OpenAPI"
-        next_steps:
-          - "Implementar KeycloakAdminServiceImpl real (cuando esté disponible service account)"
-          - "Implementar AlertManagerServiceImpl real (cuando esté configurado AlertManager)"
-          - "E2E testing con Playwright"
-          - "Performance testing"
-          - "Demos funcionales sin dependencia de backend (mock mode)"
-      
-      - id: epic-13
-        name: "Epic 13: Providers CRUD Management"
-        status: completed
-        completion_date: "2025-11-30"
-        priority: high
-        description: "Sistema completo de gestión dinámica de proveedores de firma con CRUD, hot reload, Vault integration, y auditoría"
-        stories:
-          - id: "13-1"
-            name: "Database Schema & Migration"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "4 (LiquidBase changesets: dev/uat/prod, documentation)"
-            implementation: "Tables: provider_config, provider_config_history. UUIDv7, JSONB, Vault paths, seed data"
-          - id: "13-2"
-            name: "Provider Domain Model & Repository"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "7 (Domain models, Events, Ports, JPA entities, Repositories, Mappers)"
-            implementation: "ProviderConfig, ProviderType, ProviderConfigEvent, Repository pattern, JPA adapters"
-          - id: "13-3"
-            name: "Provider CRUD Use Cases"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "10 (Use case interfaces + implementations)"
-            implementation: "Create, Update, Delete, Get, List use cases. Event publishing, validations, soft delete"
-          - id: "13-4"
-            name: "Provider CRUD REST API"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "6 (DTOs, Mapper, Controller)"
-            endpoints: "5 (GET list, GET by id, POST create, PUT update, DELETE)"
-            implementation: "ProviderManagementController, RBAC (ADMIN), Jakarta Validation, Swagger docs"
-          - id: "13-5"
-            name: "Vault Integration for Credentials"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "5 (Port, Real adapter, Mock adapter, Config, YAML)"
-            implementation: "VaultCredentialsPort, VaultCredentialsAdapter (real + mock), Spring Vault, conditional beans"
-          - id: "13-6"
-            name: "Hot Reload Provider Registry"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "4 (Registry service, Event listener, Controller)"
-            endpoints: "2 (GET stats, POST reload)"
-            implementation: "ProviderRegistry (in-memory, thread-safe), Event-driven reload, ConcurrentHashMap"
-          - id: "13-7"
-            name: "Provider Templates & Presets"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "4 (DTO, Service, Controller)"
-            endpoints: "2 (GET templates, GET template by name)"
-            templates: "6 (Twilio SMS, FCM Push, Twilio Voice, AWS SNS, OneSignal, Biometric)"
-            implementation: "ProviderTemplateService, Pre-configured templates with best practices"
-          - id: "13-8"
-            name: "Provider Testing & Validation"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "5 (DTOs, Use case, Controller update)"
-            endpoints: "1 (POST /{id}/test)"
-            implementation: "TestProviderUseCase, Vault credentials validation, connectivity testing, TESTED event"
-          - id: "13-9"
-            name: "Provider Audit Log & History"
-            status: "COMPLETED ✅"
-            completed_date: "2025-11-30"
-            files: "8 (Domain model, Port, JPA entities, Repository, Mapper, Listener, DTO, Controller)"
-            endpoints: "2 (GET /{id}/history, GET /history)"
-            implementation: "ProviderConfigHistory, Async audit listener, Immutable history, Change types (CREATED/UPDATED/DELETED/ENABLED/DISABLED/TESTED)"
-          - id: "13-10"
-            name: "Admin UI - Providers Management Page"
-            status: "COMPLETED ✅ 100%"
-            completed_date: "2025-11-30"
-            files: "15 (React pages, 4 modals, API types/clients/mock-data, hooks)"
-            implementation: "Full CRUD UI with modals (Create/Edit/Delete/Test), Templates page, Mock data integration, Toast notifications"
-            components:
-              - "CreateProviderDialog.tsx - Modal para crear providers"
-              - "EditProviderDialog.tsx - Modal para editar providers"
-              - "DeleteProviderDialog.tsx - Modal para eliminar providers (soft delete)"
-              - "TestProviderDialog.tsx - Modal para probar conectividad"
-              - "providers/page.tsx - Página principal con grid de providers"
-              - "providers/templates/page.tsx - Catálogo de templates pre-configurados"
-              - "use-toast.ts - Hook para notificaciones"
-            mock_data_added:
-              - "mockProvidersData - 4 providers (Twilio SMS, Firebase FCM, Vonage Voice, BioCatch)"
-              - "mockProviderTemplates - 4 templates (Twilio, Firebase, Vonage, AWS SNS)"
-        total_files: "75+"
-        total_endpoints: "12 (Backend) + 7 (Frontend API)"
-        effort: "~8 hours (Backend 6.5h + Frontend 1.5h)"
-        documentation:
-          - "docs/epics/epic-13-providers-crud-management.md"
-          - "docs/epics/EPIC-13-IMPLEMENTATION-SUMMARY.md"
-          - "svc-signature-router/docs/database/provider-config-schema.md"
-        architecture_highlights:
-          - "Hexagonal Architecture with clear layer separation"
-          - "Event-Driven hot reload (no service restart)"
-          - "Vault integration for secure credential storage"
-          - "In-memory registry with thread-safe ConcurrentHashMap"
-          - "Audit trail with immutable history"
-          - "Template system for quick configuration"
-        value_delivered:
-          - "✅ Dynamic provider management without YAML edits"
-          - "✅ Hot reload without service restart"
-          - "✅ Secure credentials with HashiCorp Vault"
-          - "✅ Complete audit trail for compliance"
-          - "✅ Provider testing for validation"
-          - "✅ Templates for quick setup"
-          - "✅ Modern Admin UI for visual management (100% completado)"
-          - "✅ Full CRUD modals with form validation"
-          - "✅ Templates catalog page with filtering"
-          - "✅ Mock data integration for development"
-          - "✅ Toast notifications for user feedback"
-          - "✅ 0 linter errors"
-        ui_features:
-          - "✅ Create Provider Modal - Formulario completo con validaciones"
-          - "✅ Edit Provider Modal - Edición de configuración existente"
-          - "✅ Delete Provider Modal - Soft delete con confirmación"
-          - "✅ Test Provider Modal - Prueba de conectividad en tiempo real"
-          - "✅ Providers Page - Grid con filtros y acciones CRUD"
-          - "✅ Templates Page - Catálogo de templates pre-configurados"
-          - "✅ Real/Mock API switching - Desarrollo sin backend"
-
-  # ============================================================================
-  # ADDITIONAL WORK - Audit Trail Enhancement & Frontend Completion
-  # ============================================================================
-  - phase: 4
-    name: "Additional Work - Quality & Functionality Enhancement"
-    workflows:
-      - id: "audit-trail-analysis"
-        name: "Audit Trail Analysis & Restoration"
-        agent: "architect + dev"
-        command: "Investigation and root cause analysis"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        summary: "Comprehensive analysis of commits d0b83aa-04357a1 to identify suppressed functionality. Found architectural inconsistency: domain model had audit fields (routingTimeline, signedAt, completedAt) that were never persisted to database since project inception (commit 926891f)."
-        findings:
-          - "NO regression detected - commented code attempted to map non-existent DB columns"
-          - "Identified missing columns: routing_timeline (JSONB), signed_at, aborted_at, completed_at"
-          - "Domain model consistently used these fields but persistence layer never saved them"
-          - "Loss of critical audit trail data for compliance (BCRA/PCI-DSS)"
-        decision: "Execute Option 1: Complete the incomplete implementation"
-        
-      - id: "backend-persistence-restoration"
-        name: "Backend Persistence Layer Restoration"
-        agent: "dev"
-        command: "Liquibase migrations + entity mapping"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        commits:
-          - id: "d7fc4a4"
-            message: "feat: Add missing audit and timeline columns to persistence layer"
-            files: 11
-            details:
-              - "6 Liquibase migrations (0016, 0017 for dev/uat/prod)"
-              - "Added routing_timeline (JSONB) with GIN index"
-              - "Added signed_at (TIMESTAMP) with B-tree index"
-              - "Added completed_at (TIMESTAMP) to signature_challenge"
-              - "Verified aborted_at exists (migration 0010)"
-              - "Restored entity mappings in 5 Java files"
-              - "Uncommented @Column annotations and JSON serialization"
-          - id: "660be2e"
-            message: "test: Restore completedAt assertions in SignatureChallengeTest"
-            files: 1
-            details:
-              - "Restored 3 assertions for completedAt field"
-              - "Validates null for PENDING status"
-              - "Validates not-null for COMPLETED status"
-              - "Validates timestamp order (sentAt < completedAt)"
-          - id: "060e4e8"
-            message: "test: Add comprehensive unit tests for persistence mappers"
-            files: 2
-            lines: 1009
-            tests: 25
-            details:
-              - "SignatureRequestEntityMapperTest.java (501 lines, 11 tests)"
-              - "SignatureChallengeEntityMapperTest.java (508 lines, 14 tests)"
-              - "Tests JSONB serialization/deserialization"
-              - "Tests bidirectional mapping consistency"
-              - "Tests all states and channel types"
-              - "Improved mapper coverage from ~60% to ~95-98%"
-        coverage_improvement:
-          mappers: "60% → 95-98% (+35-38 points)"
-          overall: "78% → 78.3% (+0.3 points)"
-          test_speed: "30s (integration) → <1s (unit) = 30x faster"
-        
-      - id: "frontend-audit-visualization"
-        name: "Frontend Audit Trail Visualization"
-        agent: "dev (frontend)"
-        command: "React components for audit trail display"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        commit:
-          id: "d82b3f2"
-          message: "feat(frontend): Add audit trail visualization with routing timeline and signature details"
-          files: 6
-          lines: 887
-        components_created:
-          - name: "RoutingTimeline.tsx"
-            lines: 165
-            description: "Visual timeline component for routing events"
-            features:
-              - "Color-coded events (green=success, red=error, orange=fallback)"
-              - "Channel transition arrows (SMS→PUSH)"
-              - "Relative timestamps with date-fns (Spanish locale)"
-              - "Responsive card-based layout with connection lines"
-          - name: "SignatureDetailDialog.tsx"
-            lines: 385
-            description: "Comprehensive signature detail modal"
-            features:
-              - "Status overview with processing duration"
-              - "Customer and transaction information"
-              - "Complete timestamp history (created, signed, aborted, expired)"
-              - "Challenge list with completedAt and response times"
-              - "Provider proof with external references"
-              - "Integrated routing timeline visualization"
-          - name: "Separator.tsx"
-            lines: 37
-            description: "Radix UI separator for dialog sections"
-        api_enhancements:
-          - "types.ts: +177 lines (RoutingEvent, SignatureRequest, TransactionContext)"
-          - "mock-data.ts: +175 lines (generateMockSignatureRequests with 100 samples)"
-          - "mock-client.ts: +60 lines (getSignatureRequests, getSignatureRequest)"
-          
-      - id: "frontend-signatures-page"
-        name: "Frontend Signatures Page Enhancement"
-        agent: "dev (frontend)"
-        command: "Replace static page with dynamic API-driven implementation"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        commit:
-          id: "7629836"
-          message: "feat(frontend): Enhance signatures page with full audit trail and detail view"
-          files: 1
-          changes: "+183 -224 lines"
-        enhancements:
-          - "Replaced static hardcoded data with API integration"
-          - "Dynamic filtering by status (SIGNED, SENT, PENDING, FAILED, EXPIRED, ABORTED)"
-          - "Auto-refresh on filter changes"
-          - "Click-to-view detail dialog with full routing timeline"
-          - "Statistics dashboard: Total, Signed %, Pending, Avg Duration"
-          - "New columns: Amount, Channel with fallback indicator, Duration, Timeline count"
-          - "Search by signature ID or customer ID"
-          - "Empty/loading states with spinner"
-        
-      - id: "frontend-metrics-page"
-        name: "Frontend Metrics Page with Advanced Analytics"
-        agent: "dev (frontend)"
-        command: "Implement signedAt, completedAt, and fallback analytics"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        commit:
-          id: "8704a7b"
-          message: "feat(frontend): Add comprehensive metrics with signedAt, completedAt, and fallback analytics"
-          files: 3
-          changes: "+489 -203 lines"
-        new_metrics:
-          signature_duration:
-            description: "Analytics using signedAt field"
-            metrics:
-              - "Average, Median, P95 overall"
-              - "Per-channel breakdown (SMS/PUSH/VOICE/BIOMETRIC)"
-              - "Timeline for trend analysis"
-            calculation: "signedAt - createdAt in seconds"
-          challenge_completion:
-            description: "Analytics using completedAt field"
-            metrics:
-              - "Average response time per channel"
-              - "Completion rate percentage"
-              - "Total challenges count"
-            calculation: "completedAt - sentAt for completed challenges"
-          fallback_analytics:
-            description: "Analytics from routingTimeline events"
-            metrics:
-              - "Fallback rate percentage"
-              - "Total fallback count"
-              - "Channel transition matrix (SMS→PUSH: 12, etc.)"
-              - "Timeline with fallback trends"
-            detection: "Parse FALLBACK_TRIGGERED events from routing_timeline"
-        calculator_functions:
-          - "calculateSignatureDurationMetrics() - Duration stats"
-          - "calculateChallengeCompletionMetrics() - Response time stats"
-          - "calculateFallbackMetrics() - Routing timeline parser"
-          
-      - id: "frontend-real-api-client"
-        name: "Real API Client Implementation"
-        agent: "dev (frontend)"
-        command: "Spring Boot integration layer"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        commit:
-          id: "4f5674f"
-          message: "feat(frontend): Implement Real API Client for Spring Boot integration"
-          files: 1
-          changes: "+25 lines"
-        methods_implemented:
-          - name: "getSignatureRequests(filters)"
-            endpoint: "GET /api/v1/admin/signature-requests"
-            params: "status, channel, dateFrom, dateTo, page, size, sort"
-            returns: "PaginatedSignatureRequests"
-          - name: "getSignatureRequest(id)"
-            endpoint: "GET /api/v1/admin/signature-requests/{id}"
-            returns: "SignatureRequest with full audit trail"
-        features:
-          - "URLSearchParams for clean query strings"
-          - "Complete filter support"
-          - "Error handling inherited from base fetch()"
-          - "Ready for Spring Boot backend integration"
-        pending_backend:
-          - "Implement AdminSignatureRequestController"
-          - "Create SignatureRequestDTO with routingTimeline, signedAt"
-          - "Map JPA entities to DTOs"
-          
-      - id: "frontend-csv-export"
-        name: "CSV Export Functionality"
-        agent: "dev (frontend)"
-        command: "Data export for offline analysis"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        commit:
-          id: "1f09072"
-          message: "feat(frontend): Add CSV export functionality with routing timeline support"
-          files: 2
-          changes: "+254 lines new module"
-        export_module: "lib/utils/export.ts"
-        export_functions:
-          - name: "exportSignatureRequestsToCSV()"
-            columns: 19
-            fields: "id, customerId, status, amount, currency, transactionType, primaryChannel, primaryProvider, hasFallback, fallbackChannel, duration, createdAt, signedAt, expiresAt, abortedAt, abortReason, challengeCount, routingEventCount, hasFailures"
-            filename: "signature_requests_YYYYMMDD_HHmmss.csv"
-          - name: "exportSignatureRequestsWithTimeline()"
-            files_generated: 2
-            details:
-              - "signature_requests_YYYYMMDD_HHmmss.csv (same as above)"
-              - "routing_timeline_YYYYMMDD_HHmmss.csv (signatureId, customerId, timestamp, eventType, fromChannel, toChannel, reason)"
-            use_case: "Detailed audit trail analysis in Excel/BI tools"
-          - name: "exportChallenges()"
-            columns: 13
-            fields: "challengeId, signatureId, customerId, channelType, provider, status, sentAt, completedAt, responseTime (calculated), expiresAt, errorCode, externalReference, providerResponse"
-            filename: "challenges_YYYYMMDD_HHmmss.csv"
-        ui_integration:
-          - "DropdownMenu in Exportar button"
-          - "3 options clearly labeled with record counts"
-          - "Instant download (client-side, no server roundtrip)"
-          - "Works with filtered data"
-          
-      - id: "frontend-advanced-filters"
-        name: "Advanced Filters Implementation"
-        agent: "dev (frontend)"
-        command: "Multi-dimensional filtering"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        commit:
-          id: "de8698d"
-          message: "feat(frontend): Add advanced filters with date range and channel selection"
-          files: 1
-          changes: "+184 -54 lines"
-        filters_added:
-          channel_filter:
-            options: ["Todos", "SMS", "PUSH", "VOICE", "BIOMETRIC"]
-            ui: "Button grid 2×2 responsive"
-          date_range:
-            inputs: "HTML5 date type"
-            fields: ["Desde (dateFrom)", "Hasta (dateTo)"]
-            conversion:
-              - "dateFrom → 00:00:00.000 (start of day)"
-              - "dateTo → 23:59:59.999 (end of day)"
-            format: "ISO 8601"
-          collapsible_panel:
-            toggle: "Más Filtros / Ocultar button"
-            icon: "Filter icon"
-            animation: "Smooth expand/collapse"
-          clear_filters:
-            function: "Reset all filters to defaults"
-            disabled: "When no filters active"
-        auto_reload:
-          trigger: "useEffect on [statusFilter, channelFilter, dateFrom, dateTo]"
-          behavior: "Automatic API call on any filter change"
-        use_cases:
-          - "SLO Investigation: 'SIGNED signatures via SMS in last 7 days'"
-          - "Channel Analysis: 'VOICE signatures to analyze fallback patterns'"
-          - "Incident Response: 'FAILED signatures on 2024-11-29'"
-          - "Compliance Audit: 'All BIOMETRIC signatures for Q4 2024'"
-          
-      - id: "executive-report"
-        name: "Executive Report Generation"
-        agent: "tech-writer"
-        command: "Comprehensive documentation for committee"
-        status: "COMPLETED"
-        completed_date: "2025-12-01"
-        output: "docs/INFORME-MEJORAS-FRONTEND-BACKEND-2025-12-01.md"
-        sections:
-          - "Executive Summary with problem identification"
-          - "Detailed analysis of commits and root cause"
-          - "Complete solution implementation (backend + frontend)"
-          - "Unlocked capabilities with SQL query examples"
-          - "Impact metrics and coverage improvements"
-          - "Business benefits and ROI ($40k/year estimated)"
-          - "Compliance checklist (BCRA/PCI-DSS)"
-          - "Committee recommendations"
-          - "Next steps and pending actions"
-        page_count: "25+ pages"
-        
-    summary: |
-      Complete audit trail enhancement project executed and merged to main.
-      
-      COMMITS: 9 total (3 backend + 5 frontend + 1 docs)
-      - Backend: Persistence layer + tests (d7fc4a4, 660be2e, 060e4e8)
-      - Frontend: Visualization + metrics + export + filters (d82b3f2-de8698d)
-      - Docs: Executive report for committee review
-      
-      MERGED: All changes merged to main via Pull Request #1
-      
-      FUNCTIONALITY UNLOCKED:
-      ✅ Complete audit trail (routingTimeline persisted and visualized)
-      ✅ SLO monitoring (signedAt duration metrics)
-      ✅ User behavior analytics (completedAt response times)
-      ✅ Fallback pattern detection (routing events parsed)
-      ✅ CSV export with full audit trail (3 formats)
-      ✅ Advanced filtering (channel, date range, status)
-      ✅ Business intelligence dashboards
-      ✅ Compliance (BCRA/PCI-DSS non-repudiation)
-      
-      METRICS:
-      - Backend coverage: Mappers 60% → 95-98% (+35-38 points)
-      - Frontend: +1,640 lines new code, 4 components, 3 export functions
-      - Testing: +1,009 lines tests, 30x faster unit tests
-      - ROI: ~$40,000/year estimated savings
-      
-      PENDING (High Priority):
-      - Implement Spring Boot admin endpoints (/api/v1/admin/signature-requests)
-      - Create SignatureRequestDTO with audit fields
-      - End-to-end testing in DEV environment
-      - Deploy to QA for stakeholder validation
+# SIN EPIC 11, LA APLICACIÓN NO FUNCIONA (no se pueden enviar challenges)
