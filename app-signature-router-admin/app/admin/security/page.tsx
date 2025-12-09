@@ -133,7 +133,7 @@ export default function SecurityPage() {
               <div>
                 <h1 className="text-2xl font-bold">Seguridad</h1>
                 <p className="text-sm text-muted-foreground">
-                  Gestión de seguridad, autenticación y control de acceso
+                  Gestión de seguridad, autenticación y control de acceso - Epic 16 & 17
                 </p>
               </div>
             </div>
@@ -333,16 +333,20 @@ export default function SecurityPage() {
             </CardContent>
           </Card>
 
-          {/* Auditoría de Acceso */}
-          <Card className="md:col-span-2">
+          {/* Auditoría de Acceso - PENDIENTE: usar user_profile + audit_log */}
+          <Card className="md:col-span-2 border-amber-200 dark:border-amber-800">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <UserCheck className="h-5 w-5" />
-                Auditoría de Acceso
-              </CardTitle>
-              <CardDescription>
-                Últimos accesos y eventos de seguridad
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <UserCheck className="h-5 w-5" />
+                    Auditoría de Acceso
+                  </CardTitle>
+                  <CardDescription>
+                    Últimos accesos registrados desde audit_log (Epic 17 - Datos reales)
+                  </CardDescription>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               {loading && accessEvents.length === 0 ? (

@@ -1,17 +1,16 @@
 package com.bank.signature.application.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 
 import java.time.Instant;
 
 /**
  * Access Event Response DTO
  * Story 12.6: Keycloak Security Audit Endpoint
+ * Epic 17: Updated to work with real audit_log data
  * 
  * Represents a login/access event for security audit
  */
-@Builder
 @Schema(description = "Access event (login/logout) for security audit")
 public record AccessEventResponse(
     

@@ -30,6 +30,8 @@ import {
 import { AdminPageTitle } from '@/components/admin/admin-page-title';
 import { RuleEditorDialog } from '@/components/admin/rule-editor-dialog';
 import { useApiClientWithStatus } from '@/lib/api/use-api-client';
+import { RoleGuard } from '@/components/auth/role-guard';
+import { useHasPermission } from '@/lib/auth/use-has-permission';
 import type { RoutingRule, CreateRuleDto, UpdateRuleDto } from '@/lib/api/types';
 
 // Interfaz extendida para UI (incluye campos opcionales de métricas)
@@ -42,6 +44,7 @@ interface RuleWithMetrics extends RoutingRule {
 
 export default function RoutingRulesPage() {
   const { apiClient, isAuthenticated, isLoading: authLoading, redirectToLogin } = useApiClientWithStatus({ autoRedirect: true });
+  const { can } = useHasPermission();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<RuleWithMetrics | undefined>();
   const [rules, setRules] = useState<RuleWithMetrics[]>([]);
@@ -326,10 +329,12 @@ export default function RoutingRulesPage() {
                 <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                 Actualizar
               </Button>
-              <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleCreateRule}>
-                <Plus className="mr-2 h-4 w-4" />
-                Nueva Regla
-              </Button>
+              <RoleGuard permission="createRules">
+                <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleCreateRule}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nueva Regla
+                </Button>
+              </RoleGuard>
             </div>
           </div>
         </div>
@@ -500,32 +505,43 @@ export default function RoutingRulesPage() {
                         </code>
                       </TableCell>
                       <TableCell>
-                        <Switch
-                          checked={rule.enabled}
-                          onCheckedChange={() => toggleRule(rule.id)}
-                          disabled={actionLoading === rule.id}
-                        />
+                        <RoleGuard permission="toggleRules">
+                          <Switch
+                            checked={rule.enabled}
+                            onCheckedChange={() => toggleRule(rule.id)}
+                            disabled={actionLoading === rule.id}
+                          />
+                        </RoleGuard>
+                        {!can('toggleRules') && (
+                          <Badge variant="outline" className="text-xs">
+                            {rule.enabled ? 'Activa' : 'Inactiva'}
+                          </Badge>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
-                            onClick={() => handleEditRule(rule)}
-                            disabled={actionLoading === rule.id}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-red-500/10 hover:text-red-500"
-                            onClick={() => handleDeleteRule(rule.id)}
-                            disabled={actionLoading === rule.id}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <RoleGuard permission="updateRules">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary"
+                              onClick={() => handleEditRule(rule)}
+                              disabled={actionLoading === rule.id}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </RoleGuard>
+                          <RoleGuard permission="deleteRules">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 hover:bg-red-500/10 hover:text-red-500"
+                              onClick={() => handleDeleteRule(rule.id)}
+                              disabled={actionLoading === rule.id}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </RoleGuard>
                         </div>
                       </TableCell>
                     </TableRow>

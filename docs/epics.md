@@ -39,8 +39,9 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 | **E15** | Observability Platform Migration - Dynatrace | Migrar observabilidad a Dynatrace (estándar corporativo) | 8 stories | Reemplaza E9 con solución enterprise |
 | **E16** | User Audit Trail - JWT-Based Registration | Sistema de auditoría automática de usuarios basado en JWT | 5 stories | FR (nuevo): Auditoría de accesos |
 | **E17** | Comprehensive Audit Trail | Sistema de auditoría completo de todas las operaciones CRUD | 5 stories | FR (nuevo): Auditoría de operaciones |
+| **E18** | RBAC Frontend Implementation ✅ | Sistema de control de acceso basado en roles en frontend | 5 stories (DONE) | NFR-S1-S16 (Complementa E8) |
 
-**Total**: 15 Epics, ~127 Stories
+**Total**: 16 Epics, ~132 Stories
 
 **Notes:** 
 - Epic 11 (MuleSoft Integration) pendiente de especificaciones (reunión 2025-12-02)  
@@ -49,8 +50,9 @@ Este documento descompone el PRD de **Signature Router & Management System** en 
 - **Epic 15 creada 2025-12-04**: Dynatrace Integration (reemplaza Prometheus stack, alineación con estándar corporativo)
 - **Epic 16 creada 2025-12-04**: User Audit Trail basado en JWT (NO sincronización AD, registro automático en login)
 - **Epic 17 creada 2025-12-04**: Comprehensive Audit Trail (auditoría completa de operaciones CRUD, AOP-based, frontend completo)
+- **Epic 18 completada 2025-12-09**: RBAC Frontend Implementation (hooks, RoleGuard, sidebar filtering, permisos UI)
 
-**Última actualización:** 2025-12-05 17:00 - Auditoría de pantallas + fixes SpEL + fixes Signatures grid
+**Última actualización:** 2025-12-09 14:00 - RBAC Frontend completo + Epic 17 fixes
 
 ---
 

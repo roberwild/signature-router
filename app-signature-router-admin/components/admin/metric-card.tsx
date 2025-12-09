@@ -1,5 +1,6 @@
 import { LucideIcon, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 export interface MetricCardProps {
@@ -11,6 +12,8 @@ export interface MetricCardProps {
   trendValue?: string;
   color?: 'primary' | 'success' | 'warning' | 'danger';
   className?: string;
+  /** Optional badge to show (e.g., "MOCK" for placeholder data) */
+  badge?: string;
 }
 
 export function MetricCard({
@@ -22,6 +25,7 @@ export function MetricCard({
   trendValue,
   color = 'primary',
   className = '',
+  badge,
 }: MetricCardProps) {
   const colorClasses = {
     primary: 'text-primary',
@@ -43,9 +47,16 @@ export function MetricCard({
     >
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium text-muted-foreground">
-            {title}
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              {title}
+            </CardTitle>
+            {badge && (
+              <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/50">
+                {badge}
+              </Badge>
+            )}
+          </div>
           <div className="p-2 rounded-lg bg-singular-gray dark:bg-muted">
             <Icon className={cn('h-4 w-4', colorClasses[color])} />
           </div>

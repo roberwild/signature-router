@@ -116,8 +116,8 @@ export default function ProvidersPage() {
       await loadProviders();
 
       toast({
-        title: '✅ Sincronización Completa',
-        description: `${providers.length} providers sincronizados desde MuleSoft`,
+        title: '✅ Sincronización Completa (MOCK)',
+        description: `${providers.length} providers cargados desde BD local (MuleSoft pendiente)`,
       });
     } catch (error) {
       toast({
@@ -225,13 +225,13 @@ export default function ProvidersPage() {
   const getMuleSoftStatusColor = (status: string) => {
     switch (status) {
       case 'available':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'text-green-600 dark:text-green-400';
       case 'configured':
-        return 'bg-blue-50 text-blue-700 border-blue-200';
+        return 'text-blue-600 dark:text-blue-400';
       case 'down':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'text-red-600 dark:text-red-400';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'text-gray-500 dark:text-gray-400';
     }
   };
 
@@ -251,13 +251,13 @@ export default function ProvidersPage() {
   const getHealthStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-        return 'bg-green-50 text-green-700 border-green-200';
+        return 'text-green-600 dark:text-green-400';
       case 'unhealthy':
-        return 'bg-red-50 text-red-700 border-red-200';
+        return 'text-red-600 dark:text-red-400';
       case 'unknown':
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'text-yellow-600 dark:text-yellow-400';
       default:
-        return 'bg-gray-50 text-gray-700 border-gray-200';
+        return 'text-gray-500 dark:text-gray-400';
     }
   };
 
@@ -351,6 +351,18 @@ export default function ProvidersPage() {
 
   return (
     <div className="min-h-screen bg-singular-gray dark:bg-background">
+      {/* MOCK Banner */}
+      <div className="bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800">
+        <div className="mx-auto max-w-7xl px-6 py-2">
+          <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+            <AlertCircle className="h-4 w-4" />
+            <span className="text-sm font-medium">
+              MOCK: Integración MuleSoft pendiente - Los datos de sincronización provienen de la base de datos local
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="bg-gray-50 dark:bg-card border-b border-border">
         <div className="mx-auto max-w-7xl px-6 py-4">
@@ -362,6 +374,9 @@ export default function ProvidersPage() {
                   title="Provider Management"
                   info="MuleSoft Integration - Epic 13"
                 />
+                <Badge variant="outline" className="ml-2 text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/50">
+                  MOCK
+                </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-1">
                 Last sync: {stats.lastSync ? formatRelativeTime(stats.lastSync.toISOString()) : 'Never'} |
@@ -375,6 +390,8 @@ export default function ProvidersPage() {
                 variant="outline"
                 onClick={syncFromMuleSoft}
                 disabled={syncing}
+                className="border-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                title="MOCK: Sincronización simulada - MuleSoft pendiente"
               >
                 <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
                 {syncing ? 'Syncing...' : 'Sync from MuleSoft'}
@@ -603,18 +620,18 @@ function ProviderCard({
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>
               <p className="text-muted-foreground">MuleSoft</p>
-              <Badge variant="outline" className={getMuleSoftStatusColor(provider.muleSoftStatus)}>
+              <p className={`font-medium ${getMuleSoftStatusColor(provider.muleSoftStatus)}`}>
                 {getMuleSoftStatusIcon(provider.muleSoftStatus)} {provider.muleSoftStatus}
-              </Badge>
+              </p>
             </div>
             <div>
               <p className="text-muted-foreground">Health</p>
-              <Badge variant="outline" className={getHealthStatusColor(provider.healthStatus)}>
+              <p className={`font-medium ${getHealthStatusColor(provider.healthStatus)}`}>
                 {getHealthStatusIcon(provider.healthStatus)} {provider.healthStatus}
                 {provider.healthStatus === 'healthy' && provider.lastHealthLatency &&
                   ` (${provider.lastHealthLatency}ms)`
                 }
-              </Badge>
+              </p>
             </div>
             <div className="col-span-2">
               <p className="text-muted-foreground text-xs">Provider ID</p>

@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import Keycloak from "next-auth/providers/keycloak"
+import { extractRolesFromJWT } from "./lib/auth/roles"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -23,6 +24,39 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.refreshToken = account.refresh_token
         token.expiresAt = account.expires_at
         token.id = user?.id
+        
+        // Extract roles from JWT for RBAC
+        // Decode the access_token to get claims
+        if (account.access_token) {
+          try {
+            const base64Url = account.access_token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+            const decodedToken = JSON.parse(jsonPayload);
+            
+            // 🔍 DIAGNÓSTICO: Loguear estructura completa en DEV (útil para Keycloak corporativo)
+            if (process.env.NODE_ENV === 'development') {
+              console.log("[auth] ===== JWT PAYLOAD ANALYSIS =====")
+              console.log("[auth] realm_access:", decodedToken.realm_access)
+              console.log("[auth] resource_access:", decodedToken.resource_access)
+              console.log("[auth] groups:", decodedToken.groups)
+              console.log("[auth] ad_groups:", decodedToken.ad_groups)
+              console.log("[auth] ==================================")
+            }
+            
+            token.realm_access = decodedToken.realm_access
+            token.resource_access = decodedToken.resource_access
+            token.preferred_username = decodedToken.preferred_username
+            const roles = extractRolesFromJWT(decodedToken)
+            token.roles = roles
+            console.log("[auth] ✅ Extracted roles from JWT:", roles)
+          } catch (error) {
+            console.error("[auth] ❌ Error decoding JWT:", error)
+            token.roles = []
+          }
+        }
       }
       
       // Check if token has expired
@@ -41,6 +75,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.id) {
         session.user.id = token.id as string
       }
+      
+      // Include roles and JWT claims in session for frontend RBAC
+      session.token = {
+        realm_access: token.realm_access,
+        resource_access: token.resource_access,
+        preferred_username: token.preferred_username,
+      } as any
+      session.roles = token.roles as string[]
+      
       return session
     },
     async authorized({ auth, request }) {

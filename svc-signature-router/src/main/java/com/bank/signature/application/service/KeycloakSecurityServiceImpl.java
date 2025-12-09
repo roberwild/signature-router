@@ -77,16 +77,16 @@ public class KeycloakSecurityServiceImpl implements KeycloakSecurityService {
      * Convert UserProfile to AccessEventResponse.
      */
     private AccessEventResponse toAccessEvent(UserProfile user) {
-        return AccessEventResponse.builder()
-            .id(user.getId().toString())
-            .timestamp(user.getLastLoginAt())
-            .eventType("LOGIN") // We only track successful logins currently
-            .username(user.getUsername())
-            .userId(user.getId().toString())
-            .ipAddress(user.getLastLoginIp() != null ? user.getLastLoginIp() : "unknown")
-            .success(true) // All recorded logins are successful
-            .error(null) // No errors for successful logins
-            .build();
+        return new AccessEventResponse(
+            user.getId().toString(),
+            user.getLastLoginAt(),
+            "LOGIN", // We only track successful logins currently
+            user.getUsername(),
+            user.getId().toString(),
+            user.getLastLoginIp() != null ? user.getLastLoginIp() : "unknown",
+            true, // All recorded logins are successful
+            null // No errors for successful logins
+        );
     }
 }
 

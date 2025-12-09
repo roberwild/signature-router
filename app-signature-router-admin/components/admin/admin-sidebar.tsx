@@ -7,6 +7,8 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { performKeycloakLogout } from '@/lib/auth-utils';
 import { useApiClientWithStatus } from '@/lib/api/use-api-client';
+import { useHasPermission } from '@/lib/auth/use-has-permission';
+import { NAV_PERMISSIONS } from '@/lib/auth/roles';
 import {
   LayoutDashboard,
   Settings,
@@ -16,12 +18,12 @@ import {
   Shield,
   Bell,
   Users,
+  FileText,
   ChevronLeft,
   ChevronRight,
   Moon,
   Sun,
   LogOut,
-  FileText,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -44,12 +46,14 @@ const getNavigation = (badges: DynamicBadges) => [
     href: '/admin',
     icon: LayoutDashboard,
     badge: null,
+    requiredPermission: NAV_PERMISSIONS['/admin'],
   },
   {
     name: 'Reglas de Routing',
     href: '/admin/rules',
     icon: Settings,
     badge: null,
+    requiredPermission: NAV_PERMISSIONS['/admin/rules'],
   },
   {
     name: 'Monitoreo de Firmas',
@@ -58,24 +62,35 @@ const getNavigation = (badges: DynamicBadges) => [
     badge: badges.pendingSignatures > 0
       ? { value: badges.pendingSignatures, variant: 'warning' as const }
       : null,
+    requiredPermission: NAV_PERMISSIONS['/admin/signatures'],
   },
   {
     name: 'Proveedores',
     href: '/admin/providers',
     icon: Server,
     badge: null,
+    requiredPermission: NAV_PERMISSIONS['/admin/providers'],
   },
   {
     name: 'Métricas',
     href: '/admin/metrics',
     icon: BarChart3,
     badge: null,
+    requiredPermission: NAV_PERMISSIONS['/admin/metrics'],
   },
   {
     name: 'Seguridad',
     href: '/admin/security',
     icon: Shield,
     badge: null,
+    requiredPermission: NAV_PERMISSIONS['/admin/security'],
+  },
+  {
+    name: 'Auditoría',
+    href: '/admin/audit',
+    icon: FileText,
+    badge: null,
+    requiredPermission: NAV_PERMISSIONS['/admin/audit'],
   },
   {
     name: 'Alertas',
@@ -84,12 +99,14 @@ const getNavigation = (badges: DynamicBadges) => [
     badge: badges.activeAlerts > 0
       ? { value: badges.activeAlerts, variant: 'error' as const }
       : null,
+    requiredPermission: NAV_PERMISSIONS['/admin/alerts'],
   },
   {
     name: 'Usuarios',
     href: '/admin/users',
     icon: Users,
     badge: null,
+    requiredPermission: NAV_PERMISSIONS['/admin/users'],
   },
 ];
 
@@ -97,6 +114,7 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { apiClient, isLoading: sessionLoading, isAuthenticated } = useApiClientWithStatus();
+  const { hasRole: checkRole, roles, primaryRole } = useHasPermission();
   const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [badges, setBadges] = useState<DynamicBadges>({ pendingSignatures: 0, activeAlerts: 0 });
@@ -220,7 +238,13 @@ export function AdminSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-2 overflow-y-auto">
-        {navigation.map((item) => {
+        {navigation
+          .filter((item) => {
+            // Filter navigation items based on user roles
+            if (!item.requiredPermission) return true;
+            return checkRole(item.requiredPermission as any);
+          })
+          .map((item) => {
           // Para Dashboard (/admin), solo activar si es exactamente esa ruta
           // Para otras rutas, activar si coincide exactamente o si empieza con la ruta + '/'
           const isActive = mounted && (
@@ -303,6 +327,23 @@ export function AdminSidebar() {
 
       {/* Footer */}
       <div className="border-t border-border p-3 flex-shrink-0 space-y-2">
+        {/* User Role Badge */}
+        {primaryRole && !collapsed && (
+          <div className="px-3 py-2 rounded-lg bg-primary/10 border border-primary/20">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-primary truncate">
+                  {primaryRole.replace('PRF_', '')}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {roles.length} rol{roles.length !== 1 ? 'es' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Cerrar Sesión */}
         {!collapsed ? (
           <button

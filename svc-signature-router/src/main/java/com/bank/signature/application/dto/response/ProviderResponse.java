@@ -60,5 +60,36 @@ public class ProviderResponse {
     
     @JsonProperty("updated_by")
     private String updatedBy;
+    
+    // ========================================
+    // MuleSoft Integration Fields (MOCK)
+    // These fields simulate MuleSoft data until integration is complete
+    // Using camelCase to match frontend TypeScript interfaces
+    // ========================================
+    
+    private String muleSoftProviderId;
+    
+    private String muleSoftEndpoint;
+    
+    private String muleSoftStatus;
+    
+    private String healthStatus;
+    
+    private Instant lastHealthCheckAt;
+    
+    private Integer lastHealthLatency;
+    
+    private Instant lastSyncAt;
+    
+    // Metrics (MOCK - from MuleSoft when integrated)
+    private Integer requestsToday;
+    
+    private Double successRate;
+    
+    private Integer avgLatency;
+    
+    private Integer fallbackCount;
+    
+    private Instant lastUsedAt;
 }
 

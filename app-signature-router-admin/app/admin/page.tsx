@@ -279,11 +279,12 @@ export default function AdminDashboardPage() {
           </motion.div>
           <motion.div variants={itemVariants}>
             <MetricCard
-              title="Latencia Promedio (TODO)"
+              title="Latencia Promedio"
               value={`${metrics?.overview.avgLatency || 0}ms`}
-              description="⚠️ Placeholder - Dynatrace"
+              description="MOCK - Dynatrace pendiente"
               icon={Zap}
               color="warning"
+              badge="MOCK"
             />
           </motion.div>
         </motion.div>
@@ -467,17 +468,17 @@ export default function AdminDashboardPage() {
               </Card>
             </motion.div>
 
-            {/* Performance Metrics - TODO DYNATRACE */}
+            {/* Performance Metrics - MOCK DYNATRACE */}
             <motion.div variants={cardVariants}>
               <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-amber-600">Latencia del Sistema (TODO)</CardTitle>
-                      <CardDescription>P50, P95 y P99 - Placeholder con valores random</CardDescription>
+                      <CardTitle className="text-amber-600">Latencia del Sistema</CardTitle>
+                      <CardDescription>P50, P95 y P99 - Valores simulados</CardDescription>
                     </div>
-                    <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
-                      ⚠️ Dynatrace
+                    <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/50">
+                      MOCK - Dynatrace
                     </Badge>
                   </div>
                 </CardHeader>
@@ -629,9 +630,10 @@ export default function AdminDashboardPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: idx * 0.1 + 0.2 }}
-                            title="TODO: Uptime real desde Dynatrace"
+                            title="MOCK: Uptime simulado - Dynatrace pendiente"
                           >
-                            {provider.uptime}% uptime ⚠️
+                            {provider.uptime}% uptime
+                            <span className="ml-1 text-[10px] bg-amber-100 dark:bg-amber-950/50 px-1 rounded">MOCK</span>
                           </motion.span>
                           <motion.div
                             initial={{ scale: 0 }}

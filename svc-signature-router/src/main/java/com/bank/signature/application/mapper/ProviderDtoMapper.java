@@ -17,6 +17,10 @@ import java.util.UUID;
 @Component
 public class ProviderDtoMapper {
     
+    // MOCK: MuleSoft status options for visual variety
+    private static final String[] MULESOFT_STATUSES = {"available", "available", "available", "configured", "down"};
+    private static final String[] HEALTH_STATUSES = {"healthy", "healthy", "healthy", "unhealthy", "unknown"};
+    
     public ProviderConfig toDomain(CreateProviderRequest request, String createdBy) {
         return ProviderConfig.builder()
             .id(UUID.randomUUID())
@@ -56,6 +60,31 @@ public class ProviderDtoMapper {
     }
     
     public ProviderResponse toResponse(ProviderConfig domain) {
+        // Generate deterministic mock data based on provider ID hash
+        // This ensures same provider always shows same status (consistent UX)
+        int hash = domain.getId().hashCode();
+        int statusIndex = Math.abs(hash % 5);
+        
+        String muleSoftStatus = MULESOFT_STATUSES[statusIndex];
+        String healthStatus = HEALTH_STATUSES[statusIndex];
+        
+        // If provider is disabled, show as "configured" in MuleSoft and "unknown" health
+        if (!domain.isEnabled()) {
+            muleSoftStatus = "configured";
+            healthStatus = "unknown";
+        }
+        
+        // If MuleSoft is down, health should be unhealthy
+        if ("down".equals(muleSoftStatus)) {
+            healthStatus = "unhealthy";
+        }
+        
+        // Generate mock metrics (deterministic based on hash)
+        int requestsToday = 100 + Math.abs(hash % 5000);
+        double successRate = 85.0 + (Math.abs(hash % 150) / 10.0); // 85-100%
+        int avgLatency = 50 + Math.abs(hash % 400); // 50-450ms
+        Integer healthLatency = "healthy".equals(healthStatus) ? (20 + Math.abs(hash % 200)) : null;
+        
         return ProviderResponse.builder()
             .id(domain.getId())
             .providerType(domain.getProviderType())
@@ -71,6 +100,20 @@ public class ProviderDtoMapper {
             .updatedAt(domain.getUpdatedAt())
             .createdBy(domain.getCreatedBy())
             .updatedBy(domain.getUpdatedBy())
+            // MOCK: MuleSoft integration fields
+            .muleSoftProviderId("MULESOFT_" + domain.getProviderCode())
+            .muleSoftEndpoint("https://mulesoft.singularbank.com/api/v1/providers/" + domain.getProviderCode().toLowerCase())
+            .muleSoftStatus(muleSoftStatus)
+            .healthStatus(healthStatus)
+            .lastHealthCheckAt(Instant.now().minusSeconds(30 + Math.abs(hash % 300)))
+            .lastHealthLatency("healthy".equals(healthStatus) ? healthLatency : null)
+            .lastSyncAt(Instant.now().minusSeconds(60 + Math.abs(hash % 600)))
+            // MOCK: Metrics
+            .requestsToday(domain.isEnabled() ? requestsToday : 0)
+            .successRate(domain.isEnabled() ? successRate : null)
+            .avgLatency(domain.isEnabled() ? avgLatency : null)
+            .fallbackCount(domain.isEnabled() ? Math.abs(hash % 50) : 0)
+            .lastUsedAt(domain.isEnabled() ? Instant.now().minusSeconds(Math.abs(hash % 3600)) : null)
             .build();
     }
 }

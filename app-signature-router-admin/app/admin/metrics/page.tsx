@@ -412,13 +412,13 @@ export default function MetricsPage() {
           </Card>
         </div>
 
-        {/* Traditional Performance Metrics - LATENCIA TODO DYNATRACE */}
+        {/* Traditional Performance Metrics - MOCK DYNATRACE */}
         <div>
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
             Métricas de Rendimiento
-            <Badge variant="outline" className="ml-2 text-amber-600 border-amber-300 bg-amber-50">
-              ⚠️ TODO: Dynatrace
+            <Badge variant="outline" className="ml-2 text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/50">
+              MOCK - Dynatrace pendiente
             </Badge>
           </h2>
           <div className="grid gap-4 md:grid-cols-4">
@@ -426,9 +426,9 @@ export default function MetricsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-amber-600">P50 (TODO)</p>
+                    <p className="text-sm font-medium text-amber-600">P50</p>
                     <p className="text-2xl font-bold text-amber-600">{m.latency.current.p50}ms</p>
-                    <p className="text-xs text-amber-500">Placeholder</p>
+                    <p className="text-xs text-amber-500">MOCK</p>
                   </div>
                   <Zap className="h-8 w-8 text-amber-500/30" />
                 </div>
@@ -439,9 +439,9 @@ export default function MetricsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-amber-600">P95 (TODO)</p>
+                    <p className="text-sm font-medium text-amber-600">P95</p>
                     <p className="text-2xl font-bold text-amber-600">{m.latency.current.p95}ms</p>
-                    <p className="text-xs text-amber-500">Placeholder</p>
+                    <p className="text-xs text-amber-500">MOCK</p>
                   </div>
                   <TrendingUp className="h-8 w-8 text-amber-500/30" />
                 </div>
@@ -452,9 +452,9 @@ export default function MetricsPage() {
               <CardContent className="pt-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-amber-600">P99 (TODO)</p>
+                    <p className="text-sm font-medium text-amber-600">P99</p>
                     <p className="text-2xl font-bold text-amber-600">{m.latency.current.p99}ms</p>
-                    <p className="text-xs text-amber-500">Placeholder</p>
+                    <p className="text-xs text-amber-500">MOCK</p>
                   </div>
                   <Activity className="h-8 w-8 text-amber-500/30" />
                 </div>
@@ -476,16 +476,16 @@ export default function MetricsPage() {
           </div>
         </div>
 
-        {/* Latency Timeline Chart - TODO DYNATRACE */}
+        {/* Latency Timeline Chart - MOCK DYNATRACE */}
         <Card className="bg-gray-50 dark:bg-card shadow-sm border-amber-200 dark:border-amber-800">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-amber-600">Evolución de Latencia (TODO)</CardTitle>
-                <CardDescription>P50, P95 y P99 a lo largo del tiempo - Placeholder con valores random</CardDescription>
+                <CardTitle className="text-amber-600">Evolución de Latencia</CardTitle>
+                <CardDescription>P50, P95 y P99 a lo largo del tiempo - Valores simulados</CardDescription>
               </div>
-              <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
-                ⚠️ Dynatrace
+              <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/50">
+                MOCK - Dynatrace
               </Badge>
             </div>
           </CardHeader>
@@ -693,31 +693,36 @@ export default function MetricsPage() {
           </CardContent>
         </Card>
 
-        {/* Integration with Dynatrace */}
-        <Card className="bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 border-emerald-500/20">
+        {/* Integration with Dynatrace - PENDIENTE */}
+        <Card className="bg-gradient-to-r from-amber-500/5 to-amber-500/10 border-amber-500/20">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-bold mb-1">Observabilidad con Dynatrace</h3>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold">Observabilidad con Dynatrace</h3>
+                  <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50 dark:bg-amber-950/50">
+                    PENDIENTE
+                  </Badge>
+                </div>
                 <p className="text-sm text-muted-foreground mb-3">
-                  Monitorización inteligente con AI-powered insights y distributed tracing
+                  Monitorización inteligente con AI-powered insights y distributed tracing (integración pendiente)
                 </p>
                 <div className="flex gap-2">
-                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
+                  <Badge variant="outline" className="border-amber-500/30 text-amber-700 dark:text-amber-400">
                     <Activity className="mr-1 h-3 w-3" />
                     APM
                   </Badge>
-                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
+                  <Badge variant="outline" className="border-amber-500/30 text-amber-700 dark:text-amber-400">
                     <BarChart3 className="mr-1 h-3 w-3" />
                     Real User Monitoring
                   </Badge>
-                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-700 dark:text-emerald-400">
+                  <Badge variant="outline" className="border-amber-500/30 text-amber-700 dark:text-amber-400">
                     <Zap className="mr-1 h-3 w-3" />
                     Distributed Tracing
                   </Badge>
                 </div>
               </div>
-              <Activity className="h-16 w-16 text-emerald-500/20" />
+              <Activity className="h-16 w-16 text-amber-500/20" />
             </div>
           </CardContent>
         </Card>

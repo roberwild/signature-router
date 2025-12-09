@@ -49,6 +49,8 @@ import lombok.extern.slf4j.Slf4j;
  * 
  * Endpoints:
  * - GET /api/v1/admin/providers - List all providers
+ * - GET /api/v1/admin/providers/catalog - List providers (MuleSoft format)
+ * - POST /api/v1/admin/providers/sync - Sync from MuleSoft (MOCK)
  * - GET /api/v1/admin/providers/{id} - Get provider by ID
  * - POST /api/v1/admin/providers - Create provider
  * - PUT /api/v1/admin/providers/{id} - Update provider
@@ -101,6 +103,67 @@ public class ProviderManagementController {
 
         return ResponseEntity.ok(response);
     }
+
+    // ========================================
+    // MuleSoft Integration Endpoints (MOCK)
+    // ========================================
+    
+    /**
+     * Response DTO for sync operation
+     */
+    public record MuleSoftSyncResponse(
+        int synced,
+        String message,
+        boolean mulesoftIntegrated
+    ) {}
+
+    @GetMapping("/catalog")
+    @PreAuthorize("hasRole('PRF_ADMIN') or hasRole('PRF_CONSULTIVO')")
+    @Operation(summary = "Get provider catalog (MuleSoft format)", description = """
+            Returns provider catalog in MuleSoft-compatible format.
+            
+            **MOCK**: MuleSoft integration pending. Returns local database providers.
+            """)
+    public ResponseEntity<ProviderListResponse> getProviderCatalog(
+            @RequestParam(required = false) ProviderType type,
+            @RequestParam(required = false) Boolean enabled) {
+        log.info("GET /api/v1/admin/providers/catalog - type={}, enabled={}", type, enabled);
+        log.warn("MOCK: MuleSoft integration pending - returning local providers");
+        
+        // Reuse existing list logic
+        return listProviders(type, enabled);
+    }
+
+    @PostMapping("/sync")
+    @PreAuthorize("hasRole('PRF_ADMIN')")
+    @Operation(summary = "Sync providers from MuleSoft (MOCK)", description = """
+            Synchronize provider catalog from MuleSoft.
+            
+            **MOCK**: MuleSoft integration pending.
+            Currently returns existing providers from local database.
+            
+            When MuleSoft integration is complete, this will:
+            - Fetch provider catalog from MuleSoft API
+            - Update local database with new/changed providers
+            - Return sync status and count
+            """)
+    public ResponseEntity<MuleSoftSyncResponse> syncFromMuleSoft(Authentication authentication) {
+        String username = authentication.getName();
+        log.info("POST /api/v1/admin/providers/sync - user={}", username);
+        log.warn("MOCK: MuleSoft integration pending - returning existing providers as mock sync");
+
+        List<ProviderConfig> providers = listProvidersUseCase.execute();
+        
+        return ResponseEntity.ok(new MuleSoftSyncResponse(
+            providers.size(),
+            "Sync completed (MOCK - MuleSoft integration pending)",
+            false
+        ));
+    }
+
+    // ========================================
+    // Standard CRUD Endpoints
+    // ========================================
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('PRF_ADMIN') or hasRole('PRF_CONSULTIVO')")

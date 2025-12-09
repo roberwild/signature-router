@@ -1,8 +1,10 @@
 package com.bank.signature.infrastructure.adapter.inbound.rest.admin;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bank.signature.application.dto.response.AccessEventResponse;
 import com.bank.signature.application.dto.response.SecurityOverviewResponse;
+import com.bank.signature.application.service.AuditLogService;
 import com.bank.signature.application.service.KeycloakSecurityService;
+import com.bank.signature.domain.model.entity.AuditLog;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -56,6 +60,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SecurityAuditController {
 
     private final KeycloakSecurityService keycloakSecurityService;
+    private final AuditLogService auditLogService;
 
     /**
      * Get security overview metrics
@@ -147,16 +152,20 @@ public class SecurityAuditController {
      */
     @GetMapping("/access-audit")
     @PreAuthorize("hasAnyRole('PRF_ADMIN', 'PRF_CONSULTIVO')")
-    @Operation(summary = "Get access audit events", description = """
-            Returns list of login/logout events for security audit.
+    @Operation(summary = "Get access audit events (REAL DATA)", description = """
+            Returns list of login/logout events from audit_log table.
 
             **Event Information:**
             - Event ID and timestamp
-            - Event type (LOGIN, LOGOUT, LOGIN_ERROR)
+            - Event type (LOGIN, LOGOUT)
             - Username and user ID
             - IP address
             - Success status
-            - Error message (if failed)
+            - Session details (roles, email, token info)
+
+            **Data Source:**
+            - Epic 17: audit_log table (immutable)
+            - Automatically recorded via LoginAuditFilter on JWT validation
 
             **Events Ordering:**
             - Most recent events first
@@ -167,49 +176,22 @@ public class SecurityAuditController {
 
             **Use Cases:**
             - Security audit trail
-            - Failed login detection
-            - Suspicious IP detection
             - User activity monitoring
-
-            **Note:** This is a proxy to Keycloak Admin API events.
-            If keycloak.admin.mock=true, returns mock events.
+            - Compliance reporting
 
             **Security:**
             - Requires ROLE_ADMIN or ROLE_OPERATOR
             - OAuth2 JWT authentication
             """)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Access events retrieved successfully", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AccessEventResponse.class)), examples = @ExampleObject(name = "Access Events Example", value = """
-                    [
-                      {
-                        "id": "evt-1001",
-                        "timestamp": "2025-11-30T10:30:00Z",
-                        "eventType": "LOGIN",
-                        "username": "admin",
-                        "userId": "user-1",
-                        "ipAddress": "192.168.1.100",
-                        "success": true,
-                        "error": null
-                      },
-                      {
-                        "id": "evt-1002",
-                        "timestamp": "2025-11-30T10:25:00Z",
-                        "eventType": "LOGIN_ERROR",
-                        "username": "attacker",
-                        "userId": "user-unknown",
-                        "ipAddress": "203.0.113.45",
-                        "success": false,
-                        "error": "Invalid credentials"
-                      }
-                    ]
-                    """))),
+            @ApiResponse(responseCode = "200", description = "Access events retrieved successfully", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AccessEventResponse.class)))),
             @ApiResponse(responseCode = "400", description = "Invalid limit parameter", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "403", description = "Forbidden - ADMIN or OPERATOR role required", content = @Content(mediaType = "application/json"))
     })
     public ResponseEntity<List<AccessEventResponse>> getAccessAudit(
             @Parameter(description = "Maximum number of events to return (default: 100, max: 500)", example = "100") @RequestParam(defaultValue = "100") int limit) {
-        log.info("Getting access audit events (limit: {})", limit);
+        log.info("Getting access audit events from audit_log (limit: {})", limit);
 
         // Validate limit
         if (limit < 1 || limit > 500) {
@@ -217,10 +199,36 @@ public class SecurityAuditController {
             return ResponseEntity.badRequest().build();
         }
 
-        List<AccessEventResponse> events = keycloakSecurityService.getAccessAudit(limit);
+        // Get LOGIN/LOGOUT events from audit_log
+        List<AccessEventResponse> events = auditLogService.search(
+            null, // all users
+            AuditLog.OperationType.LOGIN, // LOGIN events only
+            AuditLog.EntityType.USER_PROFILE,
+            null, // no start date
+            null, // no end date
+            PageRequest.of(0, limit)
+        ).getContent().stream()
+            .map(this::mapAuditLogToAccessEvent)
+            .collect(Collectors.toList());
 
-        log.info("Retrieved {} access events", events.size());
+        log.info("Retrieved {} access events from audit_log", events.size());
 
         return ResponseEntity.ok(events);
+    }
+    
+    /**
+     * Map AuditLog to AccessEventResponse.
+     */
+    private AccessEventResponse mapAuditLogToAccessEvent(AuditLog auditLog) {
+        return new AccessEventResponse(
+            auditLog.getId().toString(),
+            auditLog.getTimestamp(), // Instant
+            auditLog.getOperation().name(), // LOGIN or LOGOUT
+            auditLog.getUsername(),
+            auditLog.getEntityId(), // userId
+            auditLog.getIpAddress(),
+            auditLog.isSuccess(),
+            auditLog.getErrorMessage()
+        );
     }
 }

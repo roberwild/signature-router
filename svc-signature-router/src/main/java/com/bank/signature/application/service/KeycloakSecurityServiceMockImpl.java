@@ -88,16 +88,16 @@ public class KeycloakSecurityServiceMockImpl implements KeycloakSecurityService 
             
             Instant eventTime = now.minusSeconds(i * 300 + random.nextInt(300)); // Every ~5 min
             
-            AccessEventResponse event = AccessEventResponse.builder()
-                .id("evt-" + (1000 + i))
-                .timestamp(eventTime)
-                .eventType(success ? (random.nextDouble() > 0.9 ? "LOGOUT" : "LOGIN") : "LOGIN_ERROR")
-                .username(username)
-                .userId("user-" + random.nextInt(10))
-                .ipAddress(ip)
-                .success(success)
-                .error(success ? null : (random.nextDouble() > 0.5 ? "Invalid credentials" : "Account locked"))
-                .build();
+            AccessEventResponse event = new AccessEventResponse(
+                "evt-" + (1000 + i),
+                eventTime,
+                success ? (random.nextDouble() > 0.9 ? "LOGOUT" : "LOGIN") : "LOGIN_ERROR",
+                username,
+                "user-" + random.nextInt(10),
+                ip,
+                success,
+                success ? null : (random.nextDouble() > 0.5 ? "Invalid credentials" : "Account locked")
+            );
             
             events.add(event);
         }

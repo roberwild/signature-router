@@ -5,41 +5,20 @@ import com.bank.signature.infrastructure.adapter.outbound.persistence.entity.Aud
 import org.springframework.stereotype.Component;
 
 /**
- * Mapper between AuditLog domain entity and AuditLogEntity JPA entity
+ * Mapper between AuditLog domain entity and AuditLogEntity JPA entity.
  * Epic 17: Comprehensive Audit Trail
+ * Story 17.1: Audit Log Domain Entity & Repository
  * 
  * @since Epic 17
  */
 @Component
 public class AuditLogEntityMapper {
     
-    public AuditLog toDomain(AuditLogEntity entity) {
-        if (entity == null) {
-            return null;
-        }
-        
-        return AuditLog.builder()
-            .id(entity.getId())
-            .timestamp(entity.getTimestamp())
-            .userId(entity.getUserId())
-            .username(entity.getUsername())
-            .operation(entity.getOperation())
-            .entityType(entity.getEntityType())
-            .entityId(entity.getEntityId())
-            .entityName(entity.getEntityName())
-            .changes(entity.getChanges())
-            .ipAddress(entity.getIpAddress())
-            .userAgent(entity.getUserAgent())
-            .success(entity.isSuccess())
-            .errorMessage(entity.getErrorMessage())
-            .metadata(entity.getMetadata())
-            .build();
-    }
-    
+    /**
+     * Convert domain AuditLog to JPA AuditLogEntity.
+     */
     public AuditLogEntity toEntity(AuditLog domain) {
-        if (domain == null) {
-            return null;
-        }
+        if (domain == null) return null;
         
         return AuditLogEntity.builder()
             .id(domain.getId())
@@ -58,5 +37,28 @@ public class AuditLogEntityMapper {
             .metadata(domain.getMetadata())
             .build();
     }
+    
+    /**
+     * Convert JPA AuditLogEntity to domain AuditLog.
+     */
+    public AuditLog toDomain(AuditLogEntity entity) {
+        if (entity == null) return null;
+        
+        return AuditLog.builder()
+            .id(entity.getId())
+            .timestamp(entity.getTimestamp())
+            .userId(entity.getUserId())
+            .username(entity.getUsername())
+            .operation(entity.getOperation())
+            .entityType(entity.getEntityType())
+            .entityId(entity.getEntityId())
+            .entityName(entity.getEntityName())
+            .changes(entity.getChanges())
+            .ipAddress(entity.getIpAddress())
+            .userAgent(entity.getUserAgent())
+            .success(entity.isSuccess())
+            .errorMessage(entity.getErrorMessage())
+            .metadata(entity.getMetadata())
+            .build();
+    }
 }
-

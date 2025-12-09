@@ -25,6 +25,11 @@ import type {
   RoutingRule,
   CreateRuleDto,
   UpdateRuleDto,
+  AuditLog,
+  AuditStats,
+  AuditFilterOptions,
+  AuditSearchParams,
+  PaginatedAuditLogs,
 } from './types';
 
 /**
@@ -418,6 +423,40 @@ export class RealApiClient implements IApiClient {
 
   async getProviderMetrics(providerId: string): Promise<ProviderMetrics> {
     return this.fetch(`/admin/providers/${providerId}/metrics`);
+  }
+
+  // ============================================
+  // Audit Log (Epic 17)
+  // ============================================
+
+  async getAuditLogs(page = 0, size = 20): Promise<PaginatedAuditLogs> {
+    return this.fetch(`/admin/audit?page=${page}&size=${size}`);
+  }
+
+  async searchAuditLogs(params: AuditSearchParams): Promise<PaginatedAuditLogs> {
+    const queryParams = new URLSearchParams();
+    
+    if (params.username) queryParams.append('username', params.username);
+    if (params.operation) queryParams.append('operation', params.operation);
+    if (params.entityType) queryParams.append('entityType', params.entityType);
+    if (params.startDate) queryParams.append('startDate', params.startDate);
+    if (params.endDate) queryParams.append('endDate', params.endDate);
+    if (params.page !== undefined) queryParams.append('page', params.page.toString());
+    if (params.size !== undefined) queryParams.append('size', params.size.toString());
+
+    return this.fetch(`/admin/audit/search?${queryParams.toString()}`);
+  }
+
+  async getEntityAuditHistory(entityId: string): Promise<AuditLog[]> {
+    return this.fetch(`/admin/audit/entity/${entityId}`);
+  }
+
+  async getAuditStats(): Promise<AuditStats> {
+    return this.fetch('/admin/audit/stats');
+  }
+
+  async getAuditFilterOptions(): Promise<AuditFilterOptions> {
+    return this.fetch('/admin/audit/filters');
   }
 }
 

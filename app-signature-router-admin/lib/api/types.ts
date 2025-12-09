@@ -445,6 +445,58 @@ export interface UpdateRuleDto extends Partial<CreateRuleDto> {}
 // ============================================
 // API Client Interface
 // ============================================
+// Audit Log Types (Epic 17)
+// ============================================
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  userId?: string;
+  username: string;
+  operation: string;
+  entityType: string;
+  entityId: string;
+  entityName?: string;
+  changes?: Record<string, any>;
+  ipAddress: string;
+  userAgent: string;
+  success: boolean;
+  errorMessage?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface AuditStats {
+  totalLogs: number;
+  createOperations: number;
+  updateOperations: number;
+  deleteOperations: number;
+  byEntityType: Record<string, number>;
+}
+
+export interface AuditFilterOptions {
+  operations: string[];
+  entityTypes: string[];
+}
+
+export interface AuditSearchParams {
+  username?: string;
+  operation?: string;
+  entityType?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  size?: number;
+}
+
+export interface PaginatedAuditLogs {
+  content: AuditLog[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
+
+// ============================================
 
 /**
  * Interfaz común que deben implementar tanto MockApiClient como RealApiClient
@@ -508,5 +560,12 @@ export interface IApiClient {
 
   // Provider Metrics (Epic 14 - MuleSoft Integration Ready)
   getProviderMetrics(providerId: string): Promise<ProviderMetrics>;
+
+  // Audit Log (Epic 17 - Comprehensive Audit Trail)
+  getAuditLogs(page?: number, size?: number): Promise<PaginatedAuditLogs>;
+  searchAuditLogs(params: AuditSearchParams): Promise<PaginatedAuditLogs>;
+  getEntityAuditHistory(entityId: string): Promise<AuditLog[]>;
+  getAuditStats(): Promise<AuditStats>;
+  getAuditFilterOptions(): Promise<AuditFilterOptions>;
 }
 
