@@ -14,6 +14,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.bank.signature.infrastructure.filter.FailedLoginAuditHandler;
 import com.bank.signature.infrastructure.filter.UserProfileSyncFilter;
 import com.bank.signature.infrastructure.security.CustomAccessDeniedHandler;
 import com.bank.signature.infrastructure.security.KeycloakJwtAuthenticationConverter;
@@ -65,7 +66,8 @@ public class SecurityConfig {
             HttpSecurity http, 
             KeycloakJwtAuthenticationConverter jwtAuthenticationConverter,
             CustomAccessDeniedHandler accessDeniedHandler,
-            UserProfileSyncFilter userProfileSyncFilter) throws Exception {
+            UserProfileSyncFilter userProfileSyncFilter,
+            FailedLoginAuditHandler failedLoginAuditHandler) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints (no authentication) - Story 8.1 AC9
@@ -88,6 +90,7 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .exceptionHandling(exceptions -> exceptions
                 .accessDeniedHandler(accessDeniedHandler) // Story 8.2: RBAC audit logging
+                .authenticationEntryPoint(failedLoginAuditHandler) // Story 17.5: Failed login audit
             )
             // Story 8.6: HSTS headers (HTTP Strict Transport Security)
             .headers(headers -> headers
