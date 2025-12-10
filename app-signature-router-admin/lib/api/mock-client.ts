@@ -25,6 +25,11 @@ import type {
   RoutingRule,
   CreateRuleDto,
   UpdateRuleDto,
+  AuditLog,
+  AuditStats,
+  AuditFilterOptions,
+  AuditSearchParams,
+  PaginatedAuditLogs,
 } from './types';
 
 import {
@@ -673,6 +678,125 @@ export class MockApiClient implements IApiClient {
     };
 
     return this.delay(mockMetrics);
+  }
+
+  // ============================================
+  // Audit Log (Epic 17)
+  // ============================================
+
+  async getAuditLogs(page = 0, size = 20): Promise<PaginatedAuditLogs> {
+    this.log('GET', `/api/v1/admin/audit?page=${page}&size=${size}`);
+
+    // Generate mock audit logs
+    const mockAuditLogs: AuditLog[] = Array.from({ length: size }, (_, i) => ({
+      id: `audit-${Date.now()}-${i}`,
+      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      userId: `user-${Math.floor(Math.random() * 10)}`,
+      username: ['admin', 'user1', 'operator2', 'auditor1'][Math.floor(Math.random() * 4)],
+      operation: ['CREATE', 'UPDATE', 'DELETE', 'READ'][Math.floor(Math.random() * 4)],
+      entityType: ['ROUTING_RULE', 'PROVIDER', 'USER', 'SIGNATURE'][Math.floor(Math.random() * 4)],
+      entityId: `entity-${Math.floor(Math.random() * 100)}`,
+      entityName: `Entity ${Math.floor(Math.random() * 100)}`,
+      changes: { field1: 'oldValue', field2: 'newValue' },
+      ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      success: Math.random() > 0.1,
+      errorMessage: Math.random() > 0.9 ? 'Permission denied' : undefined,
+      metadata: { source: 'admin-panel' },
+    }));
+
+    return this.delay({
+      content: mockAuditLogs,
+      totalElements: 1000,
+      totalPages: Math.ceil(1000 / size),
+      number: page,
+      size,
+    });
+  }
+
+  async searchAuditLogs(params: AuditSearchParams): Promise<PaginatedAuditLogs> {
+    this.log('GET', '/api/v1/admin/audit/search', params);
+
+    // Generate filtered mock audit logs
+    const size = params.size || 20;
+    const page = params.page || 0;
+
+    const mockAuditLogs: AuditLog[] = Array.from({ length: size }, (_, i) => ({
+      id: `audit-${Date.now()}-${i}`,
+      timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      userId: `user-${Math.floor(Math.random() * 10)}`,
+      username: params.username || ['admin', 'user1', 'operator2', 'auditor1'][Math.floor(Math.random() * 4)],
+      operation: params.operation || ['CREATE', 'UPDATE', 'DELETE', 'READ'][Math.floor(Math.random() * 4)],
+      entityType: params.entityType || ['ROUTING_RULE', 'PROVIDER', 'USER', 'SIGNATURE'][Math.floor(Math.random() * 4)],
+      entityId: `entity-${Math.floor(Math.random() * 100)}`,
+      entityName: `Entity ${Math.floor(Math.random() * 100)}`,
+      changes: { field1: 'oldValue', field2: 'newValue' },
+      ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
+      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      success: Math.random() > 0.1,
+      errorMessage: Math.random() > 0.9 ? 'Permission denied' : undefined,
+      metadata: { source: 'admin-panel' },
+    }));
+
+    return this.delay({
+      content: mockAuditLogs,
+      totalElements: 500,
+      totalPages: Math.ceil(500 / size),
+      number: page,
+      size,
+    });
+  }
+
+  async getEntityAuditHistory(entityId: string): Promise<AuditLog[]> {
+    this.log('GET', `/api/v1/admin/audit/entity/${entityId}`);
+
+    const mockHistory: AuditLog[] = Array.from({ length: 5 }, (_, i) => ({
+      id: `audit-${entityId}-${i}`,
+      timestamp: new Date(Date.now() - i * 24 * 60 * 60 * 1000).toISOString(),
+      userId: `user-${Math.floor(Math.random() * 10)}`,
+      username: ['admin', 'user1', 'operator2'][Math.floor(Math.random() * 3)],
+      operation: ['CREATE', 'UPDATE', 'DELETE'][i % 3],
+      entityType: 'ROUTING_RULE',
+      entityId,
+      entityName: `Entity ${entityId}`,
+      changes: { field1: `value${i}`, field2: `value${i + 1}` },
+      ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
+      userAgent: 'Mozilla/5.0',
+      success: true,
+      metadata: { source: 'admin-panel' },
+    }));
+
+    return this.delay(mockHistory);
+  }
+
+  async getAuditStats(): Promise<AuditStats> {
+    this.log('GET', '/api/v1/admin/audit/stats');
+
+    const mockStats: AuditStats = {
+      totalLogs: 10000,
+      createOperations: 3000,
+      updateOperations: 5000,
+      deleteOperations: 2000,
+      byEntityType: {
+        ROUTING_RULE: 4000,
+        PROVIDER: 3000,
+        USER: 2000,
+        SIGNATURE: 1000,
+      },
+    };
+
+    return this.delay(mockStats);
+  }
+
+  async getAuditFilterOptions(): Promise<AuditFilterOptions> {
+    this.log('GET', '/api/v1/admin/audit/filters');
+
+    const mockFilters: AuditFilterOptions = {
+      operations: ['CREATE', 'UPDATE', 'DELETE', 'READ'],
+      entityTypes: ['ROUTING_RULE', 'PROVIDER', 'USER', 'SIGNATURE'],
+    };
+
+    return this.delay(mockFilters);
   }
 }
 

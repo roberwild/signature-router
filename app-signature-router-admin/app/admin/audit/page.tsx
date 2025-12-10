@@ -146,10 +146,12 @@ export default function AuditPage() {
 
   const getOperationBadge = (operation: string) => {
     const styles = {
-      CREATE: 'text-green-700 dark:text-green-400',
-      UPDATE: 'text-blue-700 dark:text-blue-400',
-      DELETE: 'text-red-700 dark:text-red-400',
-      READ: 'text-gray-700 dark:text-gray-400',
+      CREATE: 'bg-green-600 hover:bg-green-700 text-white border-green-600',
+      UPDATE: 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600',
+      DELETE: 'bg-red-600 hover:bg-red-700 text-white border-red-600',
+      READ: 'bg-gray-500 hover:bg-gray-600 text-white border-gray-500',
+      LOGIN: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600',
+      LOGOUT: 'bg-orange-600 hover:bg-orange-700 text-white border-orange-600',
     };
 
     const icons = {
@@ -157,25 +159,32 @@ export default function AuditPage() {
       UPDATE: <Activity className="h-3 w-3" />,
       DELETE: <XCircle className="h-3 w-3" />,
       READ: <Info className="h-3 w-3" />,
+      LOGIN: <User className="h-3 w-3" />,
+      LOGOUT: <User className="h-3 w-3" />,
     };
 
     return (
-      <Badge className={styles[operation as keyof typeof styles] || 'text-gray-700'}>
-        {icons[operation as keyof typeof icons]} {operation}
+      <Badge className={styles[operation as keyof typeof styles] || 'bg-gray-500 text-white border-gray-500'}>
+        <span className="flex items-center gap-1">
+          {icons[operation as keyof typeof icons]} {operation}
+        </span>
       </Badge>
     );
   };
 
   const getEntityTypeBadge = (entityType: string) => {
     const styles = {
-      PROVIDER: 'text-purple-700 dark:text-purple-400',
-      ROUTING_RULE: 'text-indigo-700 dark:text-indigo-400',
-      OTHER: 'text-gray-700 dark:text-gray-400',
+      PROVIDER: 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600',
+      ROUTING_RULE: 'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-600',
+      USER_PROFILE: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600',
+      USER: 'bg-cyan-600 hover:bg-cyan-700 text-white border-cyan-600',
+      SIGNATURE: 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600',
+      OTHER: 'bg-gray-500 hover:bg-gray-600 text-white border-gray-500',
     };
 
     return (
-      <Badge className={styles[entityType as keyof typeof styles] || 'text-gray-700'}>
-        {entityType.replace('_', ' ')}
+      <Badge variant="secondary" className={styles[entityType as keyof typeof styles] || 'bg-gray-500 text-white border-gray-500'}>
+        {entityType.replace(/_/g, ' ')}
       </Badge>
     );
   };
