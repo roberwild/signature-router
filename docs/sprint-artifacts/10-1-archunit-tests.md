@@ -1,4 +1,4 @@
-# Story 10.1: ArchUnit Tests - Validación Automatizada de Arquitectura Hexagonal
+﻿# Story 10.1: ArchUnit Tests - Validación Automatizada de Arquitectura Hexagonal
 
 **Epic**: 10 - Quality Improvements & Technical Debt  
 **Story ID**: 10.1  
@@ -57,7 +57,7 @@ Esta story implementa validación automatizada de arquitectura hexagonal usando 
 **Given** El paquete de tests  
 **When** Reviso `src/test/java/com/bank/signature/architecture/`  
 **Then** Existe `HexagonalArchitectureTest.java` con:
-- Anotación `@AnalyzeClasses(packages = "com.bank.signature")`
+- Anotación `@AnalyzeClasses(packages = "com.singularbank.signature.routing")`
 - Clase pública con métodos `@ArchTest` estáticos
 - Mínimo 8 reglas ArchUnit implementadas
 
@@ -146,7 +146,7 @@ Esta story implementa validación automatizada de arquitectura hexagonal usando 
 ### ArchUnit Rules Implementation
 
 ```java
-package com.bank.signature.architecture;
+package com.singularbank.signature.routing.architecture;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -156,7 +156,7 @@ import com.tngtech.archunit.lang.ArchRule;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 
-@AnalyzeClasses(packages = "com.bank.signature")
+@AnalyzeClasses(packages = "com.singularbank.signature.routing")
 public class HexagonalArchitectureTest {
 
     @ArchTest

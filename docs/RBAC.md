@@ -1,4 +1,4 @@
-# RBAC - Role-Based Access Control
+﻿# RBAC - Role-Based Access Control
 
 **Story:** 8.2  
 **Epic:** 8 - Security & Compliance  
@@ -143,7 +143,7 @@ Implementación de **RBAC (Role-Based Access Control)** con 4 roles principales 
 ### **1. Role Enum (`Role.java`)**
 
 ```java
-package com.bank.signature.domain.security;
+package com.singularbank.signature.routing.domain.security;
 
 public enum Role {
     ADMIN,

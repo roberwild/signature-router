@@ -1,4 +1,4 @@
-# Epic Technical Specification: Quality Improvements & Technical Debt
+﻿# Epic Technical Specification: Quality Improvements & Technical Debt
 
 **Date:** 2025-11-29  
 **Author:** BMAD Architect Agent  
@@ -87,7 +87,7 @@ Este epic mejora la **calidad técnica** del sistema existente sin cambiar la ar
 ### Hexagonal Architecture Layers (Sin Cambios)
 
 ```
-com.bank.signature/
+com.singularbank.signature.routing/
 ├── domain/                    # Story 10.2: Tests unitarios >90%
 │   ├── model/
 │   │   ├── aggregate/SignatureRequest  # Tests: 95%+ coverage
@@ -133,7 +133,7 @@ com.bank.signature/
 
 #### 1. IdempotencyService (Story 10.5)
 
-**Location**: `com.bank.signature.application.service.IdempotencyService`
+**Location**: `com.singularbank.signature.routing.application.service.IdempotencyService`
 
 **Responsibilities**:
 - Validar `Idempotency-Key` header en requests
@@ -165,7 +165,7 @@ CREATE INDEX idx_idempotency_expires ON idempotency_record(expires_at);
 
 #### 2. SpelValidatorService (Story 10.6)
 
-**Location**: `com.bank.signature.application.service.SpelValidatorService`
+**Location**: `com.singularbank.signature.routing.application.service.SpelValidatorService`
 
 **Responsibilities**:
 - Validar expresiones SpEL contra whitelist
@@ -183,7 +183,7 @@ public record ValidationResult(boolean isValid, String errorMessage) {}
 ```
 
 **Whitelist Strategy**:
-- Solo permitir clases del paquete `com.bank.signature.domain`
+- Solo permitir clases del paquete `com.singularbank.signature.routing.domain`
 - Bloquear acceso a `java.lang.Runtime`, `java.lang.ProcessBuilder`
 - Bloquear acceso a `T()` function (TypeLocator)
 - Permitir solo operadores matemáticos y comparaciones básicas

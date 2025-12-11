@@ -1,4 +1,4 @@
-
+﻿
 # ✅ Arquitectura
 
 🏗️ Arquímedes (Arquitecto de Software Singular Bank):
@@ -23,7 +23,7 @@ BMad, he revisado en detalle la arquitectura del microservicio svc-signature-rou
 
 La estructura de paquetes es ejemplar:
 
-com.bank.signature/
+com.singularbank.signature.routing/
 
 ├── domain/      ← Lógica pura, SIN dependencias de frameworks
 
@@ -111,7 +111,7 @@ Muy bien implementado el DegradedModeManager:
 
 ### 2. Paquete Java
 
-- Actual: com.bank.signature
+- Actual: com.singularbank.signature.routing
 
 - Estándar Singular: com.singularbank.<dominio>.<contexto>
 

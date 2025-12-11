@@ -43,7 +43,7 @@ spring:
 
 logging:
   level:
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
     org.springframework.web: INFO
     org.apache.kafka: WARN
 

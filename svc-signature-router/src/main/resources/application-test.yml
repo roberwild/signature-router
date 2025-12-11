@@ -18,7 +18,7 @@ spring:
 
 logging:
   level:
-    com.bank.signature: DEBUG
+    com.singularbank.signature.routing: DEBUG
     org.apache.kafka: WARN
     org.springframework.kafka: INFO
 

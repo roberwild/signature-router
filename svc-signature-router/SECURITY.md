@@ -1,4 +1,4 @@
-# Security Guide - SpEL Expression Validation
+﻿# Security Guide - SpEL Expression Validation
 
 **Story 10.6: SpEL Security**  
 **Last Updated:** 2025-11-29
@@ -20,8 +20,8 @@ Only specific classes are allowed in SpEL expressions:
 **✅ Allowed Classes:**
 - `java.lang.Math` - Mathematical operations (abs, max, min, etc.)
 - `java.time.*` - Date/time operations (LocalDate, Instant, etc.)
-- `com.bank.signature.domain.model.valueobject.TransactionContext` - Transaction context
-- `com.bank.signature.domain.model.valueobject.Money` - Money value objects
+- `com.singularbank.signature.routing.domain.model.valueobject.TransactionContext` - Transaction context
+- `com.singularbank.signature.routing.domain.model.valueobject.Money` - Money value objects
 
 **❌ Prohibited Classes:**
 - `java.lang.Runtime` - Process execution

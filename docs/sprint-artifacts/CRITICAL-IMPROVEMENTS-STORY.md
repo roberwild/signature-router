@@ -1,4 +1,4 @@
-# Story: Critical Improvements for Production Readiness
+﻿# Story: Critical Improvements for Production Readiness
 
 **Epic:** Post-Epic 5 - Hardening  
 **Story ID:** CI-1  
@@ -241,7 +241,7 @@ logging:
   file:
     name: logs/signature-router.json
   level:
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
     org.springframework.web: WARN
 
 # Environment variable for logs

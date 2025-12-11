@@ -1,4 +1,4 @@
-# Technical Specification - Epic 5: Event-Driven Architecture
+﻿# Technical Specification - Epic 5: Event-Driven Architecture
 
 **Epic ID:** Epic-5  
 **Epic Name:** Event-Driven Architecture  
@@ -126,7 +126,7 @@ CREATE INDEX idx_outbox_created_at ON outbox_event(created_at ASC)
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "BaseEvent",
   "fields": [
@@ -375,7 +375,7 @@ CREATE INDEX idx_outbox_created_at ON outbox_event(created_at ASC)
 
 **Output Port:**
 ```java
-package com.bank.signature.application.port.output;
+package com.singularbank.signature.routing.application.port.output;
 
 public interface EventPublisher {
     void publish(DomainEvent event);
@@ -387,7 +387,7 @@ public interface EventPublisher {
 
 **Outbound Adapter:**
 ```java
-package com.bank.signature.infrastructure.adapter.outbound.event;
+package com.singularbank.signature.routing.infrastructure.adapter.outbound.event;
 
 @Component
 public class OutboxEventPublisherAdapter implements EventPublisher {

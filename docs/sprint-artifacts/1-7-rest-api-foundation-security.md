@@ -1,4 +1,4 @@
-# Story 1.7: REST API Foundation & Security
+﻿# Story 1.7: REST API Foundation & Security
 
 Status: review
 
@@ -147,8 +147,8 @@ so that Puedo exponer endpoints seguros documentados automáticamente.
 - Log level: DEBUG para request/response bodies, INFO para summary
 
 **And** Configuration:
-- `logging.level.com.bank.signature.infrastructure.adapter.inbound.rest=DEBUG` en `application-local.yml`
-- Production: `logging.level.com.bank.signature=INFO` (no request/response bodies)
+- `logging.level.com.singularbank.signature.routing.infrastructure.adapter.inbound.rest=DEBUG` en `application-local.yml`
+- Production: `logging.level.com.singularbank.signature.routing=INFO` (no request/response bodies)
 
 ### AC10: API Versioning Strategy
 **Given** API evolution requires versioning  

@@ -1,4 +1,4 @@
-# 🏢 Guía de Migración: Keycloak Local → Keycloak Corporativo
+﻿# 🏢 Guía de Migración: Keycloak Local → Keycloak Corporativo
 
 ## 📋 Índice
 
@@ -183,7 +183,7 @@ spring:
 logging:
   level:
     root: INFO
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
     org.springframework.security: INFO
   file:
     name: /var/log/signature-router/application.log
@@ -248,7 +248,7 @@ Si IT asigna roles como `APP_SIGNATURE_ADMIN`, `APP_SIGNATURE_USER`:
 ```java
 // src/main/java/com/bank/signature/infrastructure/config/security/CorporateJwtAuthenticationConverter.java
 
-package com.bank.signature.infrastructure.config.security;
+package com.singularbank.signature.routing.infrastructure.config.security;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.core.convert.converter.Converter;
@@ -443,7 +443,7 @@ Crear un endpoint temporal para verificar roles:
 ```java
 // src/main/java/com/bank/signature/infrastructure/adapter/inbound/rest/debug/DebugAuthController.java
 
-package com.bank.signature.infrastructure.adapter.inbound.rest.debug;
+package com.singularbank.signature.routing.infrastructure.adapter.inbound.rest.debug;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.Authentication;

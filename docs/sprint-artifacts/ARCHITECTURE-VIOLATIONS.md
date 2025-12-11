@@ -1,4 +1,4 @@
-# Architecture Violations - Known Issues
+﻿# Architecture Violations - Known Issues
 
 **Created**: 2025-11-29  
 **Story**: 10.1 - ArchUnit Tests  
@@ -15,7 +15,7 @@ This document tracks known architecture violations detected by ArchUnit tests. T
 ## Violation 1: Domain Port Uses Spring Data Type
 
 **Rule**: `domainModelsShouldNotDependOnSpring`  
-**Location**: `com.bank.signature.domain.port.outbound.SignatureRequestRepository`  
+**Location**: `com.singularbank.signature.routing.domain.port.outbound.SignatureRequestRepository`  
 **Issue**: Method `findByStatus()` uses `org.springframework.data.domain.Pageable` parameter
 
 **Current Code**:
@@ -41,7 +41,7 @@ List<SignatureRequest> findByStatus(SignatureStatus status, Pageable pageable);
 ## Violation 2: Application Service Depends on Infrastructure Adapter
 
 **Rule**: `applicationServicesShouldNotDependOnAdapters`  
-**Location**: `com.bank.signature.application.service.RoutingRuleAuditService`  
+**Location**: `com.singularbank.signature.routing.application.service.RoutingRuleAuditService`  
 **Issue**: Service directly depends on `RoutingRuleAuditLogJpaRepository` (infrastructure)
 
 **Current Code**:

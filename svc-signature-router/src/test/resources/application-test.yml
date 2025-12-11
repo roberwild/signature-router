@@ -31,7 +31,7 @@ spring:
 logging:
   level:
     root: WARN
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
     org.springframework: WARN
     org.springframework.security: INFO
     org.testcontainers: INFO

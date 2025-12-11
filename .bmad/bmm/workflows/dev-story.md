@@ -1,4 +1,4 @@
-# Workflow: dev-story
+﻿# Workflow: dev-story
 
 **Agente:** Developer (Dev)  
 **Comando:** `/bmad:bmm:workflows:dev-story`  
@@ -130,7 +130,7 @@ git checkout -b story/9-2-prometheus-metrics-export
 
 ```java
 // src/main/java/com/bank/signature/domain/model/valueobject/MetricEvent.java
-package com.bank.signature.domain.model.valueobject;
+package com.singularbank.signature.routing.domain.model.valueobject;
 
 import java.time.Instant;
 
@@ -164,9 +164,9 @@ public record MetricEvent(
 
 ```java
 // src/main/java/com/bank/signature/domain/port/outbound/MetricsPort.java
-package com.bank.signature.domain.port.outbound;
+package com.singularbank.signature.routing.domain.port.outbound;
 
-import com.bank.signature.domain.model.valueobject.MetricEvent;
+import com.singularbank.signature.routing.domain.model.valueobject.MetricEvent;
 
 /**
  * Outbound port for publishing application metrics.
@@ -198,10 +198,10 @@ public interface MetricsPort {
 
 ```java
 // src/main/java/com/bank/signature/infrastructure/adapter/outbound/metrics/PrometheusMetricsAdapter.java
-package com.bank.signature.infrastructure.adapter.outbound.metrics;
+package com.singularbank.signature.routing.infrastructure.adapter.outbound.metrics;
 
-import com.bank.signature.domain.port.outbound.MetricsPort;
-import com.bank.signature.domain.model.valueobject.MetricEvent;
+import com.singularbank.signature.routing.domain.port.outbound.MetricsPort;
+import com.singularbank.signature.routing.domain.model.valueobject.MetricEvent;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -279,7 +279,7 @@ public class PrometheusMetricsAdapter implements MetricsPort {
 
 ```java
 // src/main/java/com/bank/signature/infrastructure/config/MetricsConfig.java
-package com.bank.signature.infrastructure.config;
+package com.singularbank.signature.routing.infrastructure.config;
 
 import io.micrometer.core.aop.TimedAspect;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -373,7 +373,7 @@ management:
 
 ```java
 // src/test/java/com/bank/signature/domain/model/valueobject/MetricEventTest.java
-package com.bank.signature.domain.model.valueobject;
+package com.singularbank.signature.routing.domain.model.valueobject;
 
 import org.junit.jupiter.api.Test;
 
@@ -462,9 +462,9 @@ class MetricEventTest {
 
 ```java
 // src/test/java/com/bank/signature/infrastructure/adapter/outbound/metrics/PrometheusMetricsAdapterIntegrationTest.java
-package com.bank.signature.infrastructure.adapter.outbound.metrics;
+package com.singularbank.signature.routing.infrastructure.adapter.outbound.metrics;
 
-import com.bank.signature.domain.port.outbound.MetricsPort;
+import com.singularbank.signature.routing.domain.port.outbound.MetricsPort;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

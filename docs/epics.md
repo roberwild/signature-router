@@ -1,4 +1,4 @@
-# Signature Router & Management System - Epic Breakdown
+﻿# Signature Router & Management System - Epic Breakdown
 
 **Author:** BMAD Product Manager  
 **Date:** 2025-11-29  
@@ -953,7 +953,7 @@ Sistema ahora puede:
 ```java
 // src/test/java/com/bank/signature/architecture/HexagonalArchitectureTest.java
 
-@AnalyzeClasses(packages = "com.bank.signature")
+@AnalyzeClasses(packages = "com.singularbank.signature.routing")
 public class HexagonalArchitectureTest {
     
     @ArchTest
@@ -1343,7 +1343,7 @@ public void validate(String expression) {
             "java.lang.Math",
             "java.time.LocalDate",
             "java.time.Instant",
-            "com.bank.signature.domain.model.TransactionContext"
+            "com.singularbank.signature.routing.domain.model.TransactionContext"
         )
     ));
     
@@ -1472,7 +1472,7 @@ public SignatureRequest execute(StartSignatureCommand command) {
 {
   "timestamp": "2025-11-28T10:30:45.123Z",
   "level": "INFO",
-  "logger": "com.bank.signature.application.usecase.StartSignatureUseCaseImpl",
+  "logger": "com.singularbank.signature.routing.application.usecase.StartSignatureUseCaseImpl",
   "message": "Creating signature request",
   "mdc": {
     "traceId": "7f8a3d2b-1234-5678-abcd-9876543210ef",

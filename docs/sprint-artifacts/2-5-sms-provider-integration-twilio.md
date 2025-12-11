@@ -1,4 +1,4 @@
-# Story 2.5: SMS Provider Integration (Twilio)
+﻿# Story 2.5: SMS Provider Integration (Twilio)
 
 **Status:** ✅ Done  
 **Epic:** Epic 2 - Signature Routing Engine  
@@ -243,7 +243,7 @@ resilience4j:
         wait-duration: 500ms
         exponential-backoff-multiplier: 2  # 500ms, 1s, 2s
         retry-exceptions:
-          - com.bank.signature.domain.exception.ProviderException
+          - com.singularbank.signature.routing.domain.exception.ProviderException
           - com.twilio.exception.ApiException
   
   timelimiter:

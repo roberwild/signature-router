@@ -1,4 +1,4 @@
-# 🔷 Integración con Dynatrace - Signature Router
+﻿# 🔷 Integración con Dynatrace - Signature Router
 
 **Autor:** BMAD DevOps  
 **Fecha:** 2025-12-04  
@@ -449,10 +449,10 @@ export function reportError(error: Error) {
 Crear `svc-signature-router/src/main/java/com/bank/signature/application/service/AlertManagerServiceDynatraceImpl.java`:
 
 ```java
-package com.bank.signature.application.service;
+package com.singularbank.signature.routing.application.service;
 
-import com.bank.signature.application.dto.request.AlertFilters;
-import com.bank.signature.application.dto.response.AlertResponse;
+import com.singularbank.signature.routing.application.dto.request.AlertFilters;
+import com.singularbank.signature.routing.application.dto.response.AlertResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

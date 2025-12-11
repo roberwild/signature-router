@@ -1,4 +1,4 @@
-# Epic Technical Specification: Multi-Provider Integration
+﻿# Epic Technical Specification: Multi-Provider Integration
 
 Date: 2025-11-27
 Author: BMAD Architect Agent
@@ -189,7 +189,7 @@ Status: Draft
 
 #### 1. Provider Abstraction (Domain Layer)
 
-**Package**: `com.bank.signature.domain.port.outbound`
+**Package**: `com.singularbank.signature.routing.domain.port.outbound`
 
 ```java
 /**
@@ -240,7 +240,7 @@ public record ProviderResult(
 
 #### 2. Provider Implementations (Infrastructure Layer)
 
-**Package**: `com.bank.signature.infrastructure.adapter.outbound.provider`
+**Package**: `com.singularbank.signature.routing.infrastructure.adapter.outbound.provider`
 
 ##### 2.1 TwilioSmsProvider (Production)
 
@@ -497,7 +497,7 @@ public class BiometricProvider implements SignatureProvider {
 
 #### 3. Provider Adapter (Orchestration Layer)
 
-**Package**: `com.bank.signature.infrastructure.adapter.outbound.provider`
+**Package**: `com.singularbank.signature.routing.infrastructure.adapter.outbound.provider`
 
 ```java
 @Component
@@ -564,7 +564,7 @@ public class SignatureProviderAdapter implements SignatureProviderPort {
 
 #### 4. Provider Health Endpoint
 
-**Package**: `com.bank.signature.infrastructure.adapter.inbound.rest.admin`
+**Package**: `com.singularbank.signature.routing.infrastructure.adapter.inbound.rest.admin`
 
 ```java
 @RestController

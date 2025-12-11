@@ -1,4 +1,4 @@
-# 🧪 Guía de Pruebas - Signature Router
+﻿# 🧪 Guía de Pruebas - Signature Router
 
 **Versión:** 1.0  
 **Fecha:** 2025-11-27  
@@ -519,7 +519,7 @@ mvn test
 # application-local.yml
 logging:
   level:
-    com.bank.signature: DEBUG
+    com.singularbank.signature.routing: DEBUG
     io.github.resilience4j: DEBUG
 ```
 

@@ -1,4 +1,4 @@
-# JWT Validation & OAuth2 Resource Server Pattern
+﻿# JWT Validation & OAuth2 Resource Server Pattern
 
 **Documento técnico detallado - Story 1.7**  
 **Autor:** BMAD Dev Agent (Amelia)  
@@ -225,7 +225,7 @@ spring:
 
 ```java
 // JwtAuthenticationConverter.java
-package com.bank.signature.infrastructure.config.security;
+package com.singularbank.signature.routing.infrastructure.config.security;
 
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
@@ -318,9 +318,9 @@ private Collection<GrantedAuthority> extractRoles(Jwt jwt) {
 
 ```java
 // SecurityConfig.java
-package com.bank.signature.infrastructure.config;
+package com.singularbank.signature.routing.infrastructure.config;
 
-import com.bank.signature.infrastructure.config.security.JwtAuthenticationConverter;
+import com.singularbank.signature.routing.infrastructure.config.security.JwtAuthenticationConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -549,7 +549,7 @@ Cookie: JSESSIONID=abc123  # Browser sends automatically
 
 ```java
 // SecurityConfigurationIntegrationTest.java
-package com.bank.signature.infrastructure.config;
+package com.singularbank.signature.routing.infrastructure.config;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

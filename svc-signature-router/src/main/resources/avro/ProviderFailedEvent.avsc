@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "ProviderFailedEvent",
-  "namespace": "com.bank.signature.events.avro",
+  "namespace": "com.singularbank.signature.routing.events.avro",
   "doc": "Event published when all provider attempts have failed (FR42 - Story 5.4)",
   "fields": [
     {

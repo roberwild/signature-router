@@ -1,4 +1,4 @@
-# Story 10.5: Idempotencia Funcional - IdempotencyService
+﻿# Story 10.5: Idempotencia Funcional - IdempotencyService
 
 **Epic**: 10 - Quality Improvements & Technical Debt  
 **Story ID**: 10.5  
@@ -57,7 +57,7 @@ Esta story implementa idempotencia funcional para prevenir procesamiento duplica
 ### AC2: IdempotencyService Implemented
 
 **Given** Application layer  
-**When** Reviso `com.bank.signature.application.service`  
+**When** Reviso `com.singularbank.signature.routing.application.service`  
 **Then** Existe `IdempotencyService` con métodos:
 - `Optional<IdempotencyRecord> checkAndStore(String key, String hash)`
 - `Optional<IdempotencyRecord> getCachedResponse(String key)`
@@ -166,10 +166,10 @@ CREATE INDEX idx_idempotency_expires ON idempotency_record(expires_at);
 ### IdempotencyService Implementation
 
 ```java
-package com.bank.signature.application.service;
+package com.singularbank.signature.routing.application.service;
 
-import com.bank.signature.domain.model.IdempotencyRecord;
-import com.bank.signature.domain.port.outbound.IdempotencyRepository;
+import com.singularbank.signature.routing.domain.model.IdempotencyRecord;
+import com.singularbank.signature.routing.domain.port.outbound.IdempotencyRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

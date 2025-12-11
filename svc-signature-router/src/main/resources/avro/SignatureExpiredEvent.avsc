@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "SignatureExpiredEvent",
-  "namespace": "com.bank.signature.events.avro",
+  "namespace": "com.singularbank.signature.routing.events.avro",
   "doc": "Event published when a signature request expires (FR44 - Story 5.4)",
   "fields": [
     {

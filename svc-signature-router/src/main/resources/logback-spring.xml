@@ -16,7 +16,7 @@
             <appender-ref ref="CONSOLE"/>
         </root>
 
-        <logger name="com.bank.signature" level="DEBUG"/>
+        <logger name="com.singularbank.signature.routing" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>
     </springProfile>
 
@@ -76,7 +76,7 @@
             <appender-ref ref="FILE"/>
         </root>
 
-        <logger name="com.bank.signature" level="INFO"/>
+        <logger name="com.singularbank.signature.routing" level="INFO"/>
         <logger name="org.springframework.web" level="WARN"/>
         <logger name="org.springframework.security" level="WARN"/>
     </springProfile>

@@ -1,4 +1,4 @@
-# Story 3.10: Provider Metrics Tracking
+﻿# Story 3.10: Provider Metrics Tracking
 
 **Status:** in-review  
 **Epic:** Epic 3 - Multi-Provider Integration  
@@ -170,7 +170,7 @@ sum(rate(provider_calls_total[5m])) by (provider)
 **When** se implementa metrics tracking  
 **Then** se crea componente `ProviderMetrics`:
 
-- **Package**: `com.bank.signature.infrastructure.observability.metrics`
+- **Package**: `com.singularbank.signature.routing.infrastructure.observability.metrics`
 - **Class**: `ProviderMetrics` (similar a `ProviderRetryMetrics` Story 3.9)
 - **Dependency**: `MeterRegistry` (Micrometer)
 - **Methods**:

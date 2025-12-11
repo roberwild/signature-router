@@ -1,4 +1,4 @@
-# Story 1.1: Project Bootstrap & Hexagonal Structure
+﻿# Story 1.1: Project Bootstrap & Hexagonal Structure
 
 **Epic**: 1 - Foundation & Infrastructure  
 **Story ID**: 1.1  
@@ -36,7 +36,7 @@ Esta es la **primera story del proyecto** y establece la base técnica fundament
 **When** Ejecuto el bootstrap del proyecto  
 **Then** Se genera estructura Maven con:
 - Root `pom.xml` con:
-  - `groupId`: `com.bank.signature`
+  - `groupId`: `com.singularbank.signature.routing`
   - `artifactId`: `signature-router`
   - `version`: `0.1.0-SNAPSHOT`
   - Spring Boot parent: `3.2.0`
@@ -52,7 +52,7 @@ Esta es la **primera story del proyecto** y establece la base técnica fundament
 **Then** Existen los siguientes paquetes bajo `src/main/java/com/bank/signature/`:
 
 ```
-com.bank.signature/
+com.singularbank.signature.routing/
 ├── domain/
 │   ├── model/
 │   │   ├── aggregate/       # Para SignatureRequest (Story 1.5)
@@ -200,7 +200,7 @@ management:
 
 logging:
   level:
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
     org.springframework: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
@@ -217,7 +217,7 @@ spring:
 
 logging:
   level:
-    com.bank.signature: DEBUG
+    com.singularbank.signature.routing: DEBUG
 ```
 
 **`application-test.yml`** (para tests):
@@ -282,10 +282,10 @@ spring:
 
 - [x] **1.1** Crear directorio raíz `signature-router/`
 - [x] **1.2** Ejecutar `mvn archetype:generate` con parámetros:
-  - `groupId=com.bank.signature`
+  - `groupId=com.singularbank.signature.routing`
   - `artifactId=signature-router`
   - `version=0.1.0-SNAPSHOT`
-  - `package=com.bank.signature`
+  - `package=com.singularbank.signature.routing`
 - [x] **1.3** Configurar `pom.xml`:
   - Spring Boot parent version `3.2.0`
   - Java version `21`
@@ -307,11 +307,11 @@ spring:
   ```
 - [x] **2.2** Crear archivo placeholder `.gitkeep` en cada directorio vacío (para que Git los trackee)
 - [x] **2.3** Mover `Application.java` generada por archetype a `infrastructure/SignatureRouterApplication.java`
-- [x] **2.4** Actualizar package de `SignatureRouterApplication.java` a `com.bank.signature.infrastructure`
+- [x] **2.4** Actualizar package de `SignatureRouterApplication.java` a `com.singularbank.signature.routing.infrastructure`
 - [x] **2.5** Agregar `@ComponentScan` para escanear todos los paquetes:
   ```java
   @SpringBootApplication
-  @ComponentScan(basePackages = "com.bank.signature")
+  @ComponentScan(basePackages = "com.singularbank.signature.routing")
   public class SignatureRouterApplication { ... }
   ```
 
@@ -645,7 +645,7 @@ Claude Sonnet 4.5 via BMAD Dev Workflow
 
 #### Patterns Established
 
-1. **Package Naming Convention**: `com.bank.signature.{layer}.{component}` strictly enforced by project structure
+1. **Package Naming Convention**: `com.singularbank.signature.routing.{layer}.{component}` strictly enforced by project structure
    
 2. **Hexagonal Layers Implemented**:
    - **Domain**: Pure business logic (model/aggregate, model/entity, model/valueobject, service, port/inbound, port/outbound, exception)

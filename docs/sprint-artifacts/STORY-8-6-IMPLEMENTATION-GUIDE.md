@@ -1,4 +1,4 @@
-# 📋 STORY 8.6: TLS CERTIFICATE MANAGEMENT - IMPLEMENTATION GUIDE
+﻿# 📋 STORY 8.6: TLS CERTIFICATE MANAGEMENT - IMPLEMENTATION GUIDE
 
 **Epic:** 8 - Security & Compliance  
 **Story:** 8.6 - TLS Certificate Management  
@@ -82,7 +82,7 @@ echo "⚠️  WARNING: NOT trusted by browsers (for development only)"
 ```java
 // src/main/java/com/bank/signature/infrastructure/config/HttpsRedirectConfig.java
 
-package com.bank.signature.infrastructure.config;
+package com.singularbank.signature.routing.infrastructure.config;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
@@ -168,7 +168,7 @@ http
 ```java
 // src/main/java/com/bank/signature/infrastructure/health/SslHealthIndicator.java
 
-package com.bank.signature.infrastructure.health;
+package com.singularbank.signature.routing.infrastructure.health;
 
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -265,7 +265,7 @@ public class SslHealthIndicator implements HealthIndicator {
 ```java
 // src/main/java/com/bank/signature/infrastructure/metrics/TlsCertificateMetrics.java
 
-package com.bank.signature.infrastructure.metrics;
+package com.singularbank.signature.routing.infrastructure.metrics;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Gauge;
@@ -345,7 +345,7 @@ public class TlsCertificateMetrics {
 ```java
 // src/test/java/com/bank/signature/infrastructure/security/TlsIntegrationTest.java
 
-package com.bank.signature.infrastructure.security;
+package com.singularbank.signature.routing.infrastructure.security;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,4 +1,4 @@
-# ✅ VALIDACIÓN COMPLETA: Re-evaluación de Calidad 8.5/10
+﻿# ✅ VALIDACIÓN COMPLETA: Re-evaluación de Calidad 8.5/10
 
 **Fecha de Validación:** 29 de noviembre de 2025  
 **Metodología:** Análisis exhaustivo de código fuente, revisión de tests, verificación de implementaciones  
@@ -95,7 +95,7 @@ La re-evaluación afirmaba que la idempotencia está implementada completamente.
 ✅ IdempotencyControllerTest.java (tests de integración)
 ```
 
-**Coverage estimado:** 28% (según JaCoCo - `com.bank.signature.application.service`)
+**Coverage estimado:** 28% (según JaCoCo - `com.singularbank.signature.routing.application.service`)
 
 ### Calificación Final: ✅ **9/10** (Confirmado)
 

@@ -1,4 +1,4 @@
-# Hexagonal Architecture - Package Structure
+﻿# Hexagonal Architecture - Package Structure
 
 **Version:** 1.0  
 **Date:** 2025-11-26  
@@ -751,7 +751,7 @@ spring:
 
 logging:
   level:
-    com.bank.signature: DEBUG
+    com.singularbank.signature.routing: DEBUG
 ```
 
 ### 6.3 application-prod.yml
@@ -774,7 +774,7 @@ spring:
 
 logging:
   level:
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
 ```
 
 ---

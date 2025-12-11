@@ -1,4 +1,4 @@
-# Observability & Security
+﻿# Observability & Security
 
 **Version:** 1.0  
 **Date:** 2025-11-26  
@@ -58,7 +58,7 @@
         <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
     </appender>
     
-    <logger name="com.bank.signature" level="INFO"/>
+    <logger name="com.singularbank.signature.routing" level="INFO"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.hibernate" level="WARN"/>
     
@@ -828,7 +828,7 @@ public class AuditAspect {
     private final AuditLogRepository auditRepo;
     
     @AfterReturning(
-        pointcut = "@annotation(com.bank.signature.infrastructure.audit.Auditable)",
+        pointcut = "@annotation(com.singularbank.signature.routing.infrastructure.audit.Auditable)",
         returning = "result"
     )
     public void logAudit(JoinPoint joinPoint, Object result) {

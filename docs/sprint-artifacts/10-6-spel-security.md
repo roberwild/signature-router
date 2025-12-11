@@ -1,4 +1,4 @@
-# Story 10.6: SpEL Security - Whitelist TypeLocator y Validación
+﻿# Story 10.6: SpEL Security - Whitelist TypeLocator y Validación
 
 **Epic**: 10 - Quality Improvements & Technical Debt  
 **Story ID**: 10.6  
@@ -41,7 +41,7 @@ Esta story implementa validación de seguridad para expresiones SpEL usadas en r
 ### AC1: SpelValidatorService Created
 
 **Given** Application layer  
-**When** Reviso `com.bank.signature.application.service`  
+**When** Reviso `com.singularbank.signature.routing.application.service`  
 **Then** Existe `SpelValidatorService` con métodos:
 - `ValidationResult validate(String spelExpression)`
 - `boolean isSafe(String spelExpression)`
@@ -51,8 +51,8 @@ Esta story implementa validación de seguridad para expresiones SpEL usadas en r
 **Given** `SpelValidatorService`  
 **When** Valida expresión SpEL  
 **Then** Solo permite acceso a clases en whitelist:
-- ✅ `com.bank.signature.domain.model.valueobject.TransactionContext`
-- ✅ `com.bank.signature.domain.model.valueobject.Money`
+- ✅ `com.singularbank.signature.routing.domain.model.valueobject.TransactionContext`
+- ✅ `com.singularbank.signature.routing.domain.model.valueobject.Money`
 - ✅ `java.lang.Math` (abs, max, min, etc.)
 - ✅ `java.time.*` (LocalDate, Instant, etc.)
 - ❌ PROHIBIDO: `java.lang.Runtime`
@@ -154,7 +154,7 @@ Content-Type: application/json
 ### SpelValidatorService Implementation
 
 ```java
-package com.bank.signature.application.service;
+package com.singularbank.signature.routing.application.service;
 
 import org.springframework.expression.Expression;
 import org.springframework.expression.ExpressionParser;
@@ -169,8 +169,8 @@ import java.util.Set;
 public class SpelValidatorService {
     
     private static final Set<String> ALLOWED_CLASSES = Set.of(
-        "com.bank.signature.domain.model.valueobject.TransactionContext",
-        "com.bank.signature.domain.model.valueobject.Money",
+        "com.singularbank.signature.routing.domain.model.valueobject.TransactionContext",
+        "com.singularbank.signature.routing.domain.model.valueobject.Money",
         "java.lang.Math",
         "java.time.LocalDate",
         "java.time.Instant"

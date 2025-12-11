@@ -1,4 +1,4 @@
-# Story 4.4: Provider Error Rate Calculator
+﻿# Story 4.4: Provider Error Rate Calculator
 
 **Status:** done  
 **Epic:** Epic 4 - Resilience & Circuit Breaking  
@@ -504,7 +504,7 @@ Claude Sonnet 4.5 (2025-11-28)
    - Publishes `ProviderErrorRateExceeded` event when threshold exceeded for 30s
 
 2. **ProviderErrorRateExceeded Event Created** ✅
-   - Domain event in `com.bank.signature.domain.event` package
+   - Domain event in `com.singularbank.signature.routing.domain.event` package
    - Fields: provider, errorRate, threshold, timestamp
    - Helper methods: getErrorRatePercentage(), getThresholdPercentage()
 

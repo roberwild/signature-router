@@ -147,7 +147,7 @@ management:
 logging:
   level:
     root: INFO
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
     org.springframework: WARN
     org.hibernate: WARN
   pattern:
@@ -234,7 +234,7 @@ resilience4j:
         wait-duration: 500ms
         exponential-backoff-multiplier: 2  # 500ms, 1s, 2s
         retry-exceptions:
-          - com.bank.signature.domain.exception.ProviderException
+          - com.singularbank.signature.routing.domain.exception.ProviderException
           - com.twilio.exception.ApiException
       
       # Story 3.9: Provider Retry Logic - Per-provider retry instances

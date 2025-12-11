@@ -36,4 +36,4 @@ spring:
 logging:
   level:
     root: WARN
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO

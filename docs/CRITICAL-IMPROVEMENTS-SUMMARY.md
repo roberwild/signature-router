@@ -1,4 +1,4 @@
-# 🚀 Critical Improvements Summary
+﻿# 🚀 Critical Improvements Summary
 
 **Fecha:** 28 de noviembre de 2025  
 **Objetivo:** Elevar el proyecto de 7/10 a 9/10 en calidad production-ready  
@@ -258,7 +258,7 @@ public class TwilioSmsProviderContractTest {
   "@timestamp": "2025-11-28T09:30:00.123Z",
   "@version": "1",
   "message": "Starting signature request for customer: customer-123",
-  "logger_name": "com.bank.signature.application.usecase.StartSignatureUseCaseImpl",
+  "logger_name": "com.singularbank.signature.routing.application.usecase.StartSignatureUseCaseImpl",
   "thread_name": "http-nio-8080-exec-1",
   "level": "INFO",
   "application": "signature-router",

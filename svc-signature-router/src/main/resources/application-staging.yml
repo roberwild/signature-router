@@ -35,5 +35,5 @@ spring:
 logging:
   level:
     root: INFO
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
 

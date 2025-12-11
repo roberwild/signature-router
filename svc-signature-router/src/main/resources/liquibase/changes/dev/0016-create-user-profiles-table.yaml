@@ -1,7 +1,7 @@
 databaseChangeLog:
   - changeSet:
       id: 0016-create-user-profiles-table
-      author: bmad-dev-agent <dev@signature-router.com>
+      author: bmad-dev-agent <dev@singularbank.com>
       labels: story-16.1,epic-16
       context: dev,uat,prod
       comment: "Crear tabla user_profiles para auditoría automática de usuarios basada en JWT. Los usuarios se registran al hacer login, extrayendo datos de JWT claims (no sincronización AD)."

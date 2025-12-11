@@ -1,4 +1,4 @@
-# 🚀 Guía de Arranque del Backend
+﻿# 🚀 Guía de Arranque del Backend
 
 > Instrucciones paso a paso para arrancar el backend de Signature Router localmente
 
@@ -210,7 +210,7 @@ mvn spring-boot:run "-Dspring-boot.run.profiles=local"
 
 1. Abrir el proyecto `svc-signature-router`
 2. Crear configuración de ejecución:
-   - **Main class**: `com.bank.signature.SignatureRouterApplication`
+   - **Main class**: `com.singularbank.signature.routing.SignatureRouterApplication`
    - **Active profiles**: `local`
    - **Working directory**: `H:\Proyectos\signature-router\svc-signature-router`
 3. Ejecutar

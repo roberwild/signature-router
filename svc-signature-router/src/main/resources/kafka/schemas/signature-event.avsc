@@ -1,5 +1,5 @@
 {
-  "namespace": "com.bank.signature.event",
+  "namespace": "com.singularbank.signature.routing.event",
   "type": "record",
   "name": "SignatureEvent",
   "doc": "Domain event for Signature Request lifecycle (banking-grade event streaming)",

@@ -1,4 +1,4 @@
-# 🚀 Sesión Épica: Arranque del Proyecto Signature Router
+﻿# 🚀 Sesión Épica: Arranque del Proyecto Signature Router
 
 > **Fecha**: 28-29 de Noviembre de 2025  
 > **Duración**: ~3 horas  
@@ -69,11 +69,11 @@ Conseguimos arrancar exitosamente una aplicación Spring Boot compleja con arqui
 **Solución**:
 ```java
 // ANTES
-import com.bank.signature.domain.model.valueobject.Channel;
+import com.singularbank.signature.routing.domain.model.valueobject.Channel;
 private Channel channel;
 
 // DESPUÉS
-import com.bank.signature.domain.model.valueobject.ChannelType;
+import com.singularbank.signature.routing.domain.model.valueobject.ChannelType;
 private ChannelType channel;
 ```
 
@@ -112,12 +112,12 @@ private ChannelType channel;
 **Solución**:
 ```java
 // ANTES (incorrecto - los records no tienen builder)
-return com.bank.signature.events.avro.SignatureCompletedEvent.newBuilder()
+return com.singularbank.signature.routing.events.avro.SignatureCompletedEvent.newBuilder()
     .setEventId(domain.eventId().toString())
     .build();
 
 // DESPUÉS (correcto)
-return com.bank.signature.events.avro.SignatureCompletedEvent.newBuilder()
+return com.singularbank.signature.routing.events.avro.SignatureCompletedEvent.newBuilder()
     .setEventId(domain.eventId().toString())
     .setOccurredAt(domain.occurredAt().toEpochMilli())
     .setAggregateId(domain.aggregateId().toString())

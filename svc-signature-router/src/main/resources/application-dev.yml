@@ -20,6 +20,6 @@ admin:
 logging:
   level:
     root: INFO
-    com.bank.signature: DEBUG  # Debug level for development
+    com.singularbank.signature.routing: DEBUG  # Debug level for development
     org.springframework.security: DEBUG  # Debug security issues
 

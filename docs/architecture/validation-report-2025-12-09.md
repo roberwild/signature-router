@@ -1,4 +1,4 @@
-# Reporte de Validación de Arquitectura - Signature Router
+﻿# Reporte de Validación de Arquitectura - Signature Router
 # Cumplimiento con Estándares Corporativos Singular Bank
 
 **Documento Validado:** `docs/✅ Arquitectura.md`  
@@ -330,12 +330,12 @@ Este proyecto sigue el patrón corporativo de Singular Bank para microservicios 
 | Database tables | ⚠️ NO | Implicit snake_case (signature_request) | ⚠️ |
 | Components | ✅ | PascalCase (SignatureRequest.java) | ✅ |
 | Files | ✅ | PascalCase + type suffix (SignatureMapper.java) | ✅ |
-| Packages | ⚠️ NO | com.bank.signature (NO sigue estándar com.singularbank) | ⚠️ |
+| Packages | ⚠️ NO | com.singularbank.signature.routing (NO sigue estándar com.singularbank) | ⚠️ |
 
 **Issues:**
 
 1. ✗ **Naming conventions NO corporativas:**
-   - **Actual:** `com.bank.signature`
+   - **Actual:** `com.singularbank.signature.routing`
    - **Estándar Singular Bank:** `com.singularbank.signature.routing`
    - **Impacto:** Medio - refactoring costoso para v2
 
@@ -821,7 +821,7 @@ Este proyecto sigue el patrón corporativo de Singular Bank para microservicios 
 #### 2. Paquete Java (⚠️ MEDIUM)
 
 **Issue:**
-- **Actual:** `com.bank.signature`
+- **Actual:** `com.singularbank.signature.routing`
 - **Estándar Singular Bank:** `com.singularbank.<dominio>.<contexto>`
 - **Esperado:** `com.singularbank.signature.routing`
 
@@ -959,7 +959,7 @@ jpa:
 - API routes: `/api/v{major}/resource` (plural, kebab-case)
 - DB tables: `snake_case` (ej: `signature_request`)
 - Java classes: `PascalCase` + type suffix (ej: `SignatureMapper`)
-- Packages: `com.bank.signature.{layer}.{component}`
+- Packages: `com.singularbank.signature.routing.{layer}.{component}`
 
 **Structure Patterns:**
 - Tests: Mirror `src/main/java` structure in `src/test/java`

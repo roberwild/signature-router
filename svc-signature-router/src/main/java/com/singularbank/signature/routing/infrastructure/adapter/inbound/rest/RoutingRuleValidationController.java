@@ -1,0 +1,94 @@
+package com.singularbank.signature.routing.infrastructure.adapter.inbound.rest;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.singularbank.signature.routing.application.dto.SpelValidationRequest;
+import com.singularbank.signature.routing.application.dto.SpelValidationResponse;
+import com.singularbank.signature.routing.domain.service.SpelValidatorService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * REST controller for SpEL expression validation.
+ * Story 10.6: SpEL Security
+ * Story 8.2: RBAC - Role-Based Access Control
+ * 
+ * <p>
+ * Provides endpoint for validating SpEL expressions before creating routing
+ * rules.
+ * This allows admins and support users to test expressions in the UI before
+ * submitting them.
+ * </p>
+ * 
+ * <p>
+ * <b>Access Control:</b> ADMIN or SUPPORT (validation is read-only,
+ * non-destructive)
+ * </p>
+ * 
+ * @since Story 10.6
+ */
+@RestController
+@RequestMapping("/api/v1/admin/routing-rules")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Routing Rule Validation", description = "SpEL expression validation (ADMIN, SUPPORT)")
+@SecurityRequirement(name = "bearerAuth")
+public class RoutingRuleValidationController {
+
+    private final SpelValidatorService spelValidatorService;
+
+    /**
+     * Validate a SpEL expression.
+     * 
+     * <p>
+     * Validates the expression for syntax and security before it can be used
+     * in a routing rule. Returns validation result without persisting anything.
+     * </p>
+     * 
+     * @param request Validation request containing SpEL expression
+     * @return Validation result with isValid flag and error message if invalid
+     */
+    @PostMapping("/validate-spel")
+    @PreAuthorize("hasAnyRole('PRF_ADMIN', 'PRF_CONSULTIVO')")
+    @Operation(summary = "Validate SpEL expression", description = "Validates a SpEL expression for syntax and security. "
+            +
+            "Use this endpoint to test expressions before creating routing rules.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Validation completed", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = SpelValidationResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid request (missing expression)"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized"),
+            @ApiResponse(responseCode = "403", description = "Forbidden (requires ADMIN role)")
+    })
+    public ResponseEntity<SpelValidationResponse> validateSpel(
+            @Valid @RequestBody SpelValidationRequest request) {
+
+        log.debug("Validating SpEL expression: {}", request.expression());
+
+        com.singularbank.signature.routing.domain.service.SpelValidatorService.ValidationResult result = spelValidatorService
+                .validateWithResult(request.expression());
+
+        if (result.valid()) {
+            log.info("SpEL expression validated successfully: {}", request.expression());
+            return ResponseEntity.ok(SpelValidationResponse.success());
+        } else {
+            log.warn("SpEL expression validation failed: {} - {}",
+                    request.expression(), result.errorMessage());
+            return ResponseEntity.ok(SpelValidationResponse.failure(result.errorMessage()));
+        }
+    }
+}

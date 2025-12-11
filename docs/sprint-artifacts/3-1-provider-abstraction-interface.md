@@ -1,4 +1,4 @@
-# Story 3.1: Provider Abstraction Interface
+﻿# Story 3.1: Provider Abstraction Interface
 
 **Status:** ✅ Ready for Review  
 **Epic:** Epic 3 - Multi-Provider Integration  
@@ -51,7 +51,7 @@ Esta abstracción es **fundamental** para las 9 stories restantes de Epic 3.
 **Estimated:** 1h
 
 #### Subtasks:
-1. [x] Crear interface `SignatureProviderPort` en `com.bank.signature.domain.port.outbound`
+1. [x] Crear interface `SignatureProviderPort` en `com.singularbank.signature.routing.domain.port.outbound`
 2. [x] Definir método `ProviderResult sendChallenge(SignatureChallenge challenge)`
 3. [x] Definir método `HealthStatus checkHealth(ProviderType providerType)`
 4. [x] Agregar JavaDoc completo con:
@@ -76,7 +76,7 @@ Esta abstracción es **fundamental** para las 9 stories restantes de Epic 3.
 **Estimated:** 1h
 
 #### Subtasks:
-1. [x] Crear record `ProviderResult` en `com.bank.signature.domain.model.valueobject`
+1. [x] Crear record `ProviderResult` en `com.singularbank.signature.routing.domain.model.valueobject`
 2. [x] Definir campos:
    - `boolean success`
    - `String providerChallengeId` (nullable if failure)
@@ -107,7 +107,7 @@ Esta abstracción es **fundamental** para las 9 stories restantes de Epic 3.
 **Estimated:** 30min
 
 #### Subtasks:
-1. [x] Crear enum `ProviderType` en `com.bank.signature.domain.model.valueobject`
+1. [x] Crear enum `ProviderType` en `com.singularbank.signature.routing.domain.model.valueobject`
 2. [x] Definir valores:
    - SMS ("SMS Provider")
    - PUSH ("Push Notification Provider")
@@ -131,7 +131,7 @@ Esta abstracción es **fundamental** para las 9 stories restantes de Epic 3.
 **Estimated:** 30min
 
 #### Subtasks:
-1. [x] Crear record `HealthStatus` en `com.bank.signature.domain.model.valueobject`
+1. [x] Crear record `HealthStatus` en `com.singularbank.signature.routing.domain.model.valueobject`
 2. [x] Definir campos:
    - `Status status` (enum: UP, DOWN)
    - `String details`
@@ -401,7 +401,7 @@ Esta abstracción es **fundamental** para las 9 stories restantes de Epic 3.
 ### Package Structure
 
 ```
-com.bank.signature/
+com.singularbank.signature.routing/
 ├── domain/
 │   ├── model/
 │   │   ├── aggregate/
@@ -531,7 +531,7 @@ public record ProviderResult(
 - ❌ `com.google.firebase.*`
 - ❌ `org.springframework.web.client.*`
 - ❌ `org.apache.http.*`
-- ✅ ONLY `java.*` y `com.bank.signature.domain.*`
+- ✅ ONLY `java.*` y `com.singularbank.signature.routing.domain.*`
 
 **Rationale:** Domain purity permite:
 - Testing sin infrastructure
@@ -811,7 +811,7 @@ Story 3.1 implementation is **EXCEPTIONAL**. All 12 acceptance criteria fully im
 **Domain Purity:**
 - ✅ `SignatureProviderPort` has ZERO infrastructure dependencies (validated by imports and ArchUnit)
 - ✅ Value objects (ProviderResult, ProviderType, HealthStatus) are pure domain objects
-- ✅ Only dependencies: `java.*` and `com.bank.signature.domain.*`
+- ✅ Only dependencies: `java.*` and `com.singularbank.signature.routing.domain.*`
 
 **Port & Adapters Pattern:**
 - ✅ Port interface correctly defined in `domain/port/outbound`

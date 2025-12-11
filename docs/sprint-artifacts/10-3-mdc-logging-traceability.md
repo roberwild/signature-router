@@ -1,4 +1,4 @@
-# Story 10.3: MDC Logging & Traceability
+﻿# Story 10.3: MDC Logging & Traceability
 
 **Status:** completed  
 **Epic:** Epic 10 - Quality & Testing Excellence  
@@ -124,7 +124,7 @@ try {
             <appender-ref ref="JSON" />
         </root>
         <!-- Application logs at INFO -->
-        <logger name="com.bank.signature" level="INFO" />
+        <logger name="com.singularbank.signature.routing" level="INFO" />
     </springProfile>
 </configuration>
 ```
@@ -133,7 +133,7 @@ try {
 **File:** `src/main/java/com/bank/signature/infrastructure/filter/MdcFilter.java`
 
 ```java
-package com.bank.signature.infrastructure.filter;
+package com.singularbank.signature.routing.infrastructure.filter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;

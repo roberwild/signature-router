@@ -1,4 +1,4 @@
-# Story 3.9: Provider Retry Logic
+﻿# Story 3.9: Provider Retry Logic
 
 **Status:** done  
 **Epic:** Epic 3 - Multi-Provider Integration  
@@ -184,7 +184,7 @@ Implementa retry logic inteligente para todos los provider calls con:
 4. [ ] Crear custom `RetryExceptionPredicate` para filtrar exceptions retryables:
    - Twilio ApiException: Solo retry si status >= 500 (5xx server errors)
    - FCM FirebaseMessagingException: Solo retry si error code = UNAVAILABLE o INTERNAL
-   - Implementar en `com.bank.signature.infrastructure.resilience.RetryExceptionPredicate`
+   - Implementar en `com.singularbank.signature.routing.infrastructure.resilience.RetryExceptionPredicate`
 
 5. [ ] Registrar RetryExceptionPredicate como bean Spring
 
@@ -222,7 +222,7 @@ Implementa retry logic inteligente para todos los provider calls con:
    - Subscribe a Resilience4j retry events (onRetry, onSuccess, onError)
    - Log retry events con structured logging (JSON)
    - Publish Prometheus metrics
-   - Implementar en `com.bank.signature.infrastructure.resilience.RetryEventListener`
+   - Implementar en `com.singularbank.signature.routing.infrastructure.resilience.RetryEventListener`
 
 6. [ ] Registrar RetryEventListener en cada Retry instance (application.yml o @Bean)
 
@@ -600,7 +600,7 @@ resilience4j:
           - java.util.concurrent.TimeoutException
           - com.twilio.exception.ApiException
         retryOnException: # Custom predicate
-          - com.bank.signature.infrastructure.resilience.RetryExceptionPredicate
+          - com.singularbank.signature.routing.infrastructure.resilience.RetryExceptionPredicate
       
       pushRetry:
         baseConfig: default

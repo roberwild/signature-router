@@ -1,4 +1,4 @@
-# Epic Technical Specification: Foundation & Infrastructure
+﻿# Epic Technical Specification: Foundation & Infrastructure
 
 **Date:** 2025-11-26  
 **Author:** BMAD Architect Agent  
@@ -56,7 +56,7 @@ Este epic implementa las **capas foundation** definidas en `docs/architecture/02
 ### Hexagonal Architecture Layers
 
 ```
-com.bank.signature/
+com.singularbank.signature.routing/
 ├── domain/                    # Story 1.5: Pure business logic
 │   ├── model/
 │   │   ├── aggregate/SignatureRequest
@@ -349,7 +349,7 @@ spring:
 #### SignatureRequest Aggregate (Story 1.5)
 
 ```java
-package com.bank.signature.domain.model.aggregate;
+package com.singularbank.signature.routing.domain.model.aggregate;
 
 @Value
 @Builder
@@ -376,7 +376,7 @@ public class SignatureRequest {
 #### TransactionContext Value Object (Story 1.5)
 
 ```java
-package com.bank.signature.domain.model.valueobject;
+package com.singularbank.signature.routing.domain.model.valueobject;
 
 @Value
 public class TransactionContext {
@@ -396,7 +396,7 @@ public class TransactionContext {
 #### SignatureChallenge Entity (Story 1.5)
 
 ```java
-package com.bank.signature.domain.model.entity;
+package com.singularbank.signature.routing.domain.model.entity;
 
 @Value
 @Builder
@@ -419,7 +419,7 @@ public class SignatureChallenge {
 #### JPA Entity Mapping (Story 1.6)
 
 ```java
-package com.bank.signature.infrastructure.adapter.outbound.persistence.entity;
+package com.singularbank.signature.routing.infrastructure.adapter.outbound.persistence.entity;
 
 @Entity
 @Table(name = "signature_request")
@@ -461,7 +461,7 @@ public class SignatureRequestEntity {
 **Outbound Port - Repository**:
 
 ```java
-package com.bank.signature.domain.port.outbound;
+package com.singularbank.signature.routing.domain.port.outbound;
 
 public interface SignatureRequestRepository {
     void save(SignatureRequest request);
@@ -474,7 +474,7 @@ public interface SignatureRequestRepository {
 **Inbound Port - Use Case** (interface only en Story 1.5, impl en Epic 2):
 
 ```java
-package com.bank.signature.domain.port.inbound;
+package com.singularbank.signature.routing.domain.port.inbound;
 
 public interface StartSignatureUseCase {
     SignatureResponse start(CreateSignatureRequest request);

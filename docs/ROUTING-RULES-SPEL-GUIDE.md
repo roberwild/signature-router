@@ -1,4 +1,4 @@
-# 📚 Guía Completa de Routing Rules y SpEL
+﻿# 📚 Guía Completa de Routing Rules y SpEL
 
 **Proyecto:** Signature Router  
 **Fecha:** Diciembre 2025  
@@ -821,7 +821,7 @@ Response: 204 No Content
 
 ```
 EL1008E: Property or field 'amount' cannot be found on object of type 
-'com.bank.signature.infrastructure.adapter.outbound.routing.RoutingServiceImpl$RoutingContext'
+'com.singularbank.signature.routing.infrastructure.adapter.outbound.routing.RoutingServiceImpl$RoutingContext'
 ```
 
 **Solución:**

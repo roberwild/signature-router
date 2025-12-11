@@ -1,4 +1,4 @@
-# Event Catalog - Kafka Events
+﻿# Event Catalog - Kafka Events
 
 **Version:** 1.0  
 **Date:** 2025-11-26  
@@ -74,7 +74,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "BaseEvent",
   "fields": [
@@ -125,7 +125,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "SignatureRequestCreated",
   "fields": [
@@ -193,7 +193,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "ChallengeSent",
   "fields": [
@@ -270,7 +270,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "ChallengeFailed",
   "fields": [
@@ -352,7 +352,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "ProviderFailed",
   "fields": [
@@ -423,7 +423,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "SignatureCompleted",
   "fields": [
@@ -505,7 +505,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "SignatureExpired",
   "fields": [
@@ -574,7 +574,7 @@ Todos los eventos heredan de este schema base:
 
 ```json
 {
-  "namespace": "com.bank.signature.events",
+  "namespace": "com.singularbank.signature.routing.events",
   "type": "record",
   "name": "SignatureAborted",
   "fields": [

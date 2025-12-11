@@ -1,4 +1,4 @@
-# 🔷 Dynatrace API - Guía de Integración Técnica
+﻿# 🔷 Dynatrace API - Guía de Integración Técnica
 
 **Proyecto:** Signature Router Platform  
 **Fecha:** 2025-12-05  
@@ -634,10 +634,10 @@ svc-signature-router/src/main/java/com/bank/signature/
 ### **AlertManagerServiceDynatraceImpl.java**
 
 ```java
-package com.bank.signature.application.service;
+package com.singularbank.signature.routing.application.service;
 
-import com.bank.signature.application.dto.request.AlertFilters;
-import com.bank.signature.application.dto.response.AlertResponse;
+import com.singularbank.signature.routing.application.dto.request.AlertFilters;
+import com.singularbank.signature.routing.application.dto.response.AlertResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -1070,7 +1070,7 @@ public class AlertManagerServiceDynatraceImpl implements AlertManagerService {
 ### **Configuration Bean**
 
 ```java
-package com.bank.signature.infrastructure.config;
+package com.singularbank.signature.routing.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -1591,7 +1591,7 @@ curl -X GET \
 ### **1. Test Unitario - Mapeo de Severidad**
 
 ```java
-package com.bank.signature.application.service;
+package com.singularbank.signature.routing.application.service;
 
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;

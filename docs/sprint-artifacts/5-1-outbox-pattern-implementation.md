@@ -1,4 +1,4 @@
-# Story 5.1: Outbox Pattern Implementation
+﻿# Story 5.1: Outbox Pattern Implementation
 
 **Status:** 📝 Drafted  
 **Epic:** Epic 5 - Event-Driven Architecture  
@@ -140,7 +140,7 @@
 **File:** `src/main/java/com/bank/signature/domain/event/DomainEvent.java`
 
 ```java
-package com.bank.signature.domain.event;
+package com.singularbank.signature.routing.domain.event;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -163,9 +163,9 @@ public interface DomainEvent {
 **File:** `src/main/java/com/bank/signature/domain/event/SignatureRequestCreated.java`
 
 ```java
-package com.bank.signature.domain.event;
+package com.singularbank.signature.routing.domain.event;
 
-import com.bank.signature.domain.model.SignatureRequest;
+import com.singularbank.signature.routing.domain.model.SignatureRequest;
 import lombok.Builder;
 import lombok.Value;
 
@@ -215,9 +215,9 @@ public class SignatureRequestCreated implements DomainEvent {
 **File:** `src/main/java/com/bank/signature/application/port/output/EventPublisher.java`
 
 ```java
-package com.bank.signature.application.port.output;
+package com.singularbank.signature.routing.application.port.output;
 
-import com.bank.signature.domain.event.DomainEvent;
+import com.singularbank.signature.routing.domain.event.DomainEvent;
 
 import java.util.List;
 
@@ -247,7 +247,7 @@ public interface EventPublisher {
 **File:** `src/main/java/com/bank/signature/infrastructure/adapter/outbound/persistence/OutboxEventEntity.java`
 
 ```java
-package com.bank.signature.infrastructure.adapter.outbound.persistence;
+package com.singularbank.signature.routing.infrastructure.adapter.outbound.persistence;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -298,7 +298,7 @@ public class OutboxEventEntity {
 **File:** `src/main/java/com/bank/signature/infrastructure/adapter/outbound/persistence/OutboxEventRepository.java`
 
 ```java
-package com.bank.signature.infrastructure.adapter.outbound.persistence;
+package com.singularbank.signature.routing.infrastructure.adapter.outbound.persistence;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -323,12 +323,12 @@ public interface OutboxEventRepository extends JpaRepository<OutboxEventEntity, 
 **File:** `src/main/java/com/bank/signature/infrastructure/adapter/outbound/event/OutboxEventPublisherAdapter.java`
 
 ```java
-package com.bank.signature.infrastructure.adapter.outbound.event;
+package com.singularbank.signature.routing.infrastructure.adapter.outbound.event;
 
-import com.bank.signature.application.port.output.EventPublisher;
-import com.bank.signature.domain.event.DomainEvent;
-import com.bank.signature.infrastructure.adapter.outbound.persistence.OutboxEventEntity;
-import com.bank.signature.infrastructure.adapter.outbound.persistence.OutboxEventRepository;
+import com.singularbank.signature.routing.application.port.output.EventPublisher;
+import com.singularbank.signature.routing.domain.event.DomainEvent;
+import com.singularbank.signature.routing.infrastructure.adapter.outbound.persistence.OutboxEventEntity;
+import com.singularbank.signature.routing.infrastructure.adapter.outbound.persistence.OutboxEventRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.f4b6a3.uuid.UuidCreator;
 import lombok.RequiredArgsConstructor;
@@ -403,7 +403,7 @@ public class OutboxEventPublisherAdapter implements EventPublisher {
 **File:** `src/main/java/com/bank/signature/infrastructure/util/CorrelationIdProvider.java`
 
 ```java
-package com.bank.signature.infrastructure.util;
+package com.singularbank.signature.routing.infrastructure.util;
 
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;

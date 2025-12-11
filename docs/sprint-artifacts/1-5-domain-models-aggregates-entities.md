@@ -1,4 +1,4 @@
-# Story 1.5: Domain Models - Aggregates & Entities
+﻿# Story 1.5: Domain Models - Aggregates & Entities
 
 Status: review
 
@@ -138,7 +138,7 @@ so that Puedo codificar lógica de negocio pura sin dependencias externas.
 - Test `domainLayerShouldNotDependOnJPA()` pasa
 - Test `domainLayerShouldNotDependOnJackson()` pasa
 - Test `domainLayerShouldNotDependOnKafka()` pasa
-- Ninguna clase en `com.bank.signature.domain` importa:
+- Ninguna clase en `com.singularbank.signature.routing.domain` importa:
   - `org.springframework.*`
   - `javax.persistence.*`, `jakarta.persistence.*`
   - `com.fasterxml.jackson.*`

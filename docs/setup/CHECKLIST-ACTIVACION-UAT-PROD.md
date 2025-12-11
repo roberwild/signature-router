@@ -1,4 +1,4 @@
-# ⚠️ CHECKLIST: Activación para UAT/Producción
+﻿# ⚠️ CHECKLIST: Activación para UAT/Producción
 
 **Fecha:** 27 de noviembre de 2025  
 **Propósito:** Lista completa de todo lo que está DESHABILITADO en desarrollo local y DEBE ACTIVARSE para UAT/Producción
@@ -281,7 +281,7 @@ spring:
 # application-local.yml
 logging:
   level:
-    com.bank.signature: DEBUG  # ❌ Demasiado verbose para producción
+    com.singularbank.signature.routing: DEBUG  # ❌ Demasiado verbose para producción
     org.springframework.web: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
@@ -294,7 +294,7 @@ logging:
 logging:
   level:
     root: INFO
-    com.bank.signature: INFO  # ✅ INFO para UAT
+    com.singularbank.signature.routing: INFO  # ✅ INFO para UAT
     org.springframework: WARN
     org.hibernate: WARN
 
@@ -302,7 +302,7 @@ logging:
 logging:
   level:
     root: WARN
-    com.bank.signature: INFO  # ✅ INFO/WARN para Producción
+    com.singularbank.signature.routing: INFO  # ✅ INFO/WARN para Producción
     org.springframework: ERROR
     org.hibernate: ERROR
 ```
@@ -531,7 +531,7 @@ fallback:
 
 logging:
   level:
-    com.bank.signature: INFO
+    com.singularbank.signature.routing: INFO
     org.springframework: WARN
 
 management:

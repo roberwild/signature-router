@@ -1,4 +1,4 @@
-# Story 4-8: Circuit Breaker Event Publishing
+﻿# Story 4-8: Circuit Breaker Event Publishing
 
 **Status:** done  
 **Epic:** Epic 4 - Resilience & Circuit Breaking  
@@ -96,7 +96,7 @@ Implementa publicación de eventos de circuit breaker para observability distrib
 
 **Dependencies:**
 - `io.github.resilience4j:resilience4j-circuitbreaker`
-- `com.bank.signature.application.port.output.EventPublisher`
+- `com.singularbank.signature.routing.application.port.output.EventPublisher`
 
 ---
 

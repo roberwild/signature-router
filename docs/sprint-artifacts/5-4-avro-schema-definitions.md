@@ -1,4 +1,4 @@
-# Story 5.4: Avro Schema Definitions
+﻿# Story 5.4: Avro Schema Definitions
 
 ## 📋 Story Description
 
@@ -52,7 +52,7 @@
 {
   "type": "record",
   "name": "BaseEvent",
-  "namespace": "com.bank.signature.events.avro",
+  "namespace": "com.singularbank.signature.routing.events.avro",
   "fields": [
     {"name": "eventId", "type": "string", "logicalType": "uuid"},
     {"name": "eventType", "type": "string"},
@@ -70,7 +70,7 @@
 {
   "type": "record",
   "name": "SignatureCompletedEvent",
-  "namespace": "com.bank.signature.events.avro",
+  "namespace": "com.singularbank.signature.routing.events.avro",
   "fields": [
     ...base fields...,
     {
@@ -129,9 +129,9 @@ mvn clean generate-sources
 ```
 
 **Generated classes:**
-- `com.bank.signature.events.avro.BaseEvent`
-- `com.bank.signature.events.avro.SignatureCompletedEvent`
-- `com.bank.signature.events.avro.SignatureCompletedPayload`
+- `com.singularbank.signature.routing.events.avro.BaseEvent`
+- `com.singularbank.signature.routing.events.avro.SignatureCompletedEvent`
+- `com.singularbank.signature.routing.events.avro.SignatureCompletedPayload`
 - etc.
 
 ### 3. Schema Registry Scripts
@@ -218,7 +218,7 @@ void shouldValidateBaseEventSchema() {
     
     assertThat(schema.getType()).isEqualTo(Schema.Type.RECORD);
     assertThat(schema.getName()).isEqualTo("BaseEvent");
-    assertThat(schema.getNamespace()).isEqualTo("com.bank.signature.events.avro");
+    assertThat(schema.getNamespace()).isEqualTo("com.singularbank.signature.routing.events.avro");
     
     assertThat(schema.getField("eventId")).isNotNull();
     assertThat(schema.getField("eventType")).isNotNull();
@@ -437,7 +437,7 @@ curl -X DELETE http://localhost:8081/subjects/signature.events-value
 ```
 error: cannot find symbol
   symbol:   class SignatureCompletedEvent
-  location: package com.bank.signature.events.avro
+  location: package com.singularbank.signature.routing.events.avro
 ```
 
 **Solution:**

@@ -64,7 +64,7 @@ so that Puedo publicar domain events con garantÃ­a de schema versionado y back
 **Then**
 - Archivo `src/main/resources/kafka/schemas/signature-event.avsc` creado
 - Esquema define:
-  - `namespace`: `com.bank.signature.event`
+  - `namespace`: `com.singularbank.signature.routing.event`
   - `name`: `SignatureEvent`
   - `type`: `record`
   - Campos comunes: `eventId`, `eventType`, `aggregateId`, `aggregateType`, `timestamp`, `traceId`
@@ -135,7 +135,7 @@ so that Puedo publicar domain events con garantÃ­a de schema versionado y back
 - Source directory: `src/main/resources/kafka/schemas`
 - Output directory: `target/generated-sources/avro`
 - Comando `./mvnw clean compile` genera clases:
-  - `com.bank.signature.event.SignatureEvent`
+  - `com.singularbank.signature.routing.event.SignatureEvent`
   - Builders, getters, setters para cada event type
 - Clases generadas disponibles en classpath
 
@@ -221,7 +221,7 @@ so that Puedo publicar domain events con garantÃ­a de schema versionado y back
 
 ### Task 4: Define Avro Schema for Domain Events (AC: #4)
 - [x] 4.1. Crear directorio `src/main/resources/kafka/schemas/`
-- [x] 4.2. Crear archivo `signature-event.avsc` con namespace `com.bank.signature.event`
+- [x] 4.2. Crear archivo `signature-event.avsc` con namespace `com.singularbank.signature.routing.event`
 - [x] 4.3. Definir campos comunes: `eventId`, `eventType`, `aggregateId`, `timestamp`, `traceId`
 - [x] 4.4. Definir union type `payload` con 8 event types (SIGNATURE_REQUEST_CREATED, CHALLENGE_SENT, etc.)
 - [x] 4.5. Validar esquema con Avro tools: `java -jar avro-tools.jar compile schema signature-event.avsc .`
@@ -263,7 +263,7 @@ so that Puedo publicar domain events con garantÃ­a de schema versionado y back
 - [x] 9.3. Configurar source directory: `src/main/resources/kafka/schemas`
 - [x] 9.4. Configurar output directory: `target/generated-sources/avro`
 - [x] 9.5. Ejecutar: `./mvnw clean compile`
-- [x] 9.6. Verificar clases generadas: `com.bank.signature.event.SignatureEvent`
+- [x] 9.6. Verificar clases generadas: `com.singularbank.signature.routing.event.SignatureEvent`
 
 ### Task 10: Create Integration Test with Embedded Kafka (AC: #10)
 - [x] 10.1. Crear `KafkaInfrastructureIntegrationTest.java` en `src/test/java/.../infrastructure/`
@@ -386,7 +386,7 @@ signature-router/
   - [ ] Manual test: `/actuator/health/kafka` retorna UP
 
 - [x] **Architecture Validated**:
-  - [ ] Avro schema sigue naming conventions (namespace: `com.bank.signature.event`)
+  - [ ] Avro schema sigue naming conventions (namespace: `com.singularbank.signature.routing.event`)
   - [ ] Topics configurados con partitioning strategy (12 partitions para throughput)
   - [ ] Idempotent producer habilitado (`enable.idempotence=true`)
   - [ ] DLQ topic configurado para mensajes fallidos
@@ -498,7 +498,7 @@ La implementación de Story 1.3 cumple con **todos los 12 Acceptance Criteria** 
 
 1. **Avro Schema LogicalType Format** (Low Priority)
    - **Location:** `src/main/resources/kafka/schemas/signature-event.avsc:43`
-   - **Issue:** Avro Maven Plugin genera WARNING: "Ignored the com.bank.signature.event.SignatureEvent.timestamp.logicalType property"
+   - **Issue:** Avro Maven Plugin genera WARNING: "Ignored the com.singularbank.signature.routing.event.SignatureEvent.timestamp.logicalType property"
    - **Current Code:**
      ```json
      {
@@ -591,7 +591,7 @@ La implementación de Story 1.3 cumple con **todos los 12 Acceptance Criteria** 
 
 **Verification:**
 - ✅ File: `src/main/resources/kafka/schemas/signature-event.avsc`
-- ✅ Namespace: `com.bank.signature.event`
+- ✅ Namespace: `com.singularbank.signature.routing.event`
 - ✅ Name: `SignatureEvent`
 - ✅ Type: `record`
 - ✅ Campos comunes: `eventId`, `eventType`, `aggregateId`, `aggregateType`, `timestamp`, `traceId`
@@ -696,15 +696,15 @@ La implementación de Story 1.3 cumple con **todos los 12 Acceptance Criteria** 
 - ✅ Source directory: `src/main/resources/kafka/schemas`
 - ✅ Output directory: `target/generated-sources/avro`
 - ✅ Clases generadas:
-  - `com.bank.signature.event.SignatureEvent`
-  - `com.bank.signature.event.EventPayload`
-  - `com.bank.signature.event.EventType`
+  - `com.singularbank.signature.routing.event.SignatureEvent`
+  - `com.singularbank.signature.routing.event.EventPayload`
+  - `com.singularbank.signature.routing.event.EventType`
 - ✅ Clases disponibles en classpath
 
 **Evidence:**
 - File: `pom.xml` lines 137-152 (avro-maven-plugin configuration)
 - Generated files verified: `target/generated-sources/avro/com/bank/signature/event/*.java` (3 files)
-- Integration test imports: `com.bank.signature.event.EventType`, `com.bank.signature.event.SignatureEvent`, `com.bank.signature.event.EventPayload`
+- Integration test imports: `com.singularbank.signature.routing.event.EventType`, `com.singularbank.signature.routing.event.SignatureEvent`, `com.singularbank.signature.routing.event.EventPayload`
 
 ---
 

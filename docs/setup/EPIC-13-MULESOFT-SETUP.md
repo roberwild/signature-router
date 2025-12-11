@@ -1,4 +1,4 @@
-# Epic 13: MuleSoft Integration - Setup & Configuration Guide
+﻿# Epic 13: MuleSoft Integration - Setup & Configuration Guide
 
 **Fecha:** 5 de diciembre de 2025  
 **Audiencia:** DevOps, Backend Developers  
@@ -407,7 +407,7 @@ provider:
 
 ```log
 ERROR ProviderSelectionService - All providers failed for type: SMS
-com.bank.signature.exception.AllProvidersFailedException
+com.singularbank.signature.routing.exception.AllProvidersFailedException
 ```
 
 **Diagnóstico:**

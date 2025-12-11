@@ -1,0 +1,234 @@
+package com.singularbank.signature.routing.infrastructure.adapter.inbound.rest.admin;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.singularbank.signature.routing.application.dto.response.AccessEventResponse;
+import com.singularbank.signature.routing.application.dto.response.SecurityOverviewResponse;
+import com.singularbank.signature.routing.application.service.AuditLogService;
+import com.singularbank.signature.routing.application.service.KeycloakSecurityService;
+import com.singularbank.signature.routing.domain.model.entity.AuditLog;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Security Audit Controller
+ * Story 12.6: Keycloak Security Audit Endpoint
+ * Epic 12: Frontend-Backend Admin Panel Integration
+ * 
+ * Provides security metrics and access audit endpoints.
+ * 
+ * Endpoints:
+ * - GET /api/v1/admin/security/overview - Security overview metrics
+ * - GET /api/v1/admin/security/access-audit - Access events audit
+ * 
+ * Security:
+ * - ADMIN or OPERATOR roles required
+ * - OAuth2 JWT authentication
+ * 
+ * Caching:
+ * - Security overview cached for 1 minute (frequent access)
+ * 
+ * @since Story 12.6
+ */
+@RestController("adminSecurityAuditController")
+@RequestMapping("/api/v1/admin/security")
+@RequiredArgsConstructor
+@Slf4j
+@Tag(name = "Admin - Security Audit", description = "Security metrics and access audit from Keycloak")
+@SecurityRequirement(name = "bearer-jwt")
+public class SecurityAuditController {
+
+    private final KeycloakSecurityService keycloakSecurityService;
+    private final AuditLogService auditLogService;
+
+    /**
+     * Get security overview metrics
+     * 
+     * Returns aggregated security metrics:
+     * - Total/enabled users
+     * - 2FA adoption percentage
+     * - Active tokens
+     * - Failed/successful logins (24h)
+     * - Overall security status
+     * 
+     * Security:
+     * - Requires ROLE_ADMIN or ROLE_OPERATOR
+     * - HTTP 401 if not authenticated
+     * - HTTP 403 if authenticated but insufficient role
+     * 
+     * Performance:
+     * - Cached for 1 minute (high-frequency access)
+     * 
+     * @return Security overview
+     */
+    @GetMapping("/overview")
+    @PreAuthorize("hasAnyRole('PRF_ADMIN', 'PRF_CONSULTIVO')")
+    @Cacheable(value = "securityOverview")
+    @Operation(summary = "Get security overview", description = """
+            Returns aggregated security metrics and status.
+
+            **Metrics Included:**
+            - Total users and enabled users count
+            - Two-Factor Authentication (2FA) adoption percentage
+            - Active sessions/tokens count
+            - Failed login attempts in last 24 hours
+            - Successful logins in last 24 hours
+            - Overall security status (GOOD/WARNING/CRITICAL)
+
+            **Security Status Calculation:**
+            - CRITICAL: >50 failed logins/24h OR <50% 2FA adoption
+            - WARNING: >20 failed logins/24h OR <70% 2FA adoption
+            - GOOD: Otherwise
+
+            **Note:** This is a proxy to Keycloak Admin API.
+            If keycloak.admin.mock=true, returns mock data.
+
+            **Caching:** Results cached for 1 minute.
+
+            **Security:**
+            - Requires ROLE_ADMIN or ROLE_OPERATOR
+            - OAuth2 JWT authentication
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Security overview retrieved successfully", content = @Content(mediaType = "application/json", schema = @Schema(implementation = SecurityOverviewResponse.class), examples = @ExampleObject(name = "Security Overview Example", value = """
+                    {
+                      "totalUsers": 150,
+                      "enabledUsers": 142,
+                      "twoFactorPercentage": 68.5,
+                      "activeTokens": 45,
+                      "failedLogins24h": 12,
+                      "successfulLogins24h": 289,
+                      "status": "GOOD"
+                    }
+                    """))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Forbidden - ADMIN or OPERATOR role required", content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<SecurityOverviewResponse> getSecurityOverview() {
+        log.info("Getting security overview");
+
+        SecurityOverviewResponse overview = keycloakSecurityService.getSecurityOverview();
+
+        log.info("Security overview: status={}, failedLogins={}, 2FA={}%",
+                overview.status(), overview.failedLogins24h(), overview.twoFactorPercentage());
+
+        return ResponseEntity.ok(overview);
+    }
+
+    /**
+     * Get access audit events
+     * 
+     * Returns list of login/logout events for security audit.
+     * Events are ordered by timestamp (most recent first).
+     * 
+     * Security:
+     * - Requires ROLE_ADMIN or ROLE_OPERATOR
+     * - HTTP 401 if not authenticated
+     * - HTTP 403 if authenticated but insufficient role
+     * 
+     * @param limit Maximum number of events to return (default: 100, max: 500)
+     * @return List of access events
+     */
+    @GetMapping("/access-audit")
+    @PreAuthorize("hasAnyRole('PRF_ADMIN', 'PRF_CONSULTIVO')")
+    @Operation(summary = "Get access audit events (REAL DATA)", description = """
+            Returns list of login/logout events from audit_log table.
+
+            **Event Information:**
+            - Event ID and timestamp
+            - Event type (LOGIN, LOGOUT)
+            - Username and user ID
+            - IP address
+            - Success status
+            - Session details (roles, email, token info)
+
+            **Data Source:**
+            - Epic 17: audit_log table (immutable)
+            - Automatically recorded via LoginAuditFilter on JWT validation
+
+            **Events Ordering:**
+            - Most recent events first
+
+            **Limit Parameter:**
+            - Default: 100 events
+            - Maximum: 500 events
+
+            **Use Cases:**
+            - Security audit trail
+            - User activity monitoring
+            - Compliance reporting
+
+            **Security:**
+            - Requires ROLE_ADMIN or ROLE_OPERATOR
+            - OAuth2 JWT authentication
+            """)
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Access events retrieved successfully", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = AccessEventResponse.class)))),
+            @ApiResponse(responseCode = "400", description = "Invalid limit parameter", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - Authentication required", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "Forbidden - ADMIN or OPERATOR role required", content = @Content(mediaType = "application/json"))
+    })
+    public ResponseEntity<List<AccessEventResponse>> getAccessAudit(
+            @Parameter(description = "Maximum number of events to return (default: 100, max: 500)", example = "100") @RequestParam(defaultValue = "100") int limit) {
+        log.info("Getting access audit events from audit_log (limit: {})", limit);
+
+        // Validate limit
+        if (limit < 1 || limit > 500) {
+            log.warn("Invalid limit: {} (must be 1-500)", limit);
+            return ResponseEntity.badRequest().build();
+        }
+
+        // Get LOGIN/LOGOUT events from audit_log
+        List<AccessEventResponse> events = auditLogService.search(
+            null, // all users
+            AuditLog.OperationType.LOGIN, // LOGIN events only
+            AuditLog.EntityType.USER_PROFILE,
+            null, // no start date
+            null, // no end date
+            PageRequest.of(0, limit)
+        ).getContent().stream()
+            .map(this::mapAuditLogToAccessEvent)
+            .collect(Collectors.toList());
+
+        log.info("Retrieved {} access events from audit_log", events.size());
+
+        return ResponseEntity.ok(events);
+    }
+    
+    /**
+     * Map AuditLog to AccessEventResponse.
+     */
+    private AccessEventResponse mapAuditLogToAccessEvent(AuditLog auditLog) {
+        return new AccessEventResponse(
+            auditLog.getId().toString(),
+            auditLog.getTimestamp(), // Instant
+            auditLog.getOperation().name(), // LOGIN or LOGOUT
+            auditLog.getUsername(),
+            auditLog.getEntityId(), // userId
+            auditLog.getIpAddress(),
+            auditLog.isSuccess(),
+            auditLog.getErrorMessage()
+        );
+    }
+}

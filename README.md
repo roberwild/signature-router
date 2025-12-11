@@ -1,4 +1,4 @@
-# 🏦 Signature Router Platform
+﻿# 🏦 Signature Router Platform
 
 Sistema completo de enrutamiento inteligente de firmas digitales para Singular Bank, construido con **Domain-Driven Design (DDD)** y **Hexagonal Architecture**.
 
@@ -78,7 +78,7 @@ signature-router/
 This project follows **Hexagonal Architecture** (Ports & Adapters):
 
 ```
-com.bank.signature/
+com.singularbank.signature.routing/
 ├── domain/                    # Pure business logic (zero framework dependencies)
 │   ├── model/                 # Aggregates, Entities, Value Objects
 │   ├── service/               # Domain services

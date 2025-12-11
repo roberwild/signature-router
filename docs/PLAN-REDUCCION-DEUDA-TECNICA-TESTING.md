@@ -1,4 +1,4 @@
-# 🎯 Plan de Reducción de Deuda Técnica - Testing
+﻿# 🎯 Plan de Reducción de Deuda Técnica - Testing
 
 **Fecha:** 1 de diciembre de 2025  
 **Contexto:** Esperando reunión MuleSoft (lunes) - Bloqueado Epic 11  
@@ -622,9 +622,9 @@ mvn test -Dtest=SignatureChallengeTest
 mvn test -Dtest=ProviderResultTest
 
 # Tests por package
-mvn test -Dtest="com.bank.signature.domain.**"
-mvn test -Dtest="com.bank.signature.application.**"
-mvn test -Dtest="com.bank.signature.infrastructure.**"
+mvn test -Dtest="com.singularbank.signature.routing.domain.**"
+mvn test -Dtest="com.singularbank.signature.routing.application.**"
+mvn test -Dtest="com.singularbank.signature.routing.infrastructure.**"
 
 # Solo unit tests (excluir integration)
 mvn test -Dtest="!*IntegrationTest"

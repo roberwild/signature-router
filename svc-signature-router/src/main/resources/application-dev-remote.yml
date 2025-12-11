@@ -24,6 +24,6 @@ admin:
 logging:
   level:
     root: INFO
-    com.bank.signature: DEBUG
+    com.singularbank.signature.routing: DEBUG
     org.springframework.security: DEBUG
     org.springframework.security.oauth2: DEBUG

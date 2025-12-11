@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "ChallengeSentEvent",
-  "namespace": "com.bank.signature.events.avro",
+  "namespace": "com.singularbank.signature.routing.events.avro",
   "doc": "Event published when a challenge is successfully sent via provider (FR40 - Story 5.4)",
   "fields": [
     {

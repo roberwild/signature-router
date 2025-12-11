@@ -1,4 +1,4 @@
-# Resilience Strategy - Patterns & Configuration
+﻿# Resilience Strategy - Patterns & Configuration
 
 **Version:** 1.0  
 **Date:** 2025-11-26  
@@ -115,7 +115,7 @@ resilience4j:
           - java.util.concurrent.TimeoutException
           - com.twilio.exception.ApiException
         ignoreExceptions:
-          - com.bank.signature.domain.exception.ValidationException
+          - com.singularbank.signature.routing.domain.exception.ValidationException
       
       pushProvider:
         registerHealthIndicator: true
@@ -245,7 +245,7 @@ resilience4j:
           - java.net.SocketTimeoutException
           - org.springframework.web.client.ResourceAccessException
         ignoreExceptions:
-          - com.bank.signature.domain.exception.ValidationException
+          - com.singularbank.signature.routing.domain.exception.ValidationException
           - javax.validation.ValidationException
       
       # Database retries (deadlock, connection issues)

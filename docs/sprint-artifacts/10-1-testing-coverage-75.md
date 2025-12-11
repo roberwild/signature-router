@@ -1,4 +1,4 @@
-# Story 10.1: Testing Coverage to 75%+
+﻿# Story 10.1: Testing Coverage to 75%+
 
 **Status:** in-progress  
 **Epic:** Epic 10 v2 - Quality & Testing Excellence  
@@ -48,7 +48,7 @@
 ### **AC1: Domain Layer Coverage >90%**
 **Given** Domain layer has aggregates, entities, and value objects  
 **When** I run tests  
-**Then** JaCoCo reports >90% coverage for `com.bank.signature.domain.**`
+**Then** JaCoCo reports >90% coverage for `com.singularbank.signature.routing.domain.**`
 
 **Files to Test:**
 - `SignatureRequest.java` (aggregate) - state transitions, invariants
@@ -61,7 +61,7 @@
 ### **AC2: Application Layer Coverage >85%**
 **Given** Application layer has use cases and services  
 **When** I run tests  
-**Then** JaCoCo reports >85% coverage for `com.bank.signature.application.**`
+**Then** JaCoCo reports >85% coverage for `com.singularbank.signature.routing.application.**`
 
 **Files to Test:**
 - `StartSignatureUseCaseImpl.java`
@@ -76,7 +76,7 @@
 ### **AC3: Infrastructure Layer Coverage >70%**
 **Given** Infrastructure layer has adapters and external integrations  
 **When** I run tests (with Testcontainers for integration tests)  
-**Then** JaCoCo reports >70% coverage for `com.bank.signature.infrastructure.**`
+**Then** JaCoCo reports >70% coverage for `com.singularbank.signature.routing.infrastructure.**`
 
 **Files to Test:**
 - Repository adapters (with Testcontainers PostgreSQL)

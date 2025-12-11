@@ -1,7 +1,7 @@
 {
   "type": "record",
   "name": "SignatureCompletedEvent",
-  "namespace": "com.bank.signature.events.avro",
+  "namespace": "com.singularbank.signature.routing.events.avro",
   "doc": "Event published when user successfully completes signature verification (FR43 - Story 5.4)",
   "fields": [
     {
