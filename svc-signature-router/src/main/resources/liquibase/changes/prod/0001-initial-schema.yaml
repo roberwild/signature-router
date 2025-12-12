@@ -1,0 +1,1441 @@
+databaseChangeLog:
+  # ============================================================================
+  # CHANGESET 0001: INITIAL SCHEMA
+  # ============================================================================
+  # Este changeset contiene el esquema completo inicial del microservicio
+  # signature-router para el primer despliegue a DEV.
+  #
+  # Incluye:
+  # - Función uuid_generate_v7() para PKs ordenables por tiempo
+  # - 10 tablas core del dominio con sus índices
+  # - Todas las columnas obligatorias según arquitectura corporativa
+  # ============================================================================
+
+  # ----------------------------------------------------------------------------
+  # PARTE 1: FUNCIÓN UUID V7
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-uuid-v7-function
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema
+      context: dev,uat,prod
+      comment: "Crear función uuid_generate_v7() para generar UUIDs ordenables por tiempo (RFC Draft UUIDv7)"
+      changes:
+        - sqlFile:
+            path: liquibase/sql/uuid_generate_v7.sql
+            relativeToChangelogFile: false
+            splitStatements: false
+      rollback:
+        - sql:
+            sql: "DROP FUNCTION IF EXISTS uuid_generate_v7();"
+
+  # ----------------------------------------------------------------------------
+  # PARTE 2: TABLA SIGNATURE_REQUEST (Agregado principal)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-signature-request-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,story-1.6
+      context: dev,uat,prod
+      comment: "Tabla signature_request - Agregado principal del dominio que representa una solicitud de firma"
+      changes:
+        - createTable:
+            tableName: signature_request
+            remarks: "Agregado raíz: solicitud de firma de un cliente con contexto transaccional, estado y timeline de routing"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7 ordenable temporalmente"
+              
+              # Business columns
+              - column:
+                  name: customer_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Identificador del cliente que solicita la firma"
+              
+              - column:
+                  name: transaction_context
+                  type: jsonb
+                  constraints:
+                    nullable: false
+                  remarks: "Contexto transaccional serializado (TransactionContext VO): amount, currency, transactionType, metadata"
+              
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: "Estado de la solicitud: PENDING_SIGNATURE, SIGNED, EXPIRED, FAILED, ABORTED"
+              
+              - column:
+                  name: routing_timeline
+                  type: jsonb
+                  constraints:
+                    nullable: false
+                  remarks: "Timeline de eventos de routing (List<RoutingEvent>): tipo evento, timestamp, detalles"
+              
+              # Timestamps
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "Timestamp de creación de la solicitud"
+              
+              - column:
+                  name: expires_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de expiración de la solicitud (TTL configurable)"
+              
+              - column:
+                  name: signed_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp cuando se completó la firma exitosamente"
+              
+              - column:
+                  name: aborted_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp cuando se abortó la solicitud (Story 2.12)"
+              
+              - column:
+                  name: abort_reason
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+                  remarks: "Razón del abort: USER_CANCELLED, FRAUD_DETECTED, etc (Story 2.12)"
+        
+        # Índices para búsquedas frecuentes
+        - createIndex:
+            indexName: idx_signature_request_customer_id
+            tableName: signature_request
+            columns:
+              - column:
+                  name: customer_id
+            remarks: "Índice para búsquedas por cliente"
+        
+        - createIndex:
+            indexName: idx_signature_request_status
+            tableName: signature_request
+            columns:
+              - column:
+                  name: status
+            remarks: "Índice para filtros por estado"
+        
+        - createIndex:
+            indexName: idx_signature_request_created_at
+            tableName: signature_request
+            columns:
+              - column:
+                  name: created_at
+                  descending: true
+            remarks: "Índice para ordenamiento cronológico"
+      
+      rollback:
+        - dropTable:
+            tableName: signature_request
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 3: TABLA SIGNATURE_CHALLENGE (Entidad hija)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-signature-challenge-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,story-1.6
+      context: dev,uat,prod
+      comment: "Tabla signature_challenge - Entidad hija que representa un challenge de firma enviado por un canal/provider"
+      changes:
+        - createTable:
+            tableName: signature_challenge
+            remarks: "Entidad hija de SignatureRequest: representa un intento de firma por un canal específico (SMS, EMAIL, PUSH)"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7"
+              
+              # FK to parent
+              - column:
+                  name: signature_request_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                  remarks: "FK a signature_request (relación Many-to-One)"
+              
+              # Business columns
+              - column:
+                  name: channel_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: "Canal de envío: SMS, EMAIL, PUSH, BIOMETRIC"
+              
+              - column:
+                  name: provider
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                  remarks: "Provider usado: TWILIO, SENDGRID, FIREBASE, etc"
+              
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: "Estado del challenge: PENDING, SENT, VERIFIED, FAILED, EXPIRED"
+              
+              - column:
+                  name: challenge_code
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+                  remarks: "Código OTP generado (encriptado en producción - Story 2.5)"
+              
+              - column:
+                  name: sent_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp cuando se envió el challenge al provider"
+              
+              - column:
+                  name: expires_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de expiración del challenge (TTL corto, ej: 5 min)"
+              
+              - column:
+                  name: completed_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp cuando se verificó exitosamente el challenge"
+              
+              - column:
+                  name: provider_proof
+                  type: jsonb
+                  constraints:
+                    nullable: true
+                  remarks: "Prueba criptográfica del provider (ProviderResult VO): messageId, providerTimestamp, signature"
+              
+              - column:
+                  name: error_code
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+                  remarks: "Código de error si el envío falló"
+              
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "Timestamp de creación del challenge"
+        
+        # FK constraint
+        - addForeignKeyConstraint:
+            baseTableName: signature_challenge
+            baseColumnNames: signature_request_id
+            referencedTableName: signature_request
+            referencedColumnNames: id
+            constraintName: fk_signature_challenge_request
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        
+        # Índices
+        - createIndex:
+            indexName: idx_signature_challenge_request_id
+            tableName: signature_challenge
+            columns:
+              - column:
+                  name: signature_request_id
+            remarks: "Índice para búsqueda de challenges por request"
+        
+        - createIndex:
+            indexName: idx_signature_challenge_status
+            tableName: signature_challenge
+            columns:
+              - column:
+                  name: status
+            remarks: "Índice para filtros por estado de challenge"
+      
+      rollback:
+        - dropTable:
+            tableName: signature_challenge
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 4: TABLA ROUTING_RULE (Configuración de routing)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-routing-rule-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,story-2.2
+      context: dev,uat,prod
+      comment: "Tabla routing_rule - Reglas de routing para determinar canal/provider según condiciones"
+      changes:
+        - createTable:
+            tableName: routing_rule
+            remarks: "Reglas de routing con condiciones SpEL para determinar canal y provider dinámicamente"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7"
+              
+              # Business columns
+              - column:
+                  name: name
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+                  remarks: "Nombre descriptivo de la regla"
+              
+              - column:
+                  name: description
+                  type: text
+                  constraints:
+                    nullable: true
+                  remarks: "Descripción detallada del propósito de la regla"
+              
+              - column:
+                  name: condition
+                  type: varchar(1000)
+                  constraints:
+                    nullable: false
+                  remarks: "Expresión SpEL para evaluar (ej: '#amount > 10000 and #channel == SMS')"
+              
+              - column:
+                  name: target_channel
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: "Canal destino si la condición se cumple: SMS, EMAIL, PUSH, BIOMETRIC"
+              
+              - column:
+                  name: provider_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+                  remarks: "FK opcional a provider_config (NULL = usar provider por defecto del canal)"
+              
+              - column:
+                  name: priority
+                  type: integer
+                  constraints:
+                    nullable: false
+                  remarks: "Prioridad de evaluación (menor número = mayor prioridad, empieza en 1)"
+              
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+                  remarks: "Si la regla está activa (permite deshabilitar sin eliminar)"
+              
+              # Audit columns
+              - column:
+                  name: created_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Usuario que creó la regla"
+              
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "Timestamp de creación"
+              
+              - column:
+                  name: modified_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Usuario que modificó la regla por última vez"
+              
+              - column:
+                  name: modified_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp de última modificación"
+              
+              # Soft delete
+              - column:
+                  name: deleted
+                  type: boolean
+                  defaultValueBoolean: false
+                  constraints:
+                    nullable: false
+                  remarks: "Soft delete flag"
+              
+              - column:
+                  name: deleted_by
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Usuario que eliminó la regla (soft delete)"
+              
+              - column:
+                  name: deleted_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp de soft delete"
+        
+        # Índices
+        - createIndex:
+            indexName: idx_routing_rule_priority_enabled
+            tableName: routing_rule
+            columns:
+              - column:
+                  name: priority
+              - column:
+                  name: enabled
+            remarks: "Índice compuesto para evaluación ordenada de reglas activas"
+        
+        - createIndex:
+            indexName: idx_routing_rule_deleted
+            tableName: routing_rule
+            columns:
+              - column:
+                  name: deleted
+            remarks: "Índice para filtrar reglas no eliminadas"
+      
+      rollback:
+        - dropTable:
+            tableName: routing_rule
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 5: TABLA PROVIDER_CONFIG (Configuración de providers)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-provider-config-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,epic-13
+      context: dev,uat,prod
+      comment: "Tabla provider_config - Configuración de providers externos (Twilio, SendGrid, Firebase, etc)"
+      changes:
+        - createTable:
+            tableName: provider_config
+            remarks: "Configuración de providers externos con credenciales en Vault, timeouts y reintentos"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7"
+              
+              # Business columns
+              - column:
+                  name: provider_type
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: "Tipo de provider: TWILIO, SENDGRID, FIREBASE, SMTP, etc"
+              
+              - column:
+                  name: provider_name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Nombre descriptivo del provider (ej: 'Twilio Production')"
+              
+              - column:
+                  name: provider_code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Código único del provider (ej: 'TWILIO_PROD', 'SENDGRID_UAT')"
+              
+              - column:
+                  name: enabled
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+                  remarks: "Si el provider está activo"
+              
+              - column:
+                  name: priority
+                  type: integer
+                  constraints:
+                    nullable: false
+                  remarks: "Prioridad de selección (menor = mayor prioridad)"
+              
+              - column:
+                  name: timeout_seconds
+                  type: integer
+                  constraints:
+                    nullable: false
+                  remarks: "Timeout de conexión en segundos (default: 5s externo)"
+              
+              - column:
+                  name: retry_max_attempts
+                  type: integer
+                  constraints:
+                    nullable: false
+                  remarks: "Máximo de reintentos (default: 3)"
+              
+              - column:
+                  name: config_json
+                  type: jsonb
+                  constraints:
+                    nullable: false
+                  remarks: "Configuración específica del provider (URLs, opciones, etc) - NO credenciales"
+              
+              - column:
+                  name: vault_path
+                  type: varchar(500)
+                  constraints:
+                    nullable: false
+                  remarks: "Path en Vault donde están las credenciales (ej: 'secret/providers/twilio/prod')"
+              
+              # Audit columns
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de creación"
+              
+              - column:
+                  name: updated_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de última actualización"
+              
+              - column:
+                  name: created_by
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+                  remarks: "Usuario que creó la configuración"
+              
+              - column:
+                  name: updated_by
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+                  remarks: "Usuario que actualizó la configuración"
+        
+        # Índices
+        - createIndex:
+            indexName: idx_provider_config_code
+            tableName: provider_config
+            columns:
+              - column:
+                  name: provider_code
+            unique: true
+            remarks: "Índice único para búsqueda rápida por código"
+        
+        - createIndex:
+            indexName: idx_provider_config_type_enabled
+            tableName: provider_config
+            columns:
+              - column:
+                  name: provider_type
+              - column:
+                  name: enabled
+            remarks: "Índice compuesto para selección de providers activos por tipo"
+      
+      rollback:
+        - dropTable:
+            tableName: provider_config
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 6: TABLA PROVIDER_CONFIG_HISTORY (Historial de cambios)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-provider-config-history-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,story-13.9
+      context: dev,uat,prod
+      comment: "Tabla provider_config_history - Historial de cambios de configuración de providers"
+      changes:
+        - createTable:
+            tableName: provider_config_history
+            remarks: "Registro inmutable de cambios en configuración de providers (auditoría)"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7"
+              
+              # FK
+              - column:
+                  name: provider_config_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                  remarks: "FK a provider_config"
+              
+              # History columns
+              - column:
+                  name: changed_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp del cambio"
+              
+              - column:
+                  name: changed_by
+                  type: varchar(100)
+                  constraints:
+                    nullable: true
+                  remarks: "Usuario que realizó el cambio"
+              
+              - column:
+                  name: change_type
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                  remarks: "Tipo de cambio: CREATED, UPDATED, ENABLED, DISABLED, DELETED"
+              
+              - column:
+                  name: old_config_json
+                  type: jsonb
+                  constraints:
+                    nullable: true
+                  remarks: "Configuración anterior completa (NULL para CREATED)"
+              
+              - column:
+                  name: new_config_json
+                  type: jsonb
+                  constraints:
+                    nullable: false
+                  remarks: "Nueva configuración completa"
+              
+              - column:
+                  name: remarks
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+                  remarks: "Comentarios sobre el cambio"
+        
+        # FK constraint
+        - addForeignKeyConstraint:
+            baseTableName: provider_config_history
+            baseColumnNames: provider_config_id
+            referencedTableName: provider_config
+            referencedColumnNames: id
+            constraintName: fk_provider_history_config
+            onDelete: CASCADE
+            onUpdate: RESTRICT
+        
+        # Índices
+        - createIndex:
+            indexName: idx_provider_history_config_id
+            tableName: provider_config_history
+            columns:
+              - column:
+                  name: provider_config_id
+            remarks: "Índice para buscar historial por provider"
+        
+        - createIndex:
+            indexName: idx_provider_history_changed_at
+            tableName: provider_config_history
+            columns:
+              - column:
+                  name: changed_at
+                  descending: true
+            remarks: "Índice para ordenar historial cronológicamente"
+      
+      rollback:
+        - dropTable:
+            tableName: provider_config_history
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 7: TABLA OUTBOX_EVENT (Outbox Pattern - Debezium)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-outbox-event-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,story-5.1
+      context: dev,uat,prod
+      comment: "Tabla outbox_event - Implementación del Outbox Pattern para publicación transaccional de eventos a Kafka vía Debezium"
+      changes:
+        - createTable:
+            tableName: outbox_event
+            remarks: "Outbox Pattern: eventos persistidos transaccionalmente, Debezium CDC los publica a Kafka"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7 (ordenable para Debezium)"
+              
+              # Event metadata
+              - column:
+                  name: aggregate_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                  remarks: "ID del agregado que generó el evento (usado como partition key en Kafka)"
+              
+              - column:
+                  name: aggregate_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Tipo de agregado: SignatureRequest, Provider, RoutingRule, etc"
+              
+              - column:
+                  name: event_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Tipo de evento: SIGNATURE_REQUEST_CREATED, SIGNATURE_COMPLETED, etc"
+              
+              # Payload
+              - column:
+                  name: payload
+                  type: jsonb
+                  constraints:
+                    nullable: false
+                  remarks: "Payload del evento serializado como JSON (será convertido a Avro por Debezium)"
+              
+              - column:
+                  name: payload_hash
+                  type: varchar(64)
+                  constraints:
+                    nullable: true
+                  remarks: "SHA-256 hash del payload para integridad"
+              
+              # Timestamps
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp cuando se creó el evento (antes de publicar)"
+              
+              - column:
+                  name: published_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp cuando Debezium publicó el evento a Kafka (NULL = pendiente)"
+        
+        # Índices
+        - createIndex:
+            indexName: idx_outbox_event_created_at
+            tableName: outbox_event
+            columns:
+              - column:
+                  name: created_at
+            remarks: "Índice para ordenar eventos por creación (Debezium polling)"
+        
+        - createIndex:
+            indexName: idx_outbox_event_published_at
+            tableName: outbox_event
+            columns:
+              - column:
+                  name: published_at
+            remarks: "Índice para identificar eventos pendientes de publicar (WHERE published_at IS NULL)"
+        
+        - createIndex:
+            indexName: idx_outbox_event_aggregate
+            tableName: outbox_event
+            columns:
+              - column:
+                  name: aggregate_type
+              - column:
+                  name: aggregate_id
+            remarks: "Índice compuesto para consultar eventos por agregado"
+      
+      rollback:
+        - dropTable:
+            tableName: outbox_event
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 8: TABLA AUDIT_LOG (Auditoría general - Epic 8)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-audit-log-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,epic-8
+      context: dev,uat,prod
+      comment: "Tabla audit_log - Registro de auditoría de operaciones CRUD con cambios antes/después"
+      changes:
+        - createTable:
+            tableName: audit_log
+            remarks: "Auditoría completa de operaciones CRUD sobre todas las entidades con tracking de cambios"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7"
+              
+              # Audit metadata
+              - column:
+                  name: timestamp
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de la operación"
+              
+              - column:
+                  name: user_id
+                  type: uuid
+                  constraints:
+                    nullable: true
+                  remarks: "ID del usuario (de JWT sub claim)"
+              
+              - column:
+                  name: username
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Username del usuario (de JWT preferred_username)"
+              
+              - column:
+                  name: operation
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                  remarks: "Tipo de operación: CREATE, READ, UPDATE, DELETE, ENABLE, DISABLE"
+              
+              - column:
+                  name: entity_type
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                  remarks: "Tipo de entidad: SIGNATURE_REQUEST, ROUTING_RULE, PROVIDER_CONFIG, USER, etc"
+              
+              - column:
+                  name: entity_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "ID de la entidad afectada"
+              
+              - column:
+                  name: entity_name
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+                  remarks: "Nombre de la entidad para facilitar búsquedas"
+              
+              # Changes tracking
+              - column:
+                  name: changes
+                  type: jsonb
+                  constraints:
+                    nullable: true
+                  remarks: "Cambios realizados (antes/después) en formato JSON"
+              
+              # Request metadata
+              - column:
+                  name: ip_address
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+                  remarks: "IP del cliente (X-Forwarded-For o RemoteAddr)"
+              
+              - column:
+                  name: user_agent
+                  type: text
+                  constraints:
+                    nullable: true
+                  remarks: "User-Agent del cliente"
+              
+              # Result
+              - column:
+                  name: success
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+                  remarks: "Si la operación fue exitosa"
+              
+              - column:
+                  name: error_message
+                  type: text
+                  constraints:
+                    nullable: true
+                  remarks: "Mensaje de error si falló"
+              
+              - column:
+                  name: metadata
+                  type: jsonb
+                  constraints:
+                    nullable: true
+                  remarks: "Metadata adicional (correlation IDs, etc)"
+        
+        # Índices
+        - createIndex:
+            indexName: idx_audit_log_timestamp
+            tableName: audit_log
+            columns:
+              - column:
+                  name: timestamp
+                  descending: true
+            remarks: "Índice para ordenar logs cronológicamente"
+        
+        - createIndex:
+            indexName: idx_audit_log_username
+            tableName: audit_log
+            columns:
+              - column:
+                  name: username
+            remarks: "Índice para buscar operaciones por usuario"
+        
+        - createIndex:
+            indexName: idx_audit_log_entity
+            tableName: audit_log
+            columns:
+              - column:
+                  name: entity_type
+              - column:
+                  name: entity_id
+            remarks: "Índice compuesto para buscar historial de una entidad"
+        
+        - createIndex:
+            indexName: idx_audit_log_operation
+            tableName: audit_log
+            columns:
+              - column:
+                  name: operation
+            remarks: "Índice para filtrar por tipo de operación"
+      
+      rollback:
+        - dropTable:
+            tableName: audit_log
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 9: TABLA ROUTING_RULE_AUDIT_LOG (Auditoría específica routing)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-routing-rule-audit-log-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,critical-improvements
+      context: dev,uat,prod
+      comment: "Tabla routing_rule_audit_log - Auditoría específica e inmutable de cambios en reglas de routing"
+      changes:
+        - createTable:
+            tableName: routing_rule_audit_log
+            remarks: "Registro inmutable de cambios en routing rules con before/after state completo"
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                    updatable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7 (inmutable)"
+              
+              # Reference to rule
+              - column:
+                  name: rule_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "FK lógica a routing_rule (no constraint físico para preservar historial)"
+              
+              # Audit metadata
+              - column:
+                  name: action
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "Acción realizada: CREATED, UPDATED, ENABLED, DISABLED, DELETED"
+              
+              - column:
+                  name: changed_by
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "Usuario que realizó el cambio"
+              
+              - column:
+                  name: changed_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "Timestamp del cambio"
+              
+              - column:
+                  name: ip_address
+                  type: varchar(45)
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "IP del cliente (IPv6 max length: 45)"
+              
+              - column:
+                  name: user_agent
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "User-Agent del cliente"
+              
+              # Previous state
+              - column:
+                  name: previous_expression
+                  type: varchar(1000)
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Expresión SpEL anterior (NULL para CREATED)"
+              
+              - column:
+                  name: previous_channel
+                  type: varchar(20)
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Canal anterior"
+              
+              - column:
+                  name: previous_priority
+                  type: integer
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Prioridad anterior"
+              
+              - column:
+                  name: previous_enabled
+                  type: boolean
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Estado enabled anterior"
+              
+              # New state
+              - column:
+                  name: new_expression
+                  type: varchar(1000)
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Nueva expresión SpEL (NULL para DELETED)"
+              
+              - column:
+                  name: new_channel
+                  type: varchar(20)
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Nuevo canal"
+              
+              - column:
+                  name: new_priority
+                  type: integer
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Nueva prioridad"
+              
+              - column:
+                  name: new_enabled
+                  type: boolean
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Nuevo estado enabled"
+              
+              - column:
+                  name: change_reason
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+                    updatable: false
+                  remarks: "Razón del cambio (opcional)"
+        
+        # Índices
+        - createIndex:
+            indexName: idx_audit_rule_id
+            tableName: routing_rule_audit_log
+            columns:
+              - column:
+                  name: rule_id
+            remarks: "Índice para buscar historial de una regla"
+        
+        - createIndex:
+            indexName: idx_audit_changed_at
+            tableName: routing_rule_audit_log
+            columns:
+              - column:
+                  name: changed_at
+                  descending: true
+            remarks: "Índice para ordenar historial cronológicamente"
+        
+        - createIndex:
+            indexName: idx_audit_changed_by
+            tableName: routing_rule_audit_log
+            columns:
+              - column:
+                  name: changed_by
+            remarks: "Índice para buscar cambios por usuario"
+      
+      rollback:
+        - dropTable:
+            tableName: routing_rule_audit_log
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 10: TABLA IDEMPOTENCY_RECORD (Idempotencia)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-idempotency-record-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,story-10.5
+      context: dev,uat,prod
+      comment: "Tabla idempotency_record - Registro de idempotency keys para prevenir operaciones duplicadas"
+      changes:
+        - createTable:
+            tableName: idempotency_record
+            remarks: "Cache persistente de idempotency keys con respuesta asociada (RFC 7231 idempotencia)"
+            columns:
+              # PK (idempotency key es la PK, NO uuid)
+              - column:
+                  name: idempotency_key
+                  type: varchar(255)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  remarks: "Primary Key - Idempotency key del request (UUID del cliente)"
+              
+              # Request fingerprint
+              - column:
+                  name: request_hash
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+                  remarks: "SHA-256 hash del request body para validar que es exactamente el mismo request"
+              
+              # Cached response
+              - column:
+                  name: status_code
+                  type: integer
+                  constraints:
+                    nullable: false
+                  remarks: "HTTP status code de la respuesta original"
+              
+              - column:
+                  name: response_body
+                  type: text
+                  constraints:
+                    nullable: false
+                  remarks: "Response body serializado (JSON) para retornar en requests duplicados"
+              
+              # Timestamps
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                    updatable: false
+                  remarks: "Timestamp del request original"
+              
+              - column:
+                  name: expires_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de expiración del record (TTL configurable, ej: 24h)"
+        
+        # Índices
+        - createIndex:
+            indexName: idx_idempotency_key
+            tableName: idempotency_record
+            columns:
+              - column:
+                  name: idempotency_key
+            unique: true
+            remarks: "Índice único para búsqueda rápida (aunque idempotency_key ya es PK)"
+        
+        - createIndex:
+            indexName: idx_idempotency_expires_at
+            tableName: idempotency_record
+            columns:
+              - column:
+                  name: expires_at
+            remarks: "Índice para cleanup job (DELETE WHERE expires_at < NOW())"
+      
+      rollback:
+        - dropTable:
+            tableName: idempotency_record
+            cascadeConstraints: true
+
+  # ----------------------------------------------------------------------------
+  # PARTE 11: TABLA USER_PROFILES (Auditoría de usuarios)
+  # ----------------------------------------------------------------------------
+  - changeSet:
+      id: 0001-create-user-profiles-table
+      author: BMAD Architect <bmad@singularbank.com>
+      labels: initial-schema,story-16.1,epic-16
+      context: dev,uat,prod
+      comment: "Tabla user_profiles - Registro de auditoría de usuarios que han accedido a la aplicación (datos del JWT)"
+      changes:
+        - createTable:
+            tableName: user_profiles
+            remarks: "Registro de auditoría de usuarios basado en JWT claims. NO es sincronización AD - es registro pasivo de logins."
+            columns:
+              # PK
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+                  defaultValueComputed: uuid_generate_v7()
+                  remarks: "Primary Key - UUID v7"
+              
+              # Mandatory columns
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de creación del registro (primer login del usuario)"
+              
+              - column:
+                  name: updated_at
+                  type: timestamp with time zone
+                  defaultValueComputed: CURRENT_TIMESTAMP
+                  constraints:
+                    nullable: false
+                  remarks: "Timestamp de última actualización (último login registrado)"
+              
+              # User data from JWT
+              - column:
+                  name: keycloak_id
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                    unique: true
+                  remarks: "Subject ID del JWT (claim 'sub'). Identificador único de Keycloak/AD."
+              
+              - column:
+                  name: username
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+                  remarks: "Username del usuario (claim 'preferred_username' del JWT)"
+              
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Email corporativo (claim 'email' del JWT). Nullable porque algunos usuarios AD pueden no tener email."
+              
+              - column:
+                  name: full_name
+                  type: varchar(500)
+                  constraints:
+                    nullable: true
+                  remarks: "Nombre completo (claim 'name' o construido de given_name + family_name)"
+              
+              - column:
+                  name: first_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Primer nombre (claim 'given_name' del JWT)"
+              
+              - column:
+                  name: last_name
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Apellido (claim 'family_name' del JWT)"
+              
+              - column:
+                  name: roles
+                  type: jsonb
+                  constraints:
+                    nullable: true
+                  remarks: "Roles del usuario como array JSON (claim 'realm_access.roles' del JWT). Ejemplo: ['ADMIN', 'OPERATOR']."
+              
+              - column:
+                  name: department
+                  type: varchar(255)
+                  constraints:
+                    nullable: true
+                  remarks: "Departamento del usuario (claim 'department' del JWT si existe)"
+              
+              # Activity tracking
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+                  remarks: "Indica si el usuario está activo"
+              
+              - column:
+                  name: first_login_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp del primer login registrado. Establecido al crear el registro."
+              
+              - column:
+                  name: last_login_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: true
+                  remarks: "Timestamp del último login registrado. Se actualiza en cada login (throttled cada 5 min)."
+              
+              - column:
+                  name: login_count
+                  type: integer
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+                  remarks: "Contador incremental de logins"
+              
+              - column:
+                  name: last_login_ip
+                  type: varchar(50)
+                  constraints:
+                    nullable: true
+                  remarks: "Dirección IP del último login (X-Forwarded-For o RemoteAddr)"
+        
+        # Índices
+        - createIndex:
+            indexName: idx_user_profiles_keycloak_id
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: keycloak_id
+            unique: true
+            remarks: "Índice único para búsqueda rápida por Keycloak ID (usado en UserProfileSyncFilter)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_username
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: username
+            remarks: "Índice para búsquedas por username (usado en búsqueda del Admin Panel)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_email
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: email
+            remarks: "Índice para búsquedas por email (usado en búsqueda del Admin Panel)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_last_login_at
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: last_login_at
+                  descending: true
+            remarks: "Índice para ordenar por último login (default sort en Admin Panel)"
+        
+        - createIndex:
+            indexName: idx_user_profiles_active
+            tableName: user_profiles
+            columns:
+              - column:
+                  name: active
+            remarks: "Índice para filtrar usuarios activos/inactivos (usado en stats)"
+      
+      rollback:
+        - dropTable:
+            tableName: user_profiles
+            cascadeConstraints: true
+
+# ============================================================================
+# FIN DEL CHANGESET INICIAL
+# ============================================================================
+# 
+# RESUMEN:
+# - 1 función: uuid_generate_v7()
+# - 10 tablas: signature_request, signature_challenge, routing_rule,
+#              provider_config, provider_config_history, outbox_event,
+#              audit_log, routing_rule_audit_log, idempotency_record,
+#              user_profiles
+# - 23 índices en total (incluyendo índices compuestos y únicos)
+# - 2 foreign keys: signature_challenge -> signature_request,
+#                   provider_config_history -> provider_config
+#
+# SIGUIENTE PASO:
+# - Copiar este changeset a changes/uat/ y changes/prod/
+# - Habilitar Liquibase en application-dev.yml
+# - Configurar ddl-auto=none en todos los perfiles
+# ============================================================================
+

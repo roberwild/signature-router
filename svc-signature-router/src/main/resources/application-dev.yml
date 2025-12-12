@@ -6,6 +6,36 @@ spring:
   profiles:
     active: dev
 
+  # ============================================================================
+  # LIQUIBASE CONFIGURATION (DEV)
+  # ============================================================================
+  # IMPORTANTE: En DEV, Liquibase debe estar HABILITADO y Hibernate ddl-auto=none
+  # Esto asegura que el esquema sea gestionado por Liquibase para replicar
+  # el comportamiento exacto de UAT/PROD.
+  # ============================================================================
+  liquibase:
+    enabled: true
+    change-log: classpath:liquibase/changelog-master.yaml
+    contexts: dev
+    default-schema: public
+    liquibase-schema: public
+    drop-first: false  # NUNCA usar true en DEV/UAT/PROD
+
+  # ============================================================================
+  # JPA/HIBERNATE CONFIGURATION (DEV)
+  # ============================================================================
+  # ddl-auto DEBE ser 'none' cuando Liquibase está habilitado
+  # Liquibase gestiona el esquema, Hibernate solo lo usa
+  # ============================================================================
+  jpa:
+    hibernate:
+      ddl-auto: none  # Liquibase gestiona el esquema
+    show-sql: true    # Útil para debugging en DEV
+    properties:
+      hibernate:
+        format_sql: true
+        use_sql_comments: true
+
 # Epic 12: Admin Portal - Development Mode
 # Epic 16: User Audit Trail - JWT-Based Registration
 admin:

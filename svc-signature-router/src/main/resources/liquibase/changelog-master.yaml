@@ -1,9 +1,101 @@
 databaseChangeLog:
-  # Liquibase changelogs - Se crearán cuando se suba a DEV/UAT/PROD
-  # En local, Hibernate ddl-auto=update gestiona el esquema
+  # ============================================================================
+  # LIQUIBASE CHANGELOG MASTER
+  # svc-signature-router - Singular Bank
+  # ============================================================================
   #
-  # Cuando subas a otros entornos:
-  # 1. Crear un único changeset inicial con todo el esquema
-  # 2. Habilitar liquibase.enabled=true en el perfil correspondiente
-  # 3. Los evolutivos posteriores seguirán la secuencia normal
-  []
+  # Este archivo es el punto de entrada para Liquibase.
+  # Carga los changesets según el contexto activo (dev, uat, prod).
+  #
+  # CONTEXTOS:
+  # - dev:   Entorno de desarrollo
+  # - uat:   Entorno de pruebas de usuario
+  # - prod:  Entorno de producción
+  # - local: Desarrollo local (equivalente a dev)
+  #
+  # ESTRUCTURA:
+  # - liquibase/changes/dev/    → Changesets para DEV
+  # - liquibase/changes/uat/    → Changesets para UAT (copia validada de DEV)
+  # - liquibase/changes/prod/   → Changesets para PROD (copia validada de UAT)
+  #
+  # FLUJO DE PROMOCIÓN:
+  # 1. Crear changeset en changes/dev/NNNN-descripcion.yaml
+  # 2. Validar en DEV (mvn liquibase:update -Pdev)
+  # 3. Copiar a changes/uat/ (MISMO ID, mismo contenido)
+  # 4. Validar en UAT (mvn liquibase:update -Puat)
+  # 5. Copiar a changes/prod/ (MISMO ID, mismo contenido)
+  # 6. Desplegar en PROD (mvn liquibase:update -Pprod)
+  #
+  # IMPORTANTE:
+  # - NUNCA modificar changesets ya ejecutados en UAT/PROD
+  # - Numeración consecutiva: 0001, 0002, 0003, ...
+  # - Un changeset = un archivo
+  # - Todos los changesets deben tener rollback funcional
+  # ============================================================================
+
+  # ----------------------------------------------------------------------------
+  # ENTORNO: DESARROLLO (DEV + LOCAL)
+  # ----------------------------------------------------------------------------
+  - includeAll:
+      path: changes/dev
+      relativeToChangelogFile: true
+      context: dev,local
+      errorIfMissingOrEmpty: false
+
+  # ----------------------------------------------------------------------------
+  # ENTORNO: UAT (User Acceptance Testing)
+  # ----------------------------------------------------------------------------
+  - includeAll:
+      path: changes/uat
+      relativeToChangelogFile: true
+      context: uat
+      errorIfMissingOrEmpty: false
+
+  # ----------------------------------------------------------------------------
+  # ENTORNO: PRODUCCIÓN
+  # ----------------------------------------------------------------------------
+  - includeAll:
+      path: changes/prod
+      relativeToChangelogFile: true
+      context: prod
+      errorIfMissingOrEmpty: false
+
+# ============================================================================
+# NOTAS DE USO
+# ============================================================================
+#
+# COMANDOS ÚTILES:
+#
+# 1. Validar changesets sin ejecutar:
+#    mvn liquibase:validate
+#
+# 2. Ver changesets pendientes:
+#    mvn liquibase:status -Pdev
+#
+# 3. Generar SQL sin ejecutar (dry-run):
+#    mvn liquibase:updateSQL -Pdev
+#
+# 4. Ejecutar migraciones:
+#    mvn liquibase:update -Pdev
+#
+# 5. Rollback al último changeset:
+#    mvn liquibase:rollback -Dliquibase.rollbackCount=1 -Pdev
+#
+# 6. Rollback a un changeset específico:
+#    mvn liquibase:rollback -Dliquibase.rollbackTag=0001 -Pdev
+#
+# 7. Marcar changesets como ejecutados (sync manual):
+#    mvn liquibase:changelogSync -Pdev
+#
+# TROUBLESHOOTING:
+#
+# - Error "Checksum mismatch": NUNCA modificar changesets ejecutados.
+#   Crear nuevo changeset para correcciones.
+#
+# - Error "Table already exists": Ejecutar changelogSync para marcar
+#   changesets como aplicados si el esquema ya existe.
+#
+# - Liquibase no detecta cambios: Verificar que spring.liquibase.contexts
+#   en application.yml coincide con el perfil activo.
+#
+# ============================================================================

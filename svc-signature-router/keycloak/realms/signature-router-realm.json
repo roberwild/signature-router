@@ -237,10 +237,13 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "signature-router-admin-secret-12345",
       "redirectUris": [
+        "http://localhost:3000/*",
+        "http://localhost:3000/api/auth/callback/keycloak",
         "http://localhost:3001/*",
         "http://localhost:3001/api/auth/callback/keycloak"
       ],
       "webOrigins": [
+        "http://localhost:3000",
         "http://localhost:3001"
       ],
       "attributes": {
